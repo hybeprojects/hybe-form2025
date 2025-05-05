@@ -1,0 +1,11 @@
+{
+  "name": "hybe-form-client",
+  "version": "1.0.0",
+  "description": "HYBE Fan-Permit Frontend",
+  "scripts": {
+    "start": "serve -s ."
+  },
+  "dependencies": {
+    "serve": "^14.2.3"
+  }
+}

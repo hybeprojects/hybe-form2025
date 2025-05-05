@@ -1,0 +1,59 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+    min-height: 100vh;
+  }
+  .card {
+    border-radius: 15px;
+    padding: 20px;
+    background: #fff;
+  }
+  .logo-pulse {
+    max-width: 150px;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+  .btn-gradient {
+    background: linear-gradient(90deg, #8e44ad, #3498db);
+    border: none;
+    transition: all 0.3s;
+  }
+  .btn-gradient:hover {
+    background: linear-gradient(90deg, #3498db, #8e44ad);
+    transform: translateY(-2px);
+  }
+  .error-message {
+    color: #dc3545;
+    font-size: 0.9rem;
+  }
+  .success-message {
+    color: #28a745;
+    font-size: 0.9rem;
+  }
+  .tooltip-icon {
+    cursor: pointer;
+    margin-left: 5px;
+    font-size: 0.9rem;
+  }
+  .form-control.error {
+    border-color: #dc3545;
+  }
+  .bg-gradient {
+    background: linear-gradient(90deg, #8e44ad, #3498db);
+  }
+  footer.bg-gradient {
+    background: linear-gradient(90deg, #2c3e50, #3498db);
+  }
+  .hover-link:hover {
+    text-decoration: underline;
+  }
+  .social-icon:hover {
+    color: #ccc !important;
+  }
+  .benefit-list li {
+    margin-bottom: 10px;
+  }
