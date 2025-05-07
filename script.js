@@ -302,19 +302,20 @@ document.addEventListener("DOMContentLoaded", () => {
   async function submitForm() {
     const formData = new FormData(form);
     try {
-      const response = await fetch("/", {
+      const response = await fetch("/.netlify/functions/submit-form", {
         method: "POST",
         body: formData,
       });
+      const result = await response.json();
       if (response.ok) {
-        showMessage("Submission successful! Check your email/SMS for status.", "success");
+        showMessage(result.message || "Submission successful! Check your email/SMS for status.", "success");
         form.reset();
         progressBar.style.width = "0%";
         progressBar.setAttribute("aria-valuenow", 0);
         installmentOptions.classList.add("d-none");
         paymentMethods.classList.add("d-none");
       } else {
-        throw new Error("Submission failed.");
+        throw new Error(result.error || "Submission failed.");
       }
     } catch (error) {
       showMessage(`Submission failed: ${error.message}`, "danger");
