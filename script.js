@@ -170,7 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Update progress bar
   function updateProgress() {
-    const totalFields = 9; // Adjusted for removed selfie
+    const totalFields = 11; // referral-code, full-name, email, phone, dob, gender, branch, group, artist, payment-type, contact-method
     let filledFields = 0;
     if (referralCodeInput.value) filledFields++;
     if (emailInput.value) filledFields++;
@@ -181,6 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (groupSelect.value) filledFields++;
     if (artistSelect.value) filledFields++;
     if (paymentTypeSelect.value) filledFields++;
+    if (document.querySelector('input[name="contact-method"]:checked')) filledFields++;
     const progress = (filledFields / totalFields) * 100;
     progressBar.style.width = `${progress}%`;
     progressBar.setAttribute("aria-valuenow", progress);
@@ -349,7 +350,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Update progress on input
-  [referralCodeInput, emailInput, phoneInput, dobInput, genderSelect, artistSelect].forEach(input => {
+  [referralCodeInput, emailInput, phoneInput, dobInput, genderSelect, branchSelect, groupSelect, artistSelect, paymentTypeSelect].forEach(input => {
     input.addEventListener("input", updateProgress);
+  });
+  document.querySelectorAll('input[name="contact-method"]').forEach(input => {
+    input.addEventListener("change", updateProgress);
   });
 });
