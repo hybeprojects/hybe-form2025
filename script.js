@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   AOS.init({ once: true });
 
   const onboardingModal = new bootstrap.Modal(document.getElementById("onboardingModal"));
-  onboardingModal.show(); // Show the onboarding modal on page load
+  onboardingModal.show();
 
   const form = document.getElementById("subscription-form");
   const formMessage = document.getElementById("form-message");
@@ -17,7 +17,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const paymentTypeSelect = document.getElementById("payment-type");
   const installmentOptions = document.getElementById("installment-options");
   const paymentMethods = document.getElementById("payment-methods");
-  const selfieInput = document.getElementById("selfie");
   const privacyPolicy = document.getElementById("privacy-policy");
   const subscriptionAgreement = document.getElementById("subscription-agreement");
   const submitBtn = document.getElementById("submit-btn");
@@ -171,7 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Update progress bar
   function updateProgress() {
-    const totalFields = 10; // Adjust based on required fields
+    const totalFields = 9; // Adjusted for removed selfie
     let filledFields = 0;
     if (referralCodeInput.value) filledFields++;
     if (emailInput.value) filledFields++;
@@ -182,7 +181,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (groupSelect.value) filledFields++;
     if (artistSelect.value) filledFields++;
     if (paymentTypeSelect.value) filledFields++;
-    if (selfieInput.files.length) filledFields++;
     const progress = (filledFields / totalFields) * 100;
     progressBar.style.width = `${progress}%`;
     progressBar.setAttribute("aria-valuenow", progress);
@@ -239,12 +237,16 @@ document.addEventListener("DOMContentLoaded", () => {
       resetButton();
       return;
     }
-    // Format phone number in E.164 format
-    const phoneNumber = iti.getNumber(); // E.164 format (e.g., +12025550123)
-    phoneInput.value = phoneNumber; // Update the input value
+    const phoneNumber = iti.getNumber(); // E.164 format
+    phoneInput.value = phoneNumber;
 
-    const today = new Date();
     const dob = new Date(dobInput.value);
+    if (isNaN(dob) || dobInput.value !== dob.toISOString().split("T")[0]) {
+      showMessage("Invalid date of birth. Use YYYY-MM-DD format.", "danger");
+      resetButton();
+      return;
+    }
+    const today = new Date();
     const age = today.getFullYear() - dob.getFullYear();
     if (age < 13) {
       showMessage("You must be at least 13 years old to subscribe.", "danger");
@@ -276,13 +278,9 @@ document.addEventListener("DOMContentLoaded", () => {
       resetButton();
       return;
     }
-    if (!selfieInput.files.length) {
-      showMessage("Please upload a selfie.", "danger");
-      resetButton();
-      return;
-    }
-    if (selfieInput.files.length && selfieInput.files[0].size > 1024 * 1024) { // 1MB limit
-      showMessage("Selfie file size must be less than 1MB.", "danger");
+    const contactMethods = document.querySelectorAll('input[name="contact-method"]:checked');
+    if (contactMethods.length !== 1) {
+      showMessage("Please select exactly one contact method.", "danger");
       resetButton();
       return;
     }
@@ -314,20 +312,22 @@ document.addEventListener("DOMContentLoaded", () => {
   async function submitForm() {
     const formData = new FormData(form);
     try {
-      const response = await fetch("/.netlify/functions/submit-form", {
+      const response = await fetch("/", {
         method: "POST",
         body: formData,
+        headers: {
+          Accept: "application/json",
+        },
       });
-      const result = await response.json();
       if (response.ok) {
-        showMessage(result.message || "Submission successful! Check your email/SMS for status.", "success");
+        showMessage("Submission successful! Check your email for confirmation.", "success");
         form.reset();
         progressBar.style.width = "0%";
         progressBar.setAttribute("aria-valuenow", 0);
         installmentOptions.classList.add("d-none");
         paymentMethods.classList.add("d-none");
       } else {
-        throw new Error(result.error || "Submission failed.");
+        throw new Error("Submission failed.");
       }
     } catch (error) {
       showMessage(`Submission failed: ${error.message}`, "danger");
@@ -349,7 +349,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Update progress on input
-  [referralCodeInput, emailInput, phoneInput, dobInput, genderSelect, artistSelect, selfieInput].forEach(input => {
+  [referralCodeInput, emailInput, phoneInput, dobInput, genderSelect, artistSelect].forEach(input => {
     input.addEventListener("input", updateProgress);
   });
 });
