@@ -1,6 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
   AOS.init({ once: true });
 
+  const onboardingModal = new bootstrap.Modal(document.getElementById("onboardingModal"));
+  onboardingModal.show(); // Show the onboarding modal on page load
+
   const form = document.getElementById("subscription-form");
   const formMessage = document.getElementById("form-message");
   const referralCodeInput = document.getElementById("referral-code");
@@ -300,29 +303,29 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   async function submitForm() {
-  const formData = new FormData(form);
-  try {
-    const response = await fetch("/.netlify/functions/submit-form", {
-      method: "POST",
-      body: formData,
-    });
-    const result = await response.json();
-    if (response.ok) {
-      showMessage(result.message || "Submission successful! Check your email/SMS for status.", "success");
-      form.reset();
-      progressBar.style.width = "0%";
-      progressBar.setAttribute("aria-valuenow", 0);
-      installmentOptions.classList.add("d-none");
-      paymentMethods.classList.add("d-none");
-    } else {
-      throw new Error(result.error || "Submission failed.");
+    const formData = new FormData(form);
+    try {
+      const response = await fetch("/.netlify/functions/submit-form", {
+        method: "POST",
+        body: formData,
+      });
+      const result = await response.json();
+      if (response.ok) {
+        showMessage(result.message || "Submission successful! Check your email/SMS for status.", "success");
+        form.reset();
+        progressBar.style.width = "0%";
+        progressBar.setAttribute("aria-valuenow", 0);
+        installmentOptions.classList.add("d-none");
+        paymentMethods.classList.add("d-none");
+      } else {
+        throw new Error(result.error || "Submission failed.");
+      }
+    } catch (error) {
+      showMessage(`Submission failed: ${error.message}`, "danger");
+    } finally {
+      resetButton();
     }
-  } catch (error) {
-    showMessage(`Submission failed: ${error.message}`, "danger");
-  } finally {
-    resetButton();
   }
-}
 
   function showMessage(text, type) {
     formMessage.textContent = text;
