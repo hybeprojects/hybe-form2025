@@ -1,8 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
   AOS.init({ once: true });
 
+  // Trigger onboarding modal on page load
   const onboardingModal = new bootstrap.Modal(document.getElementById("onboardingModal"));
-  onboardingModal.show(); // Show the onboarding modal on page load
+  if (onboardingModal) onboardingModal.show(); // Only show if element exists
 
   const form = document.getElementById("subscription-form");
   const formMessage = document.getElementById("form-message");
