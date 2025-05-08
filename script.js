@@ -218,91 +218,99 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Form submission
   form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    submitBtn.disabled = true;
-    btnText.textContent = "Submitting...";
-    spinner.classList.remove("d-none");
-    formMessage.classList.add("d-none");
+  e.preventDefault();
+  submitBtn.disabled = true;
+  btnText.textContent = "Submitting...";
+  spinner.classList.remove("d-none");
+  formMessage.classList.add("d-none");
 
-    // Validation
-    if (referralCodeInput.value !== "HYBE2025") {
-      showMessage("Invalid referral code. Use HYBE2025.", "danger");
-      resetButton();
-      return;
-    }
-    if (!emailRegex.test(emailInput.value)) {
-      showMessage("Invalid email address.", "danger");
-      resetButton();
-      return;
-    }
-    if (!iti.isValidNumber()) {
-      showMessage("Invalid phone number.", "danger");
-      resetButton();
-      return;
-    }
-    const today = new Date();
-    const dob = new Date(dobInput.value);
-    const age = today.getFullYear() - dob.getFullYear();
-    if (age < 13) {
-      showMessage("You must be at least 13 years old to subscribe.", "danger");
-      resetButton();
-      return;
-    }
-    if (!genderSelect.value || genderSelect.value === "Select Gender") {
-      showMessage("Please select your gender.", "danger");
-      resetButton();
-      return;
-    }
-    if (!branchSelect.value || branchSelect.value === "Select a HYBE Branch") {
-      showMessage("Please select a HYBE branch.", "danger");
-      resetButton();
-      return;
-    }
-    if (!groupSelect.value || groupSelect.value === "Select a Group") {
-      showMessage("Please select a group.", "danger");
-      resetButton();
-      return;
-    }
-    if (!artistSelect.value || artistSelect.value === "Select an Artist") {
-      showMessage("Please select an artist.", "danger");
-      resetButton();
-      return;
-    }
-    if (!paymentTypeSelect.value || paymentTypeSelect.value === "Select Payment Type") {
-      showMessage("Please select a payment type.", "danger");
-      resetButton();
-      return;
-    }
-    if (!selfieInput.files.length) {
-      showMessage("Please upload a selfie.", "danger");
-      resetButton();
-      return;
-    }
-    if (!privacyPolicy.checked || !subscriptionAgreement.checked) {
-      showMessage("You must agree to the privacy policy and subscription agreement.", "danger");
-      resetButton();
-      return;
-    }
+  // Validation
+  if (referralCodeInput.value !== "HYBE2025") {
+    showMessage("Invalid referral code. Use HYBE2025.", "danger");
+    resetButton();
+    return;
+  }
+  if (!emailRegex.test(emailInput.value)) {
+    showMessage("Invalid email address.", "danger");
+    resetButton();
+    return;
+  }
+  if (!iti.isValidNumber()) {
+    showMessage("Invalid phone number.", "danger");
+    resetButton();
+    return;
+  }
+  // Format phone number in E.164 format
+  const phoneNumber = iti.getNumber(); // E.164 format (e.g., +12025550123)
+  phoneInput.value = phoneNumber; // Update the input value
 
-    // Set permit and submission IDs
-    permitIdInput.value = generatePermitId();
-    submissionIdInput.value = generateSubmissionId();
+  const today = new Date();
+  const dob = new Date(dobInput.value);
+  const age = today.getFullYear() - dob.getFullYear();
+  if (age < 13) {
+    showMessage("You must be at least 13 years old to subscribe.", "danger");
+    resetButton();
+    return;
+  }
+  if (!genderSelect.value || genderSelect.value === "Select Gender") {
+    showMessage("Please select your gender.", "danger");
+    resetButton();
+    return;
+  }
+  if (!branchSelect.value || branchSelect.value === "Select a HYBE Branch") {
+    showMessage("Please select a HYBE branch.", "danger");
+    resetButton();
+    return;
+  }
+  if (!groupSelect.value || groupSelect.value === "Select a Group") {
+    showMessage("Please select a group.", "danger");
+    resetButton();
+    return;
+  }
+  if (!artistSelect.value || artistSelect.value === "Select an Artist") {
+    showMessage("Please select an artist.", "danger");
+    resetButton();
+    return;
+  }
+  if (!paymentTypeSelect.value || paymentTypeSelect.value === "Select Payment Type") {
+    showMessage("Please select a payment type.", "danger");
+    resetButton();
+    return;
+  }
+  if (!selfieInput.files.length) {
+    showMessage("Please upload a selfie.", "danger");
+    resetButton();
+    return;
+  }
+  if (selfieInput.files.length && selfieInput.files[0].size > 1024 * 1024) { // 1MB limit
+    showMessage("Selfie file size must be less than 1MB.", "danger");
+    resetButton();
+    return;
+  }
+  if (!privacyPolicy.checked || !subscriptionAgreement.checked) {
+    showMessage("You must agree to the privacy policy and subscription agreement.", "danger");
+    resetButton();
+    return;
+  }
 
-    // Show validation modal with countdown
-    validationModal.show();
-    let countdown = 3;
+  // Set permit and submission IDs
+  permitIdInput.value = generatePermitId();
+  submissionIdInput.value = generateSubmissionId();
+
+  // Show validation modal with countdown
+  validationModal.show();
+  let countdown = 3;
+  countdownElement.textContent = countdown;
+  const countdownInterval = setInterval(() => {
+    countdown--;
     countdownElement.textContent = countdown;
-    const countdownInterval = setInterval(() => {
-      countdown--;
-      countdownElement.textContent = countdown;
-      if (countdown <= 0) {
-        clearInterval(countdownInterval);
-        validationModal.hide();
-        submitForm();
-      }
-    }, 1000);
-  });
-
+    if (countdown <= 0) {
+      clearInterval(countdownInterval);
+      validationModal.hide();
+      submitForm();
+    }
+  }, 1000);
+});
   async function submitForm() {
     const formData = new FormData(form);
     try {
