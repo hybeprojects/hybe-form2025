@@ -302,7 +302,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const countdownInterval = setInterval(() => {
       countdown--;
       countdownElement.textContent = countdown;
-      if (countdown <= 1) {
+      if (countdown <= 0) {
         clearInterval(countdownInterval);
         validationModal.hide();
         submitForm();
