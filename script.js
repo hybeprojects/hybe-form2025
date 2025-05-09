@@ -297,12 +297,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Show validation modal with countdown
     validationModal.show();
-    let countdown = 3;
+    let countdown = 5;
     countdownElement.textContent = countdown;
     const countdownInterval = setInterval(() => {
       countdown--;
       countdownElement.textContent = countdown;
-      if (countdown <= 0) {
+      if (countdown <= 1) {
         clearInterval(countdownInterval);
         validationModal.hide();
         submitForm();
