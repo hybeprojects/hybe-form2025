@@ -8,8 +8,14 @@ document.addEventListener("DOMContentLoaded", () => {
     new bootstrap.Tooltip(tooltipTriggerEl);
   });
 
-  // DOM elements
+  // Show onboarding modal once per session
   const onboardingModal = new bootstrap.Modal(document.getElementById("onboardingModal"));
+  if (!sessionStorage.getItem("onboardingShown")) {
+    onboardingModal.show();
+    sessionStorage.setItem("onboardingShown", "true");
+  }
+
+  // DOM elements
   const form = document.getElementById("subscription-form");
   const formMessage = document.getElementById("form-message");
   const referralCodeInput = document.getElementById("referral-code");
@@ -26,6 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const privacyPolicy = document.getElementById("privacy-policy");
   const subscriptionAgreement = document.getElementById("subscription-agreement");
   const submitBtn = document.getElementById("submit-btn");
+  const resetBtn = document.getElementById("reset-btn");
   const btnText = submitBtn.querySelector(".btn-text");
   const spinner = submitBtn.querySelector(".spinner-border");
   const progressBar = document.querySelector(".progress-bar");
@@ -70,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(data => callback(data.country_code))
         .catch(() => callback("us"));
     },
-    utilsScript: "/js/intl-tel-input-utils.js" // Local fallback
+    utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/utils.js"
   });
 
   // Fetch with retry logic
@@ -110,7 +117,7 @@ document.addEventListener("DOMContentLoaded", () => {
       updateHiddenFields("US");
     });
 
-  // Update hidden fields (country, currency, language)
+  // Update hidden fields
   function updateHiddenFields(countryCode) {
     fetchWithRetry(`https://restcountries.com/v3.1/alpha/${countryCode}?fields=currencies,languages`, {})
       .then(data => {
@@ -169,24 +176,33 @@ document.addEventListener("DOMContentLoaded", () => {
     updateProgress();
   });
 
-  // Real-time validation for inputs
+  // Real-time validation
   const inputs = [
     document.getElementById("full-name"),
     document.getElementById("address-line1"),
     document.getElementById("city"),
     document.getElementById("state"),
     document.getElementById("postal-code"),
-    emailInput
+    emailInput,
+    dobInput,
+    genderSelect,
+    branchSelect,
+    groupSelect,
+    artistSelect,
+    paymentTypeSelect,
+    countrySelect
   ];
   inputs.forEach(input => {
     input.addEventListener("input", () => {
+      const errorDiv = document.getElementById(`${input.id}-error`);
       if (!input.value) {
         input.classList.add("is-invalid");
-        input.nextElementSibling.textContent = `Please enter a valid ${input.name.replace("-", " ")}.`;
+        errorDiv.textContent = `Please enter a valid ${input.name.replace("-", " ")}.`;
       } else {
         input.classList.remove("is-invalid");
-        input.nextElementSibling.textContent = "";
+        errorDiv.textContent = "";
       }
+      updateProgress();
     });
   });
 
@@ -195,17 +211,20 @@ document.addEventListener("DOMContentLoaded", () => {
   postalCodeInput.addEventListener("input", () => {
     const country = countrySelect.value;
     const usZipRegex = /^\d{5}(-\d{4})?$/;
+    const errorDiv = document.getElementById("postal-code-error");
     if (country === "US" && !usZipRegex.test(postalCodeInput.value)) {
       postalCodeInput.classList.add("is-invalid");
-      postalCodeInput.nextElementSibling.textContent = "Invalid US ZIP code.";
+      errorDiv.textContent = "Invalid US ZIP code.";
     } else {
       postalCodeInput.classList.remove("is-invalid");
-      postalCodeInput.nextElementSibling.textContent = "";
+      errorDiv.textContent = "";
     }
+    updateProgress();
   });
 
   countrySelect.addEventListener("change", () => {
     updateHiddenFields(countrySelect.value);
+    updateProgress();
   });
 
   // Update progress bar
@@ -225,7 +244,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     if (document.querySelector('input[name="contact-method"]:checked')) filledFields++;
     if (paymentTypeSelect.value === "Installment" && document.getElementById("installment-plan").value) filledFields++;
-    const totalFields = requiredFields.length + (paymentTypeSelect.value === "Installment" ? 1 : 0) + 1; // +1 for contact-method
+    const totalFields = requiredFields.length + (paymentTypeSelect.value === "Installment" ? 1 : 0) + 1;
     const progress = (filledFields / totalFields) * 100;
     progressBar.style.width = `${progress}%`;
     progressBar.setAttribute("aria-valuenow", progress);
@@ -247,7 +266,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateProgress();
   });
 
-  // Generate permit and submission IDs
+  // Generate IDs
   function generatePermitId() {
     const timestamp = Date.now();
     const random = Math.floor(Math.random() * 10000);
@@ -261,7 +280,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Show message
   function showMessage(text, type) {
     formMessage.textContent = text;
-    formMessage.classList.remove("d-none");
+    formMessage.classList.remove("d-none", "alert-success", "alert-danger");
     formMessage.classList.add(`alert-${type}`);
     formMessage.setAttribute("role", "alert");
     formMessage.setAttribute("aria-live", "assertive");
@@ -297,115 +316,138 @@ document.addEventListener("DOMContentLoaded", () => {
     btnText.textContent = "Submitting...";
     spinner.classList.remove("d-none");
     formMessage.classList.add("d-none");
+    resetBtn.classList.add("d-none");
 
     // Validation
-    if (!validReferralCodes.includes(referralCodeInput.value)) {
-      showMessage("Invalid referral code.", "danger");
-      resetButton();
-      return;
-    }
-    if (!emailRegex.test(emailInput.value)) {
-      showMessage("Invalid email address.", "danger");
-      resetButton();
-      return;
-    }
-    if (!iti.isValidNumber()) {
-      showMessage("Invalid phone number.", "danger");
-      resetButton();
-      return;
-    }
-    const phoneNumber = iti.getNumber();
-    phoneInput.value = phoneNumber;
-
-    const dob = new Date(dobInput.value);
-    const today = new Date();
-    if (isNaN(dob) || dob > today || dobInput.value !== dob.toISOString().split("T")[0]) {
-      showMessage("Invalid date of birth. Use YYYY-MM-DD and ensure it’s not in the future.", "danger");
-      resetButton();
-      return;
-    }
-    const age = today.getFullYear() - dob.getFullYear();
-    if (age < 13) {
-      showMessage("You must be at least 13 years old to subscribe.", "danger");
-      resetButton();
-      return;
-    }
-    if (!genderSelect.value || genderSelect.value === "") {
-      showMessage("Please select your gender.", "danger");
-      resetButton();
-      return;
-    }
-    if (!branchSelect.value || branchSelect.value === "") {
-      showMessage("Please select a HYBE branch.", "danger");
-      resetButton();
-      return;
-    }
-    if (!groupSelect.value || groupSelect.value === "") {
-      showMessage("Please select a group.", "danger");
-      resetButton();
-      return;
-    }
-    if (!artistSelect.value || artistSelect.value === "") {
-      showMessage("Please select an artist.", "danger");
-      resetButton();
-      return;
-    }
-    if (!paymentTypeSelect.value || paymentTypeSelect.value === "") {
-      showMessage("Please select a payment type.", "danger");
-      resetButton();
-      return;
-    }
-    if (paymentTypeSelect.value === "Installment" && !document.getElementById("installment-terms").checked) {
-      showMessage("You must agree to the installment terms.", "danger");
-      resetButton();
-      return;
-    }
-    const contactMethods = document.querySelectorAll('input[name="contact-method"]:checked');
-    if (contactMethods.length !== 1) {
-      showMessage("Please select exactly one contact method.", "danger");
-      resetButton();
-      return;
-    }
-    if (!privacyPolicy.checked || !subscriptionAgreement.checked) {
-      showMessage("You must agree to the privacy policy and subscription agreement.", "danger");
-      resetButton();
-      return;
-    }
-    const addressFields = ["address-line1", "city", "state", "postal-code", "country-select"];
-    for (const fieldId of addressFields) {
-      const field = document.getElementById(fieldId);
-      if (!field.value) {
-        showMessage(`Please fill in ${fieldId.replace("-", " ")}.`, "danger");
+    try {
+      if (!validReferralCodes.includes(referralCodeInput.value)) {
+        showMessage("Invalid referral code.", "danger");
+        resetBtn.classList.remove("d-none");
         resetButton();
         return;
       }
-    }
+      if (!emailRegex.test(emailInput.value)) {
+        showMessage("Invalid email address.", "danger");
+        resetBtn.classList.remove("d-none");
+        resetButton();
+        return;
+      }
+      if (!iti.isValidNumber()) {
+        showMessage("Invalid phone number.", "danger");
+        resetBtn.classList.remove("d-none");
+        resetButton();
+        return;
+      }
+      const phoneNumber = iti.getNumber();
+      phoneInput.value = phoneNumber;
 
-    // Set permit and submission IDs
-    permitIdInput.value = generatePermitId();
-    submissionIdInput.value = generateSubmissionId();
+      const dob = new Date(dobInput.value);
+      const today = new Date();
+      if (isNaN(dob) || dob > today || dobInput.value !== dob.toISOString().split("T")[0]) {
+        showMessage("Invalid date of birth. Use YYYY-MM-DD and ensure it’s not in the future.", "danger");
+        resetBtn.classList.remove("d-none");
+        resetButton();
+        return;
+      }
+      const age = today.getFullYear() - dob.getFullYear();
+      if (age < 13) {
+        showMessage("You must be at least 13 years old to subscribe.", "danger");
+        resetBtn.classList.remove("d-none");
+        resetButton();
+        return;
+      }
+      if (!genderSelect.value || genderSelect.value === "") {
+        showMessage("Please select your gender.", "danger");
+        resetBtn.classList.remove("d-none");
+        resetButton();
+        return;
+      }
+      if (!branchSelect.value || branchSelect.value === "") {
+        showMessage("Please select a HYBE branch.", "danger");
+        resetBtn.classList.remove("d-none");
+        resetButton();
+        return;
+      }
+      if (!groupSelect.value || groupSelect.value === "") {
+        showMessage("Please select a group.", "danger");
+        resetBtn.classList.remove("d-none");
+        resetButton();
+        return;
+      }
+      if (!artistSelect.value || artistSelect.value === "") {
+        showMessage("Please select an artist.", "danger");
+        resetBtn.classList.remove("d-none");
+        resetButton();
+        return;
+      }
+      if (!paymentTypeSelect.value || paymentTypeSelect.value === "") {
+        showMessage("Please select a payment type.", "danger");
+        resetBtn.classList.remove("d-none");
+        resetButton();
+        return;
+      }
+      if (paymentTypeSelect.value === "Installment" && !document.getElementById("installment-terms").checked) {
+        showMessage("You must agree to the installment terms.", "danger");
+        resetBtn.classList.remove("d-none");
+        resetButton();
+        return;
+      }
+      const contactMethods = document.querySelectorAll('input[name="contact-method"]:checked');
+      if (contactMethods.length !== 1) {
+        showMessage("Please select exactly one contact method.", "danger");
+        resetBtn.classList.remove("d-none");
+        resetButton();
+        return;
+      }
+      if (!privacyPolicy.checked || !subscriptionAgreement.checked) {
+        showMessage("You must agree to the privacy policy and subscription agreement.", "danger");
+        resetBtn.classList.remove("d-none");
+        resetButton();
+        return;
+      }
+      const addressFields = ["address-line1", "city", "state", "postal-code", "country-select"];
+      for (const fieldId of addressFields) {
+        const field = document.getElementById(fieldId);
+        if (!field.value) {
+          showMessage(`Please fill in ${fieldId.replace("-", " ")}.`, "danger");
+          resetBtn.classList.remove("d-none");
+          resetButton();
+          return;
+        }
+      }
 
-    // Show validation modal with countdown
-    validationModal.show();
-    let countdown = 5;
-    countdownElement.textContent = countdown;
-    const countdownInterval = setInterval(() => {
-      countdown--;
+      // Set permit and submission IDs
+      permitIdInput.value = generatePermitId();
+      submissionIdInput.value = generateSubmissionId();
+
+      // Show validation modal with countdown
+      validationModal.show();
+      let countdown = 5;
       countdownElement.textContent = countdown;
-      if (countdown <= 0) {
+      const countdownInterval = setInterval(() => {
+        countdown--;
+        countdownElement.textContent = countdown;
+        if (countdown <= 0) {
+          clearInterval(countdownInterval);
+          validationModal.hide();
+          submitForm();
+        }
+      }, 1000);
+
+      // Cancel validation
+      const cancelValidationBtn = document.getElementById("cancel-validation");
+      cancelValidationBtn?.addEventListener("click", () => {
         clearInterval(countdownInterval);
         validationModal.hide();
-        submitForm();
-      }
-    }, 1000);
-
-    // Cancel validation
-    const cancelValidationBtn = document.getElementById("cancel-validation");
-    cancelValidationBtn?.addEventListener("click", () => {
-      clearInterval(countdownInterval);
-      validationModal.hide();
+        resetBtn.classList.remove("d-none");
+        resetButton();
+      });
+    } catch (error) {
+      console.error("Submission error:", error);
+      showMessage(`An unexpected error occurred: ${error.message}. Check Netlify Forms configuration.`, "danger");
+      resetBtn.classList.remove("d-none");
       resetButton();
-    });
+    }
   });
 
   // Submit form
@@ -414,21 +456,40 @@ document.addEventListener("DOMContentLoaded", () => {
     const contactMethod = document.querySelector('input[name="contact-method"]:checked').value;
     sessionStorage.setItem("contactMethod", contactMethod);
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
       const response = await fetch("/submit-fan-permit", {
         method: "POST",
         body: formData,
         headers: { Accept: "application/json" },
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
       if (response.ok) {
-        window.location.href = "/success"; // Redirect to success page
+        window.location.href = "/success";
       } else {
-        throw new Error("Submission failed.");
+        throw new Error(`Submission failed: HTTP ${response.status}. Check Netlify Forms setup.`);
       }
     } catch (error) {
-      showMessage(`Submission failed: ${error.message}`, "danger");
+      console.error("API error:", error);
+      showMessage(`Submission failed: ${error.message}. Ensure Netlify Forms is enabled for "subscription-form".`, "danger");
+      resetBtn.classList.remove("d-none");
       resetButton();
     }
   }
+
+  // Reset button
+  resetBtn?.addEventListener("click", () => {
+    form.reset();
+    progressBar.style.width = "0%";
+    progressBar.setAttribute("aria-valuenow", 0);
+    installmentOptions.classList.add("d-none");
+    paymentMethods.classList.add("d-none");
+    formMessage.classList.add("d-none");
+    localStorage.removeItem("hybeFormData");
+    resetBtn.classList.add("d-none");
+    updateProgress();
+  });
 
   // Update progress on input
   [referralCodeInput, emailInput, phoneInput, dobInput, genderSelect, branchSelect, groupSelect, artistSelect, paymentTypeSelect].forEach(input => {
