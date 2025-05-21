@@ -7,31 +7,23 @@
   <meta name="description" content="Your HYBE Fan-Permit subscription has been successfully submitted. Check your email for confirmation." />
   <meta name="keywords" content="HYBE, K-pop, fan subscription, fan permit" />
   <meta name="author" content="HYBE Corporation" />
-  <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="hybecorp.com/success" />
   <meta property="og:title" content="HYBE Fan-Permit Subscription - Success" />
   <meta property="og:description" content="Thank you for joining the HYBE Fan-Permit! Check your email for confirmation." />
   <meta property="og:image" content="https://logotyp.us/file/hybe.svg" />
-  <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:url" content="hybecorp.com/success" />
   <meta name="twitter:title" content="HYBE Fan-Permit Subscription - Success" />
   <meta name="twitter:description" content="Your subscription was successful. Stay tuned for exclusive HYBE updates!" />
   <meta name="twitter:image" content="https://logotyp.us/file/hybe.svg" />
-  <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <!-- AOS CSS -->
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
-  <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
-  <!-- Custom CSS -->
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <!-- No JavaScript Fallback -->
   <noscript>
     <div class="container my-5 text-center">
       <h2>JavaScript Required</h2>
@@ -85,15 +77,12 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
   <script>
-    // Initialize AOS
     AOS.init({ once: true });
-
-    // Display contact method from sessionStorage
     const contactMethodEl = document.getElementById("contact-method");
     const contactMethod = sessionStorage.getItem("contactMethod");
     if (contactMethod) {
       contactMethodEl.textContent = `You will be contacted via ${contactMethod}.`;
-      sessionStorage.removeItem("contactMethod"); // Clear after display
+      sessionStorage.removeItem("contactMethod");
     }
   </script>
 </body>
