@@ -1,0 +1,17 @@
+[build]
+  publish = "/"
+  command = ""
+
+[[redirects]]
+  from = "/success"
+  to = "/success.html"
+  status = 200
+
+[[redirects]]
+  from = "/submit-fan-permit"
+  to = "/.netlify/functions/submit-fan-permit"
+  status = 200
+  force = true
+
+[functions]
+  directory = "netlify/functions"
