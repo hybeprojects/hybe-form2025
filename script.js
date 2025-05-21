@@ -268,7 +268,7 @@ document.addEventListener("DOMContentLoaded", () => {
     progressBar.setAttribute("aria-valuenow", progress);
   }
 
-  const debouncedUpdateProgress = debounce(updateProgress, 400); // Increased to 400ms
+  const debouncedUpdateProgress = debounce(updateProgress, 400); // 400ms debounce
 
   // Show installment options or payment methods
   paymentTypeSelect.addEventListener("change", () => {
@@ -345,6 +345,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Failsafe UI reset
     const resetTimeout = setTimeout(() => {
+      console.debug("Failsafe triggered");
       validationModal.hide();
       showMessage("Submission timed out. Please try again or check Netlify Forms setup.", "danger");
       resetButton();
@@ -539,7 +540,6 @@ document.addEventListener("DOMContentLoaded", () => {
       showMessage(`Submission failed: ${error.message}. Trying native submission...`, "danger");
       resetBtn.classList.remove("d-none");
       resetButton();
-      // Fallback to native form submission
       try {
         form.submit();
         console.debug("Native form submission triggered");
