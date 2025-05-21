@@ -1,16 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Submission Successful</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>HYBE Fan-Permit Subscription - Success</title>
+  <meta name="description" content="Your HYBE Fan-Permit subscription has been successfully submitted. Check your email for confirmation." />
+  <meta name="keywords" content="HYBE, K-pop, fan subscription, fan permit" />
+  <meta name="author" content="HYBE Corporation" />
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="hybecorp.com/success" />
+  <meta property="og:title" content="HYBE Fan-Permit Subscription - Success" />
+  <meta property="og:description" content="Thank you for joining the HYBE Fan-Permit! Check your email for confirmation." />
+  <meta property="og:image" content="https://logotyp.us/file/hybe.svg" />
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="hybecorp.com/success" />
+  <meta name="twitter:title" content="HYBE Fan-Permit Subscription - Success" />
+  <meta name="twitter:description" content="Your subscription was successful. Stay tuned for exclusive HYBE updates!" />
+  <meta name="twitter:image" content="https://logotyp.us/file/hybe.svg" />
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- AOS CSS -->
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="container mt-5">
-    <h1>Thank You!</h1>
-    <p>Your subscription has been submitted. Check your email for confirmation.</p>
-    <a href="/" class="btn btn-primary">Back to Form</a>
-  </div>
+  <!-- No JavaScript Fallback -->
+  <noscript>
+    <div class="container my-5 text-center">
+      <h2>JavaScript Required</h2>
+      <p>Please enable JavaScript to view this page.</p>
+    </div>
+  </noscript>
+
+  <main>
+    <div class="container my-5">
+      <div class="card shadow-lg text-center" data-aos="zoom-in">
+        <div class="card-body">
+          <img src="https://logotyp.us/file/hybe.svg" alt="HYBE Corporation Logo" class="img-fluid logo-pulse mb-3" loading="lazy" />
+          <h1>Thank You!</h1>
+          <p class="alert alert-success success-message" role="alert" aria-live="assertive">Your subscription has been submitted successfully. Check your email for confirmation.</p>
+          <p id="contact-method" class="text-muted mb-4"></p>
+          <a href="/" class="btn btn-gradient">Back to Form</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="bg-footer-gradient text-white py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <img src="https://logotyp.us/file/hybe.svg" alt="HYBE Corporation Logo" class="img-fluid mb-2" style="max-width: 150px;" loading="lazy" />
+          <p>Empowering global K-pop innovation.</p>
+        </div>
+        <div class="col-md-4 mb-3">
+          <h5>Quick Links</h5>
+          <ul class="list-unstyled">
+            <li><a href="https://hybecorp.com" class="text-white text-decoration-none hover-link">About Us</a></li>
+            <li><a href="https://hybecorp.com/eng/career/crew/content" class="text-white text-decoration-none hover-link">Privacy Policy</a></li>
+            <li><a href="https://hybecorp.com" class="text-white text-decoration-none hover-link">Terms of Service</a></li>
+          </ul>
+        </div>
+        <div class="col-md-4 mb-3">
+          <h5>Contact Us</h5>
+          <p>Email: <a href="mailto:hybe.corp@aol.com" class="text-white text-decoration-none hover-link">hybe.corp@aol.com</a></p>
+          <p>Follow us:</p>
+          <a href="https://x.com/hybeofficialtwt" class="text-white me-3 social-icon"><i class="bi bi-twitter-x"></i></a>
+          <a href="https://www.instagram.com/hybe.labels.audition?igsh=cng5eWhreHkydHNt" class="text-white me-3 social-icon"><i class="bi bi-instagram"></i></a>
+        </div>
+      </div>
+      <div class="text-center mt-4">
+        <p>© 2025 HYBE Corporation. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script>
+    // Initialize AOS
+    AOS.init({ once: true });
+
+    // Display contact method from sessionStorage
+    const contactMethodEl = document.getElementById("contact-method");
+    const contactMethod = sessionStorage.getItem("contactMethod");
+    if (contactMethod) {
+      contactMethodEl.textContent = `You will be contacted via ${contactMethod}.`;
+      sessionStorage.removeItem("contactMethod"); // Clear after display
+    }
+  </script>
 </body>
 </html>
