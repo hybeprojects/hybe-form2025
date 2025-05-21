@@ -1,59 +1,199 @@
+:root {
+  --primary-gradient: linear-gradient(90deg, #8e44ad, #3498db);
+  --footer-gradient: linear-gradient(90deg, #2c3e50, #3498db);
+}
+
 body {
-    font-family: 'Poppins', sans-serif;
-    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
-    min-height: 100vh;
-  }
+  font-family: 'Poppins', sans-serif;
+  background: var(--primary-gradient);
+  min-height: 100vh;
+  color: #2c3e50;
+}
+
+.card {
+  border-radius: 15px;
+  padding: 20px;
+  background: #fff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.logo-pulse {
+  max-width: 150px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.btn-gradient {
+  background: var(--primary-gradient);
+  border: none;
+  color: #fff;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.btn-gradient:hover {
+  background: linear-gradient(90deg, #3498db, #8e44ad);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  font-size: 0.9rem;
+}
+
+.invalid-feedback {
+  color: #dc3545;
+  font-size: 0.9rem;
+  display: none;
+}
+
+.form-control.is-invalid ~ .invalid-feedback,
+.form-select.is-invalid ~ .invalid-feedback,
+.form-check-input.is-invalid ~ .invalid-feedback {
+  display: block;
+}
+
+.form-check-input:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+}
+
+.form-check-input.is-invalid {
+  border-color: #dc3545;
+}
+
+.tooltip-icon {
+  cursor: pointer;
+  margin-left: 5px;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.tooltip-inner {
+  background: #2c3e50;
+  color: #fff;
+  border-radius: 5px;
+}
+
+.tooltip .arrow::before {
+  border-color: #2c3e50;
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+  border-color: #dc3545;
+}
+
+.progress-bar.bg-gradient {
+  background: var(--primary-gradient);
+  background-color: #8e44ad; /* Fallback */
+  color: #fff;
+  transition: width 0.3s ease-in-out;
+}
+
+footer.bg-footer-gradient {
+  background: var(--footer-gradient);
+  color: #fff;
+}
+
+.hover-link:hover {
+  text-decoration: underline;
+}
+
+.social-icon {
+  transition: color 0.3s ease;
+}
+
+.social-icon:hover {
+  color: #ccc !important;
+}
+
+.benefit-list li {
+  margin-bottom: 10px;
+}
+
+.subscription-amount .form-control-plaintext {
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #2c3e50; /* Fallback */
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+}
+
+.form-label {
+  font-size: 0.95rem;
+}
+
+.alert-success {
+  color: #28a745;
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  font-size: 0.9rem;
+}
+
+.alert-danger {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  font-size: 0.9rem;
+}
+
+.d-none {
+  display: none !important;
+}
+
+@media (max-width: 576px) {
   .card {
-    border-radius: 15px;
-    padding: 20px;
-    background: #fff;
+    padding: 15px;
   }
   .logo-pulse {
-    max-width: 150px;
-    animation: pulse 2s infinite;
+    max-width: 100px;
   }
-  @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-  }
-  .btn-gradient {
-    background: linear-gradient(90deg, #8e44ad, #3498db);
-    border: none;
-    transition: all 0.3s;
-  }
-  .btn-gradient:hover {
-    background: linear-gradient(90deg, #3498db, #8e44ad);
-    transform: translateY(-2px);
-  }
-  .error-message {
-    color: #dc3545;
+  .form-label {
     font-size: 0.9rem;
   }
-  .success-message {
-    color: #28a745;
-    font-size: 0.9rem;
+  .btn-gradient,
+  .btn-secondary {
+    font-size: 0.85rem;
   }
-  .tooltip-icon {
-    cursor: pointer;
-    margin-left: 5px;
-    font-size: 0.9rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo-pulse {
+    animation: none;
   }
-  .form-control.error {
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: linear-gradient(135deg, #2c3e50, #4a69bd);
+    color: #f5f7fa;
+  }
+  .card {
+    background: #34495e;
+    color: #f5f7fa;
+  }
+  .form-control,
+  .form-select {
+    background: #2c3e50;
+    color: #f5f7fa;
+    border-color: #4a69bd;
+  }
+  .alert-success {
+    background-color: #1a3c34;
+    border-color: #28a745;
+  }
+  .alert-danger {
+    background-color: #4a1c24;
     border-color: #dc3545;
   }
-  .bg-gradient {
-    background: linear-gradient(90deg, #8e44ad, #3498db);
-  }
-  footer.bg-gradient {
-    background: linear-gradient(90deg, #2c3e50, #3498db);
-  }
-  .hover-link:hover {
-    text-decoration: underline;
-  }
-  .social-icon:hover {
-    color: #ccc !important;
-  }
-  .benefit-list li {
-    margin-bottom: 10px;
-  }
+}
