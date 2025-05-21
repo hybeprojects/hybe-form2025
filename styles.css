@@ -90,7 +90,7 @@ body {
 
 .progress-bar.bg-gradient {
   background: var(--primary-gradient);
-  background-color: #8e44ad; /* Fallback */
+  background-color: #8e44ad;
   color: #fff;
   transition: width 0.3s ease-in-out;
 }
@@ -120,7 +120,7 @@ footer.bg-footer-gradient {
   background: var(--primary-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  color: #2c3e50; /* Fallback */
+  color: #2c3e50;
 }
 
 .form-control:focus,
