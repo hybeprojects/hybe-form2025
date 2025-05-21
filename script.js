@@ -1,7 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Initialize AOS animations
-  AOS.init({ once: true });
-
   // Initialize Bootstrap tooltips
   const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
   tooltipTriggerList.forEach(tooltipTriggerEl => {
@@ -73,7 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const iti = window.intlTelInput(phoneInput, {
     initialCountry: "auto",
     geoIpLookup: (callback) => {
-      fetchWithRetry("https://ipapi.co/json/", {})
+      fetchWithRetry("https://ipapi.co/json/", {}, 1)
         .then(data => callback(data.country_code))
         .catch(() => callback("us"));
     },
@@ -84,7 +81,10 @@ document.addEventListener("DOMContentLoaded", () => {
   async function fetchWithRetry(url, options, retries = 3) {
     for (let i = 0; i < retries; i++) {
       try {
-        const response = await fetch(url, options);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000); // 4s timeout
+        const response = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(timeoutId);
         if (!response.ok) throw new Error(`HTTP error ${response.status}`);
         return await response.json();
       } catch (error) {
@@ -94,28 +94,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Populate country dropdown
-  fetchWithRetry("https://restcountries.com/v3.1/all?fields=name,cca2", {})
-    .then(countries => {
-      countries.sort((a, b) => a.name.common.localeCompare(b.name.common));
-      countries.forEach(country => {
+  // Lazy-load country dropdown
+  let countriesLoaded = false;
+  function loadCountries() {
+    if (countriesLoaded) return;
+    countriesLoaded = true;
+    fetchWithRetry("https://restcountries.com/v3.1/all?fields=name,cca2", {})
+      .then(countries => {
+        countries.sort((a, b) => a.name.common.localeCompare(b.name.common));
+        countries.forEach(country => {
+          const option = document.createElement("option");
+          option.value = country.cca2;
+          option.textContent = country.name.common;
+          countrySelect.appendChild(option);
+        });
+        const userCountry = iti.getSelectedCountryData().iso2.toUpperCase();
+        countrySelect.value = userCountry;
+        updateHiddenFields(userCountry);
+      })
+      .catch(() => {
         const option = document.createElement("option");
-        option.value = country.cca2;
-        option.textContent = country.name.common;
+        option.value = "US";
+        option.textContent = "United States";
         countrySelect.appendChild(option);
+        countrySelect.value = "US";
+        updateHiddenFields("US");
       });
-      const userCountry = iti.getSelectedCountryData().iso2.toUpperCase();
-      countrySelect.value = userCountry;
-      updateHiddenFields(userCountry);
-    })
-    .catch(() => {
-      const option = document.createElement("option");
-      option.value = "US";
-      option.textContent = "United States";
-      countrySelect.appendChild(option);
-      countrySelect.value = "US";
-      updateHiddenFields("US");
-    });
+  }
 
   // Update hidden fields
   function updateHiddenFields(countryCode) {
@@ -153,7 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
         groupSelect.appendChild(option);
       });
     }
-    updateProgress();
+    debouncedUpdateProgress();
   });
 
   groupSelect.addEventListener("change", () => {
@@ -173,7 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
       option.textContent = groupSelect.value;
       artistSelect.appendChild(option);
     }
-    updateProgress();
+    debouncedUpdateProgress();
   });
 
   // Real-time validation
@@ -202,7 +207,7 @@ document.addEventListener("DOMContentLoaded", () => {
         input.classList.remove("is-invalid");
         errorDiv.textContent = "";
       }
-      updateProgress();
+      debouncedUpdateProgress();
     });
   });
 
@@ -219,13 +224,26 @@ document.addEventListener("DOMContentLoaded", () => {
       postalCodeInput.classList.remove("is-invalid");
       errorDiv.textContent = "";
     }
-    updateProgress();
+    debouncedUpdateProgress();
   });
 
   countrySelect.addEventListener("change", () => {
     updateHiddenFields(countrySelect.value);
-    updateProgress();
+    debouncedUpdateProgress();
   });
+
+  // Debounce utility
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
 
   // Update progress bar
   function updateProgress() {
@@ -250,6 +268,8 @@ document.addEventListener("DOMContentLoaded", () => {
     progressBar.setAttribute("aria-valuenow", progress);
   }
 
+  const debouncedUpdateProgress = debounce(updateProgress, 400); // Increased to 400ms
+
   // Show installment options or payment methods
   paymentTypeSelect.addEventListener("change", () => {
     if (paymentTypeSelect.value === "Installment") {
@@ -263,7 +283,7 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("installment-plan").required = false;
       document.querySelectorAll('input[name="payment-method"]').forEach(input => input.required = true);
     }
-    updateProgress();
+    debouncedUpdateProgress();
   });
 
   // Generate IDs
@@ -291,6 +311,7 @@ document.addEventListener("DOMContentLoaded", () => {
     submitBtn.disabled = false;
     btnText.textContent = "Submit Subscription";
     spinner.classList.add("d-none");
+    resetBtn.classList.add("d-none");
   }
 
   // Form data persistence
@@ -306,36 +327,50 @@ document.addEventListener("DOMContentLoaded", () => {
       const input = form.querySelector(`[name="${key}"]`);
       if (input) input.value = value;
     });
-    updateProgress();
+    debouncedUpdateProgress();
   }
+
+  // Load countries on first interaction
+  countrySelect.addEventListener("focus", loadCountries);
 
   // Form submission
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+    const startTime = performance.now();
     submitBtn.disabled = true;
     btnText.textContent = "Submitting...";
     spinner.classList.remove("d-none");
     formMessage.classList.add("d-none");
     resetBtn.classList.add("d-none");
 
-    // Validation
+    // Failsafe UI reset
+    const resetTimeout = setTimeout(() => {
+      validationModal.hide();
+      showMessage("Submission timed out. Please try again or check Netlify Forms setup.", "danger");
+      resetButton();
+    }, 7000); // 7s failsafe
+
     try {
+      // Validation
       if (!validReferralCodes.includes(referralCodeInput.value)) {
         showMessage("Invalid referral code.", "danger");
         resetBtn.classList.remove("d-none");
         resetButton();
+        clearTimeout(resetTimeout);
         return;
       }
       if (!emailRegex.test(emailInput.value)) {
         showMessage("Invalid email address.", "danger");
         resetBtn.classList.remove("d-none");
         resetButton();
+        clearTimeout(resetTimeout);
         return;
       }
       if (!iti.isValidNumber()) {
         showMessage("Invalid phone number.", "danger");
         resetBtn.classList.remove("d-none");
         resetButton();
+        clearTimeout(resetTimeout);
         return;
       }
       const phoneNumber = iti.getNumber();
@@ -347,6 +382,7 @@ document.addEventListener("DOMContentLoaded", () => {
         showMessage("Invalid date of birth. Use YYYY-MM-DD and ensure it’s not in the future.", "danger");
         resetBtn.classList.remove("d-none");
         resetButton();
+        clearTimeout(resetTimeout);
         return;
       }
       const age = today.getFullYear() - dob.getFullYear();
@@ -354,42 +390,49 @@ document.addEventListener("DOMContentLoaded", () => {
         showMessage("You must be at least 13 years old to subscribe.", "danger");
         resetBtn.classList.remove("d-none");
         resetButton();
+        clearTimeout(resetTimeout);
         return;
       }
       if (!genderSelect.value || genderSelect.value === "") {
         showMessage("Please select your gender.", "danger");
         resetBtn.classList.remove("d-none");
         resetButton();
+        clearTimeout(resetTimeout);
         return;
       }
       if (!branchSelect.value || branchSelect.value === "") {
         showMessage("Please select a HYBE branch.", "danger");
         resetBtn.classList.remove("d-none");
         resetButton();
+        clearTimeout(resetTimeout);
         return;
       }
       if (!groupSelect.value || groupSelect.value === "") {
         showMessage("Please select a group.", "danger");
         resetBtn.classList.remove("d-none");
         resetButton();
+        clearTimeout(resetTimeout);
         return;
       }
       if (!artistSelect.value || artistSelect.value === "") {
         showMessage("Please select an artist.", "danger");
         resetBtn.classList.remove("d-none");
         resetButton();
+        clearTimeout(resetTimeout);
         return;
       }
       if (!paymentTypeSelect.value || paymentTypeSelect.value === "") {
         showMessage("Please select a payment type.", "danger");
         resetBtn.classList.remove("d-none");
         resetButton();
+        clearTimeout(resetTimeout);
         return;
       }
       if (paymentTypeSelect.value === "Installment" && !document.getElementById("installment-terms").checked) {
         showMessage("You must agree to the installment terms.", "danger");
         resetBtn.classList.remove("d-none");
         resetButton();
+        clearTimeout(resetTimeout);
         return;
       }
       const contactMethods = document.querySelectorAll('input[name="contact-method"]:checked');
@@ -397,12 +440,14 @@ document.addEventListener("DOMContentLoaded", () => {
         showMessage("Please select exactly one contact method.", "danger");
         resetBtn.classList.remove("d-none");
         resetButton();
+        clearTimeout(resetTimeout);
         return;
       }
       if (!privacyPolicy.checked || !subscriptionAgreement.checked) {
         showMessage("You must agree to the privacy policy and subscription agreement.", "danger");
         resetBtn.classList.remove("d-none");
         resetButton();
+        clearTimeout(resetTimeout);
         return;
       }
       const addressFields = ["address-line1", "city", "state", "postal-code", "country-select"];
@@ -412,6 +457,7 @@ document.addEventListener("DOMContentLoaded", () => {
           showMessage(`Please fill in ${fieldId.replace("-", " ")}.`, "danger");
           resetBtn.classList.remove("d-none");
           resetButton();
+          clearTimeout(resetTimeout);
           return;
         }
       }
@@ -422,13 +468,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Show validation modal with countdown
       validationModal.show();
-      let countdown = 5;
+      let countdown = 3;
       countdownElement.textContent = countdown;
-      const countdownInterval = setInterval(() => {
+      let countdownInterval = null;
+      countdownInterval = setInterval(() => {
         countdown--;
         countdownElement.textContent = countdown;
         if (countdown <= 0) {
           clearInterval(countdownInterval);
+          countdownInterval = null;
           validationModal.hide();
           submitForm();
         }
@@ -437,16 +485,28 @@ document.addEventListener("DOMContentLoaded", () => {
       // Cancel validation
       const cancelValidationBtn = document.getElementById("cancel-validation");
       cancelValidationBtn?.addEventListener("click", () => {
-        clearInterval(countdownInterval);
+        if (countdownInterval) {
+          clearInterval(countdownInterval);
+          countdownInterval = null;
+        }
         validationModal.hide();
         resetBtn.classList.remove("d-none");
         resetButton();
-      });
+        clearTimeout(resetTimeout);
+      }, { once: true });
     } catch (error) {
       console.error("Submission error:", error);
-      showMessage(`An unexpected error occurred: ${error.message}. Check Netlify Forms configuration.`, "danger");
+      showMessage(`An unexpected error occurred: ${error.message}. Check Netlify Forms configuration in dashboard.`, "danger");
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+      }
+      validationModal.hide();
       resetBtn.classList.remove("d-none");
       resetButton();
+      clearTimeout(resetTimeout);
+    } finally {
+      console.debug(`Submission attempt took ${performance.now() - startTime}ms`);
     }
   });
 
@@ -455,9 +515,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const formData = new FormData(form);
     const contactMethod = document.querySelector('input[name="contact-method"]:checked').value;
     sessionStorage.setItem("contactMethod", contactMethod);
+    console.debug("Submitting form to Netlify:", Object.fromEntries(formData));
+
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 4000); // 4s timeout
       const response = await fetch("/submit-fan-permit", {
         method: "POST",
         body: formData,
@@ -465,16 +527,26 @@ document.addEventListener("DOMContentLoaded", () => {
         signal: controller.signal
       });
       clearTimeout(timeoutId);
+      console.debug(`Netlify response: HTTP ${response.status}`);
       if (response.ok) {
+        console.debug("Submission successful, redirecting to /success");
         window.location.href = "/success";
       } else {
-        throw new Error(`Submission failed: HTTP ${response.status}. Check Netlify Forms setup.`);
+        throw new Error(`HTTP ${response.status}: Ensure "subscription-form" is enabled in Netlify Forms.`);
       }
     } catch (error) {
-      console.error("API error:", error);
-      showMessage(`Submission failed: ${error.message}. Ensure Netlify Forms is enabled for "subscription-form".`, "danger");
+      console.error("Submission error:", error);
+      showMessage(`Submission failed: ${error.message}. Trying native submission...`, "danger");
       resetBtn.classList.remove("d-none");
       resetButton();
+      // Fallback to native form submission
+      try {
+        form.submit();
+        console.debug("Native form submission triggered");
+      } catch (nativeError) {
+        console.error("Native submission error:", nativeError);
+        showMessage("Native submission failed. Verify Netlify Forms setup and redeploy.", "danger");
+      }
     }
   }
 
@@ -488,14 +560,14 @@ document.addEventListener("DOMContentLoaded", () => {
     formMessage.classList.add("d-none");
     localStorage.removeItem("hybeFormData");
     resetBtn.classList.add("d-none");
-    updateProgress();
+    debouncedUpdateProgress();
   });
 
   // Update progress on input
   [referralCodeInput, emailInput, phoneInput, dobInput, genderSelect, branchSelect, groupSelect, artistSelect, paymentTypeSelect].forEach(input => {
-    input.addEventListener("input", updateProgress);
+    input.addEventListener("input", debouncedUpdateProgress);
   });
   document.querySelectorAll('input[name="contact-method"]').forEach(input => {
-    input.addEventListener("change", updateProgress);
+    input.addEventListener("change", debouncedUpdateProgress);
   });
 });
