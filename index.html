@@ -34,7 +34,7 @@
   <script type="module" src="script.js" defer></script>
 </head>
 <body>
-  <!-- Enhanced JavaScript Fallback Message (Merged from Document 4) -->
+  <!-- Enhanced JavaScript Fallback Message -->
   <noscript>
     <div class="container my-5 text-center">
       <h2>JavaScript Required</h2>
@@ -89,7 +89,7 @@
                 Subscribe for exclusive access to HYBE artist updates, events, and merchandise.
               </p>
 
-              <!-- HYBE Culture Section (Merged from Document 3) -->
+              <!-- HYBE Culture Section -->
               <div class="mb-4" data-aos="fade-up" data-aos-delay="50">
                 <h3 class="h5">Our Culture: HYBE DNA</h3>
                 <p class="text-muted">
@@ -161,7 +161,7 @@
                     <input type="text" class="form-control mb-2" id="state" name="state" placeholder="State/Province" required />
                     <input type="text" class="form-control mb-2" id="postal-code" name="postal-code" placeholder="Postal Code" required />
                     <select class="form-control" id="country-select" name="country-select" required>
-                      <option value="" disabled selected>Select Country</option>
+                      <option value="" disabled="disabled" selected="selected">Select Country</option>
                     </select>
                   </div>
                 </div>
@@ -181,7 +181,7 @@
                     Gender <span class="text-danger">*</span>
                   </label>
                   <select class="form-select" id="gender" name="gender" required aria-required="true">
-                    <option value="" disabled selected>Select Gender</option>
+                    <option value="" disabled="disabled" selected="selected">Select Gender</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                     <option value="Other">Other</option>
@@ -195,7 +195,7 @@
                     Fan-To-Artist Preferences <span class="text-danger">*</span>
                   </label>
                   <select class="form-select" id="branch" name="branch" required aria-required="true">
-                    <option value="" disabled selected>Select a HYBE Branch</option>
+                    <option value="" disabled="disabled" selected="selected">Select a HYBE Branch</option>
                   </select>
                   <i class="bi bi-info-circle tooltip-icon" data-bs-toggle="tooltip" data-bs-title="Choose your favorite HYBE label"></i>
                 </div>
@@ -206,7 +206,7 @@
                     Select Your Favorite Group <span class="text-danger">*</span>
                   </label>
                   <select class="form-select" id="group" name="group" required aria-required="true">
-                    <option value="" disabled selected>Select a Group</option>
+                    <option value="" disabled="disabled" selected="selected">Select a Group</option>
                   </select>
                   <i class="bi bi-info-circle tooltip-icon" data-bs-toggle="tooltip" data-bs-title="Select your favorite group"></i>
                 </div>
@@ -217,7 +217,7 @@
                     Select Your Favorite Artist(s) <span class="text-danger">*</span>
                   </label>
                   <select class="form-select" id="artist" name="artist" required aria-required="true">
-                    <option value="" disabled selected>Select an Artist</option>
+                    <option value="" disabled="disabled" selected="selected">Select an Artist</option>
                   </select>
                   <i class="bi bi-info-circle tooltip-icon" data-bs-toggle="tooltip" data-bs-title="Pick your favorite artist"></i>
                 </div>
@@ -253,7 +253,7 @@
                     Select Payment Type <span class="text-danger">*</span>
                   </label>
                   <select class="form-select" id="payment-type" name="payment-type" required aria-required="true">
-                    <option value="" disabled selected>Select Payment Type</option>
+                    <option value="" disabled="disabled" selected="selected">Select Payment Type</option>
                     <option value="Full Payment">Full Payment</option>
                     <option value="Installment">Installment</option>
                   </select>
@@ -266,7 +266,7 @@
                     Installment Plan <span class="text-danger">*</span>
                   </label>
                   <select class="form-select" id="installment-plan" name="installment-plan" required>
-                    <option value="" disabled selected>Select Installment Plan</option>
+                    <option value="" disabled="disabled" selected="selected">Select Installment Plan</option>
                     <option value="2-installment">2 Installments ($283.66 x 2)</option>
                   </select>
                   <p class="mt-2 text-muted">Installments must be completed within the subscription year.</p>
@@ -298,21 +298,24 @@
                 </div>
 
                 <!-- Payment Processing Modal -->
-                <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
-                  <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                      <div class="modal-body text-center p-4">
-                        <div class="spinner-border text-primary mb-3" role="status">
-                          <span class="visually-hidden">Loading...</span>
+                <div class="modal fade" 
+                     id="paymentModal" 
+                     tabindex="-1" 
+                     role="dialog"
+                     aria-labelledby="paymentModalLabel"
+                     aria-describedby="paymentModalDesc"
+                     aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                            <div class="modal-body text-center p-4">
+                                <div class="spinner-border text-primary mb-3" role="status">
+                                    <span class="visually-hidden">Processing payment...</span>
+                                </div>
+                                <h5 id="paymentModalLabel" class="mb-3">Redirecting to secure payment gateway...</h5>
+                                <p id="paymentModalDesc">Do not refresh this page. Redirecting in <span id="payment-countdown">5</span> seconds...</p>
+                            </div>
                         </div>
-                        <h5 class="mb-3">Redirecting to secure payment gateway...</h5>
-                        <p>Do not refresh this page.</p>
-                        <p class="mt-2 text-sm text-gray-500">
-                          Redirecting in <span id="payment-countdown">5</span> seconds…
-                        </p>
-                      </div>
                     </div>
-                  </div>
                 </div>
 
                 <!-- Preferred Contact Method -->
@@ -393,12 +396,10 @@
           <h5>Quick Links</h5>
           <ul class="list-unstyled">
             <li><a href="https://hybecorp.com" class="text-white text-decoration-none hover-link">About Us</a></li>
-            <!-- Updated Careers Link with Korean Option (Merged from Document 2) -->
             <li><a href="https://careers.hybecorp.com" class="text-white text-decoration-none hover-link" lang="en">Careers</a> / 
                 <a href="https://careers.hybecorp.com/ko" class="text-white text-decoration-none hover-link" lang="ko">(주)하이브 채용</a></li>
             <li><a href="https://hybecorp.com/eng/career/crew/content" class="text-white text-decoration-none hover-link">Privacy Policy</a></li>
             <li><a href="https://hybecorp.com" class="text-white text-decoration-none hover-link">Terms of Service</a></li>
-            <!-- Added YouTube Link (Merged from Document 5) -->
             <li><a href="https://www.youtube.com/@HYBELABELS" class="text-white text-decoration-none hover-link">HYBE LABELS YouTube</a></li>
           </ul>
         </div>
@@ -406,7 +407,6 @@
           <h5>Contact Us</h5>
           <p>Email: <a href="mailto:hybe.corp@aol.com" class="text-white text-decoration-none hover-link">hybe.corp@aol.com</a></p>
           <p>Follow us:</p>
-          <!-- Updated Social Links with X Branding (Merged from Document 1) -->
           <a href="https://x.com/hybeofficialtwt" class="text-white me-3 social-icon" aria-label="Follow HYBE on X"><i class="bi bi-twitter-x"></i></a>
           <a href="https://www.instagram.com/hybe.labels.audition" class="text-white me-3 social-icon" aria-label="Follow HYBE on Instagram"><i class="bi bi-instagram"></i></a>
           <a href="https://www.youtube.com/@HYBELABELS" class="text-white social-icon" aria-label="Follow HYBE on YouTube"><i class="bi bi-youtube"></i></a>
