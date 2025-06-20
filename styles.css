@@ -1,8 +1,10 @@
+/* Root variables for consistent theming */
 :root {
-  --primary-gradient: linear-gradient(90deg, #8e44ad, #3498db);
-  --footer-gradient: linear-gradient(90deg, #2c3e50, #3498db);
+  --primary-gradient: linear-gradient(90deg, #8e44ad, #3498db); /* HYBE-inspired purple-to-blue gradient */
+  --footer-gradient: linear-gradient(90deg, #2c3e50, #3498db); /* Footer gradient */
 }
 
+/* Base styles */
 body {
   font-family: 'Poppins', sans-serif;
   background: var(--primary-gradient);
@@ -10,6 +12,7 @@ body {
   color: #2c3e50;
 }
 
+/* Card styling for form container */
 .card {
   border-radius: 15px;
   padding: 20px;
@@ -17,31 +20,44 @@ body {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
+/* Payment options (Merged from provided snippet) */
+.payment-option {
+  margin-bottom: 0.75rem;
+}
+
 .payment-option.disabled {
   opacity: 0.5;
   pointer-events: none;
 }
+
 .payment-option input[disabled] + .form-check-label {
   color: #adb5bd !important;
 }
-.payment-option {
-  margin-bottom: .75rem;
-}
-#stripe-buy-button-container {
-  transition: all 0.3s;
-}
 
+/* Stripe buy button container (Merged from snippet, commented out as not present in HTML) */
+/* #stripe-buy-button-container {
+  transition: all 0.3s;
+} */
+
+/* Logo animation */
 .logo-pulse {
   max-width: 150px;
   animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
+/* Gradient button for submit */
 .btn-gradient {
   background: var(--primary-gradient);
   border: none;
@@ -51,14 +67,16 @@ body {
 }
 
 .btn-gradient:hover {
-  background: linear-gradient(90deg, #3498db, #8e44ad);
+  background: linear-gradient(90deg, #3498db, #8e44ad); /* Reverse gradient on hover */
   transform: translateY(-2px);
 }
 
+/* Secondary button for modals */
 .btn-secondary {
   font-size: 0.9rem;
 }
 
+/* Form validation feedback */
 .invalid-feedback {
   color: #dc3545;
   font-size: 0.9rem;
@@ -71,6 +89,12 @@ body {
   display: block;
 }
 
+.form-control:focus,
+.form-select:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+}
+
 .form-check-input:focus {
   border-color: #3498db;
   box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
@@ -80,6 +104,12 @@ body {
   border-color: #dc3545;
 }
 
+.form-control.is-invalid,
+.form-select.is-invalid {
+  border-color: #dc3545;
+}
+
+/* Tooltip styling */
 .tooltip-icon {
   cursor: pointer;
   margin-left: 5px;
@@ -97,27 +127,26 @@ body {
   border-color: #2c3e50;
 }
 
-.form-control.is-invalid,
-.form-select.is-invalid {
-  border-color: #dc3545;
-}
-
+/* Progress bar with gradient */
 .progress-bar.bg-gradient {
   background: var(--primary-gradient);
-  background-color: #8e44ad;
+  background-color: #8e44ad; /* Fallback for older browsers */
   color: #fff;
   transition: width 0.3s ease-in-out;
 }
 
-footer.bg-footer-gradient {
+/* Footer styling */
+footer.bg-gradient {
   background: var(--footer-gradient);
   color: #fff;
 }
 
+/* Hover effects for links */
 .hover-link:hover {
   text-decoration: underline;
 }
 
+/* Social icons (Merged with Document 1 & 5 - X and YouTube branding) */
 .social-icon {
   transition: color 0.3s ease;
 }
@@ -126,27 +155,25 @@ footer.bg-footer-gradient {
   color: #ccc !important;
 }
 
+/* Benefit list for Why Subscribe section */
 .benefit-list li {
   margin-bottom: 10px;
 }
 
+/* Subscription amount gradient text */
 .subscription-amount .form-control-plaintext {
   background: var(--primary-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  color: #2c3e50;
+  color: #2c3e50; /* Fallback for non-WebKit browsers */
 }
 
-.form-control:focus,
-.form-select:focus {
-  border-color: #3498db;
-  box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
-}
-
+/* Form labels */
 .form-label {
   font-size: 0.95rem;
 }
 
+/* Alert styles for success, error, and info messages */
 .alert-success {
   color: #28a745;
   background-color: #d4edda;
@@ -161,10 +188,48 @@ footer.bg-footer-gradient {
   font-size: 0.9rem;
 }
 
+.alert-info {
+  color: #31708f;
+  background-color: #d9edf7;
+  border-color: #bce8f1;
+  font-size: 0.9rem;
+}
+
+/* Utility class */
 .d-none {
   display: none !important;
 }
 
+/* Noscript fallback styling (Merged from Documents 4, 6, 7 - JavaScript dependency) */
+noscript .container {
+  background: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Payment modal styling for Stripe (Merged from Documents 6, 7 - Stripe Checkout) */
+#paymentModal .modal-content {
+  background: #fff;
+  border-radius: 10px;
+}
+
+#paymentModal .spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+#paymentModal .modal-body {
+  padding: 2rem;
+}
+
+/* Bilingual careers link styling (Merged from Document 2 - HYBE Careers) */
+footer a[lang="ko"] {
+  font-family: 'Noto Sans KR', sans-serif; /* Korean font for better readability */
+  margin-left: 5px;
+}
+
+/* Responsive design */
 @media (max-width: 576px) {
   .card {
     padding: 15px;
@@ -179,35 +244,19 @@ footer.bg-footer-gradient {
   .btn-secondary {
     font-size: 0.85rem;
   }
+  #paymentModal .spinner-border {
+    width: 2rem;
+    height: 2rem;
+  }
 }
 
+/* Reduced motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
   .logo-pulse {
     animation: none;
   }
-}
-
-@media (prefers-color-scheme: dark) {
-  body {
-    background: linear-gradient(135deg, #2c3e50, #4a69bd);
-    color: #f5f7fa;
-  }
-  .card {
-    background: #34495e;
-    color: #f5f7fa;
-  }
-  .form-control,
-  .form-select {
-    background: #2c3e50;
-    color: #f5f7fa;
-    border-color: #4a69bd;
-  }
-  .alert-success {
-    background-color: #1a3c34;
-    border-color: #28a745;
-  }
-  .alert-danger {
-    background-color: #4a1c24;
-    border-color: #dc3545;
+  .btn-gradient,
+  .progress-bar {
+    transition: none;
   }
 }
