@@ -17,5 +17,9 @@
     "jest": "^30.0.2",
     "prettier": "^3.5.3",
     "serve": "^14.2.4"
-  }
+  },
+  "main": "script.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
