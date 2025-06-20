@@ -1,10 +1,14 @@
-/* Root variables for consistent theming */
+/* ===============================
+   🌈 Root Variables
+================================ */
 :root {
-  --primary-gradient: linear-gradient(90deg, #8e44ad, #3498db); /* HYBE-inspired purple-to-blue gradient */
-  --footer-gradient: linear-gradient(90deg, #2c3e50, #3498db); /* Footer gradient */
+  --primary-gradient: linear-gradient(90deg, #8e44ad, #3498db); /* Purple to Blue */
+  --footer-gradient: linear-gradient(90deg, #2c3e50, #3498db);
 }
 
-/* Base styles */
+/* ===============================
+   ✨ Base Styles
+================================ */
 body {
   font-family: 'Poppins', sans-serif;
   background: var(--primary-gradient);
@@ -12,7 +16,6 @@ body {
   color: #2c3e50;
 }
 
-/* Card styling for form container */
 .card {
   border-radius: 15px;
   padding: 20px;
@@ -20,44 +23,23 @@ body {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Payment options (Merged from provided snippet) */
+/* ===============================
+   💳 Payment Options
+================================ */
 .payment-option {
   margin-bottom: 0.75rem;
 }
-
 .payment-option.disabled {
   opacity: 0.5;
   pointer-events: none;
 }
-
 .payment-option input[disabled] + .form-check-label {
   color: #adb5bd !important;
 }
 
-/* Stripe buy button container (Merged from snippet, commented out as not present in HTML) */
-/* #stripe-buy-button-container {
-  transition: all 0.3s;
-} */
-
-/* Logo animation */
-.logo-pulse {
-  max-width: 150px;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-/* Gradient button for submit */
+/* ===============================
+   🚀 Buttons
+================================ */
 .btn-gradient {
   background: var(--primary-gradient);
   border: none;
@@ -65,24 +47,34 @@ body {
   font-size: 0.9rem;
   transition: all 0.3s ease;
 }
-
 .btn-gradient:hover {
-  background: linear-gradient(90deg, #3498db, #8e44ad); /* Reverse gradient on hover */
+  background: linear-gradient(90deg, #3498db, #8e44ad);
   transform: translateY(-2px);
 }
-
-/* Secondary button for modals */
 .btn-secondary {
   font-size: 0.9rem;
 }
 
-/* Form validation feedback */
+/* ===============================
+   🎨 Logo Animation
+================================ */
+.logo-pulse {
+  max-width: 150px;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.05); }
+}
+
+/* ===============================
+   ✅ Form Validation
+================================ */
 .invalid-feedback {
   color: #dc3545;
   font-size: 0.9rem;
   display: none;
 }
-
 .form-control.is-invalid ~ .invalid-feedback,
 .form-select.is-invalid ~ .invalid-feedback,
 .form-check-input.is-invalid ~ .invalid-feedback {
@@ -90,117 +82,90 @@ body {
 }
 
 .form-control:focus,
-.form-select:focus {
-  border-color: #3498db;
-  box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
-}
-
+.form-select:focus,
 .form-check-input:focus {
   border-color: #3498db;
   box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
 }
 
+.form-control.is-invalid,
+.form-select.is-invalid,
 .form-check-input.is-invalid {
   border-color: #dc3545;
 }
 
-.form-control.is-invalid,
-.form-select.is-invalid {
-  border-color: #dc3545;
-}
-
-/* Tooltip styling */
+/* ===============================
+   💬 Tooltips
+================================ */
 .tooltip-icon {
   cursor: pointer;
   margin-left: 5px;
   font-size: 0.9rem;
   color: #6c757d;
 }
-
 .tooltip-inner {
   background: #2c3e50;
   color: #fff;
   border-radius: 5px;
 }
-
 .tooltip .arrow::before {
   border-color: #2c3e50;
 }
 
-/* Progress bar with gradient */
+/* ===============================
+   📊 Progress Bars
+================================ */
 .progress-bar.bg-gradient {
   background: var(--primary-gradient);
-  background-color: #8e44ad; /* Fallback for older browsers */
+  background-color: #8e44ad; /* Fallback */
   color: #fff;
   transition: width 0.3s ease-in-out;
 }
 
-/* Footer styling */
-footer.bg-gradient {
-  background: var(--footer-gradient);
-  color: #fff;
+/* ===============================
+   ⬇️ Alerts
+================================ */
+.alert {
+  font-size: 0.9rem;
+  transition: opacity 0.2s;
 }
-
-/* Hover effects for links */
-.hover-link:hover {
-  text-decoration: underline;
-}
-
-/* Social icons (Merged with Document 1 & 5 - X and YouTube branding) */
-.social-icon {
-  transition: color 0.3s ease;
-}
-
-.social-icon:hover {
-  color: #ccc !important;
-}
-
-/* Benefit list for Why Subscribe section */
-.benefit-list li {
-  margin-bottom: 10px;
-}
-
-/* Subscription amount gradient text */
-.subscription-amount .form-control-plaintext {
-  background: var(--primary-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: #2c3e50; /* Fallback for non-WebKit browsers */
-}
-
-/* Form labels */
-.form-label {
-  font-size: 0.95rem;
-}
-
-/* Alert styles for success, error, and info messages */
 .alert-success {
   color: #28a745;
   background-color: #d4edda;
   border-color: #c3e6cb;
-  font-size: 0.9rem;
 }
-
 .alert-danger {
   color: #dc3545;
   background-color: #f8d7da;
   border-color: #f5c6cb;
-  font-size: 0.9rem;
 }
-
 .alert-info {
   color: #31708f;
   background-color: #d9edf7;
   border-color: #bce8f1;
-  font-size: 0.9rem;
 }
 
-/* Utility class */
-.d-none {
-  display: none !important;
+/* ===============================
+   💲 Subscription Amount Highlight
+================================ */
+.subscription-amount .form-control-plaintext {
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #2c3e50; /* Fallback */
 }
 
-/* Noscript fallback styling (Merged from Documents 4, 6, 7 - JavaScript dependency) */
+/* ===============================
+   📋 Form Labels
+================================ */
+.form-label {
+  font-size: 0.95rem;
+}
+
+/* ===============================
+   ⚙️ Utility & Fallback Styles
+================================ */
+.d-none { display: none !important; }
 noscript .container {
   background: #fff;
   border-radius: 10px;
@@ -208,55 +173,96 @@ noscript .container {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Payment modal styling for Stripe (Merged from Documents 6, 7 - Stripe Checkout) */
-#paymentModal .modal-content {
-  background: #fff;
-  border-radius: 10px;
+/* ===============================
+   📺 Social Links & Benefits
+================================ */
+.social-icon {
+  transition: color 0.3s ease;
+}
+.social-icon:hover {
+  color: #ccc !important;
+}
+.benefit-list li {
+  margin-bottom: 10px;
+}
+.hover-link:hover {
+  text-decoration: underline;
+}
+footer a[lang="ko"] {
+  font-family: 'Noto Sans KR', sans-serif;
+  margin-left: 5px;
 }
 
+/* ===============================
+   🧾 Modal Enhancements
+================================ */
+.modal.fade .modal-dialog {
+  transform: scale(0.95);
+  transition: transform 0.2s ease-out;
+}
+.modal.show .modal-dialog {
+  transform: scale(1);
+}
+.modal-dialog {
+  margin: 1.75rem auto;
+  max-width: 500px;
+}
+.modal-content {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0,0,0,.5);
+  outline: 0;
+}
+.modal-content:focus {
+  outline: 2px solid #0d6efd;
+  outline-offset: 2px;
+}
+.modal .spinner-border,
 #paymentModal .spinner-border {
   width: 3rem;
   height: 3rem;
+  border-width: 0.25em;
 }
-
 #paymentModal .modal-body {
   padding: 2rem;
 }
 
-/* Bilingual careers link styling (Merged from Document 2 - HYBE Careers) */
-footer a[lang="ko"] {
-  font-family: 'Noto Sans KR', sans-serif; /* Korean font for better readability */
-  margin-left: 5px;
-}
-
-/* Responsive design */
+/* ===============================
+   📱 Responsive Design
+================================ */
 @media (max-width: 576px) {
-  .card {
-    padding: 15px;
-  }
-  .logo-pulse {
-    max-width: 100px;
-  }
-  .form-label {
-    font-size: 0.9rem;
-  }
+  .card { padding: 15px; }
+  .logo-pulse { max-width: 100px; }
+  .form-label { font-size: 0.9rem; }
   .btn-gradient,
   .btn-secondary {
     font-size: 0.85rem;
+    padding: 0.5rem 1rem;
+  }
+  .modal-dialog {
+    margin: 1rem;
+    max-width: calc(100% - 2rem);
   }
   #paymentModal .spinner-border {
     width: 2rem;
     height: 2rem;
   }
+  .modal-body,
+  .modal-content,
+  .modal-title {
+    font-size: 0.95em;
+  }
 }
 
-/* Reduced motion for accessibility */
+/* ===============================
+   ♿ Accessibility: Reduced Motion
+================================ */
 @media (prefers-reduced-motion: reduce) {
-  .logo-pulse {
-    animation: none;
-  }
+  .logo-pulse,
   .btn-gradient,
-  .progress-bar {
+  .progress-bar,
+  .modal.fade .modal-dialog {
+    animation: none;
     transition: none;
   }
 }
