@@ -1,20 +1,105 @@
-const StripeSuccess = () => (
-  <div className="min-h-screen flex flex-col items-center justify-center p-8">
-    <h1 className="text-2xl font-bold text-green-600 mb-4">
-      🎉 💜 Payment Successful!
-    </h1>
-    <p className="text-center text-gray-700 max-w-md mb-6">
-      Your payment has been received. You’ll receive more details via email once it’s validated on the HYBE-PERMIT Subscription Database.
-    </p>
-    <a href="https://hybecorp.com" className="btn-primary">
-      Continue to HYBECORP.COM
-    </a>
-  </div>
-);
-export default StripeSuccess;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Subscription Successful - HYBE Fan-Permit 2025/2026</title>
+  <meta name="description" content="Your payment for the HYBE Fan-Permit 2025/2026 was successful! Enjoy exclusive K-pop access and artist engagement." />
+  <meta name="keywords" content="HYBE, K-pop, fan subscription, fan permit, BTS, NewJeans, membership, Stripe" />
+  <meta name="author" content="HYBE Corporation" />
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://hybecorp.com/success" />
+  <meta property="og:title" content="Subscription Successful - HYBE Fan-Permit 2025/2026" />
+  <meta property="og:description" content="Your payment is complete! Dive into exclusive K-pop content and events with HYBE Fan-Permit." />
+  <meta property="og:image" content="https://logotyp.us/file/hybe.svg" />
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://hybecorp.com/success" />
+  <meta name="twitter:title" content="Subscription Successful - HYBE Fan-Permit 2025/2026" />
+  <meta name="twitter:description" content="Payment successful! Join the HYBE community for exclusive artist access." />
+  <meta name="twitter:image" content="https://logotyp.us/file/hybe.svg" />
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous" />
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Noto+Sans+KR:wght@400&display=swap" rel="stylesheet" />
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- JavaScript Fallback Message (Merged from Document 4, 6, 7 - JavaScript/Stripe dependency) -->
+  <noscript>
+    <div class="container my-5 text-center">
+      <h2>JavaScript Required</h2>
+      <p>
+        JavaScript is disabled in your browser. Please enable JavaScript or switch to a supported browser to view this page.
+        See our <a href="https://help.x.com/en/using-x" class="hover-link">Help Center</a> for supported browsers.
+      </p>
+    </div>
+  </noscript>
 
-<footer class="text-center py-4">
-    <p>&copy; 2025 HYBE Corporation. All rights reserved.</p>
+  <main>
+    <div class="container my-5 text-center">
+      <!-- HYBE Logo (Retained from success.html) -->
+      <img src="https://logotyp.us/file/hybe.svg" alt="HYBE Corporation Logo" class="img-fluid mb-3 logo-pulse" style="max-width: 200px;" loading="lazy" />
+      <!-- Merged from stripe-success.html: Payment Success Message -->
+      <h1 class="display-4 text-success">🎉 💜 Payment Successful!</h1>
+      <p class="lead">Thank you for joining the HYBE Fan-Permit 2025/2026.</p>
+      <!-- Merged from stripe-success.html: Payment Confirmation -->
+      <p class="text-muted mb-4 max-w-md mx-auto">
+        Your payment has been received. You’ll receive more details via email once it’s validated on the HYBE-PERMIT Subscription Database.
+      </p>
+      <!-- Merged from success.html: HYBE DNA Message (Document 3) -->
+      <p class="text-muted mb-4">
+        Welcome to the HYBE community! Unleash your passion with exclusive access to your favorite artists and events.
+      </p>
+      <!-- Button (Merged from both, using success.html's styling) -->
+      <a href="https://hybecorp.com" class="btn btn-primary btn-gradient btn-lg">Continue to HYBECORP.COM</a>
+    </div>
+  </main>
+
+  <!-- Footer (Retained from success.html for consistency, enhanced with Document 1, 2, 5) -->
+  <footer class="bg-gradient text-white py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <img src="https://logotyp.us/file/hybe.svg" alt="HYBE Corporation Logo" class="img-fluid mb-2 logo-pulse" style="max-width: 150px;" loading="lazy" />
+          <p>Empowering global K-pop innovation.</p>
+        </div>
+        <div class="col-md-4 mb-3">
+          <h5>Quick Links</h5>
+          <ul class="list-unstyled">
+            <li><a href="https://hybecorp.com" class="text-white text-decoration-none hover-link">About Us</a></li>
+            <!-- Bilingual Careers Link (Merged from Document 2) -->
+            <li>
+              <a href="https://careers.hybecorp.com" class="text-white text-decoration-none hover-link" lang="en">Careers</a> /
+              <a href="https://careers.hybecorp.com/ko" class="text-white text-decoration-none hover-link" lang="ko">(주)하이브 채용</a>
+            </li>
+            <li><a href="https://hybecorp.com/eng/career/crew/content" class="text-white text-decoration-none hover-link">Privacy Policy</a></li>
+            <li><a href="https://hybecorp.com" class="text-white text-decoration-none hover-link">Terms of Service</a></li>
+            <!-- YouTube Link (Merged from Document 5) -->
+            <li><a href="https://www.youtube.com/@HYBELABELS" class="text-white text-decoration-none hover-link">HYBE LABELS YouTube</a></li>
+          </ul>
+        </div>
+        <div class="col-md-4 mb-3">
+          <h5>Contact Us</h5>
+          <p>Email: <a href="mailto:hybe.corp@aol.com" class="text-white text-decoration-none hover-link">hybe.corp@aol.com</a></p>
+          <p>Follow us:</p>
+          <!-- Social Links (Merged from Document 1 & 5 - X, Instagram, YouTube) -->
+          <a href="https://x.com/hybeofficialtwt" class="text-white me-3 social-icon" aria-label="Follow HYBE on X"><i class="bi bi-twitter-x"></i></a>
+          <a href="https://www.instagram.com/hybe.labels.audition" class="text-white me-3 social-icon" aria-label="Follow HYBE on Instagram"><i class="bi bi-instagram"></i></a>
+          <a href="https://www.youtube.com/@HYBELABELS" class="text-white social-icon" aria-label="Follow HYBE on YouTube"><i class="bi bi-youtube"></i></a>
+        </div>
+      </div>
+      <div class="text-center mt-4">
+        <p>© 2025 HYBE Corporation. All rights reserved.</p>
+      </div>
+    </div>
   </footer>
+
+  <!-- Bootstrap 5 JS (for potential dynamic features) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
 </body>
 </html>
