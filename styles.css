@@ -17,6 +17,17 @@ body {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
+.payment-option.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.payment-option input[disabled] + .form-check-label {
+  color: #adb5bd !important;
+}
+.payment-option {
+  margin-bottom: .75rem;
+}
+
 .logo-pulse {
   max-width: 150px;
   animation: pulse 2s infinite;
