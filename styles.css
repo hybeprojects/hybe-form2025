@@ -1,7 +1,15 @@
 /* Root variables for consistent theming */
 :root {
-  --primary-gradient: linear-gradient(90deg, #8e44ad, #3498db); /* HYBE-inspired purple-to-blue gradient */
-  --footer-gradient: linear-gradient(90deg, #2c3e50, #3498db); /* Footer gradient */
+  --primary-gradient: linear-gradient(
+    90deg,
+    #8e44ad,
+    #3498db
+  ); /* HYBE-inspired purple-to-blue gradient */
+  --footer-gradient: linear-gradient(
+    90deg,
+    #2c3e50,
+    #3498db
+  ); /* Footer gradient */
 }
 
 /* Base styles */
@@ -62,7 +70,11 @@ body {
 }
 
 .btn-gradient:hover {
-  background: linear-gradient(90deg, #3498db, #8e44ad); /* Reverse gradient on hover */
+  background: linear-gradient(
+    90deg,
+    #3498db,
+    #8e44ad
+  ); /* Reverse gradient on hover */
   transform: translateY(-2px);
 }
 
@@ -281,7 +293,7 @@ noscript .container {
 }
 
 /* Bilingual careers link styling */
-footer a[lang="ko"] {
+footer a[lang='ko'] {
   font-family: 'Noto Sans KR', sans-serif;
   margin-left: 5px;
 }

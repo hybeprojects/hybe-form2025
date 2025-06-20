@@ -3,9 +3,19 @@
   "version": "1.0.0",
   "description": "HYBE Fan-Permit Frontend",
   "scripts": {
-    "start": "serve -s ."
+    "start": "serve -s .",
+    "test": "jest",
+    "lint": "eslint .",
+    "format": "prettier --write ."
   },
   "dependencies": {
-    "serve": "^14.2.3"
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.29.0",
+    "jest": "^30.0.2",
+    "prettier": "^3.5.3",
+    "serve": "^14.2.4"
   }
 }
