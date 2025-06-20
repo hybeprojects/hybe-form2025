@@ -27,6 +27,9 @@ body {
 .payment-option {
   margin-bottom: .75rem;
 }
+#stripe-buy-button-container {
+  transition: all 0.3s;
+}
 
 .logo-pulse {
   max-width: 150px;
