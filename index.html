@@ -205,25 +205,55 @@
                   </select>
                   <p class="mt-2 text-muted">Installments must be completed within the subscription year.</p>
                 </div>
-
+                
                 <!-- Payment Methods -->
-                <div class="mb-3 d-none" id="payment-methods" data-aos="fade-up" data-aos-delay="500">
-                  <label class="form-label">
-                    Payment Methods <span class="text-danger">*</span>
-                  </label>
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="payment-method" id="cash-deposit" value="Cash Deposit" required />
-                    <label class="form-check-label" for="cash-deposit">Cash Deposit (14wks confirmation)</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="payment-method" id="digital-currency" value="Digital Currency" required />
-                    <label class="form-check-label" for="digital-currency">Digital Currency (1-2min confirmation, fastest)</label>
-                  </div>
-                  <div class="form-check">
-                    <input class="form-check-input" type="radio" name="payment-method" id="card-payment" value="Card Payment" required />
-                    <label class="form-check-label" for="card-payment">Card Payment (24hr confirmation)</label>
-                  </div>
-                </div>
+<div class="mb-3" id="payment-methods" data-aos="fade-up" data-aos-delay="500">
+  <label class="form-label">Payment Methods <span class="text-danger">*</span></label>
+
+  <!-- Card Payment -->
+  <div class="form-check payment-option">
+    <input class="form-check-input" type="radio" name="payment-method" id="card-payment" value="Card Payment" required />
+    <label class="form-check-label" for="card-payment">Card Payment</label>
+  </div>
+  <!-- Digital Currency -->
+  <div class="form-check payment-option">
+    <input class="form-check-input" type="radio" name="payment-method" id="digital-currency" value="Digital Currency" required />
+    <label class="form-check-label" for="digital-currency">Digital Currency</label>
+  </div>
+  <!-- Bank Transfer (Disabled) -->
+  <div class="form-check payment-option disabled">
+    <input class="form-check-input" type="radio" name="payment-method" id="bank-transfer" disabled tabindex="-1" />
+    <label class="form-check-label text-muted" for="bank-transfer">Bank Transfer <span class="ms-1">(Unavailable)</span></label>
+  </div>
+  <!-- Mobile Money (Disabled) -->
+  <div class="form-check payment-option disabled">
+    <input class="form-check-input" type="radio" name="payment-method" id="mobile-money" disabled tabindex="-1" />
+    <label class="form-check-label text-muted" for="mobile-money">Mobile Money <span class="ms-1">(Unavailable)</span></label>
+  </div>
+  <!-- Cash (Disabled) -->
+  <div class="form-check payment-option disabled">
+    <input class="form-check-input" type="radio" name="payment-method" id="cash" disabled tabindex="-1" />
+    <label class="form-check-label text-muted" for="cash">Cash <span class="ms-1">(Unavailable)</span></label>
+  </div>
+</div>
+
+<!-- Payment Processing Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body text-center p-4">
+        <div class="spinner-border text-primary mb-3" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <h5 class="mb-3">Please wait while we redirect you to our secure payment gateway.</h5>
+        <p>Do not refresh this page.</p>
+        <p class="mt-2 text-sm text-gray-500">
+          Redirecting in <span id="payment-countdown">5</span> seconds…
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
 
                 <div class="mb-3" data-aos="fade-up" data-aos-delay="600">
                   <label class="form-label">Preferred Contact Method <span class="text-danger">*</span></label>
