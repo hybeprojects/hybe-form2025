@@ -1,3 +1,4 @@
+// ModalManager: Robust modal management class for Bootstrap modals
 class ModalManager {
   constructor() {
     this.activeModals = new Map();
