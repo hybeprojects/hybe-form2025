@@ -1,9 +1,13 @@
+// Initialize on DOM content loaded
 document.addEventListener("DOMContentLoaded", () => {
+  // Initialize AOS animations (run once for performance)
   AOS.init({ once: true });
 
+  // Show onboarding modal on page load
   const onboardingModal = new bootstrap.Modal(document.getElementById("onboardingModal"));
   onboardingModal.show();
 
+  // DOM elements
   const form = document.getElementById("subscription-form");
   const formMessage = document.getElementById("form-message");
   const referralCodeInput = document.getElementById("referral-code");
@@ -31,33 +35,57 @@ document.addEventListener("DOMContentLoaded", () => {
   const languageInput = document.getElementById("language");
   const permitIdInput = document.getElementById("permit-id");
   const submissionIdInput = document.getElementById("submission-id");
+  const paymentModal = new bootstrap.Modal(document.getElementById("paymentModal")); // For Stripe redirects
 
+  // Regular expression for email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // HYBE branch and group data
   const branches = [
     { name: "BigHit Music", groups: ["BTS", "TXT"] },
     { name: "Pledis Entertainment", groups: ["SEVENTEEN", "fromis_9"] },
     { name: "Source Music", groups: ["LE SSERAFIM"] },
     { name: "ADOR", groups: ["NewJeans"] },
-    { name: "KOZ Entertainment", groups: ["Zico", "BoyNextDoor"] }
+    { name: "KOZ Entertainment", groups: ["Zico", "BoyNextDoor"] },
   ];
 
+  // Initialize intl-tel-input for phone number
   const iti = window.intlTelInput(phoneInput, {
     initialCountry: "auto",
     geoIpLookup: (callback) => {
       fetch("https://ipapi.co/json/")
-        .then(res => res.json())
-        .then(data => callback(data.country_code))
+        .then((res) => res.json())
+        .then((data) => callback(data.country_code))
         .catch(() => callback("us"));
     },
-    utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/utils.js"
+    utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.1.1/build/js/utils.js",
   });
+
+  /**
+   * Updates hidden form fields (country, currency, language) based on country code
+   * @param {string} countryCode - ISO 3166-1 alpha-2 country code
+   */
+  function updateHiddenFields(countryCode) {
+    fetch(`https://restcountries.com/v3.1/alpha/${countryCode}?fields=currencies,languages`)
+      .then((res) => res.json())
+      .then((data) => {
+        countryInput.value = countryCode;
+        currencyInput.value = Object.keys(data.currencies)[0] || "USD";
+        languageInput.value = Object.keys(data.languages)[0] || "en";
+      })
+      .catch(() => {
+        countryInput.value = "US";
+        currencyInput.value = "USD";
+        languageInput.value = "en";
+      });
+  }
 
   // Populate country dropdown
   fetch("https://restcountries.com/v3.1/all?fields=name,cca2")
-    .then(res => res.json())
-    .then(countries => {
+    .then((res) => res.json())
+    .then((countries) => {
       countries.sort((a, b) => a.name.common.localeCompare(b.name.common));
-      countries.forEach(country => {
+      countries.forEach((country) => {
         const option = document.createElement("option");
         option.value = country.cca2;
         option.textContent = country.name.common;
@@ -76,41 +104,26 @@ document.addEventListener("DOMContentLoaded", () => {
       updateHiddenFields("US");
     });
 
-  // Update hidden fields (country, currency, language)
-  function updateHiddenFields(countryCode) {
-    fetch(`https://restcountries.com/v3.1/alpha/${countryCode}?fields=currencies,languages`)
-      .then(res => res.json())
-      .then(data => {
-        countryInput.value = countryCode;
-        currencyInput.value = Object.keys(data.currencies)[0] || "USD";
-        languageInput.value = Object.keys(data.languages)[0] || "en";
-      })
-      .catch(() => {
-        countryInput.value = "US";
-        currencyInput.value = "USD";
-        languageInput.value = "en";
-      });
-  }
-
+  // Update hidden fields on country change
   countrySelect.addEventListener("change", () => {
     updateHiddenFields(countrySelect.value);
   });
 
   // Populate branch dropdown
-  branches.forEach(branch => {
+  branches.forEach((branch) => {
     const option = document.createElement("option");
     option.value = branch.name;
     option.textContent = branch.name;
     branchSelect.appendChild(option);
   });
 
-  // Update group dropdown based on branch
+  // Update group dropdown based on branch selection
   branchSelect.addEventListener("change", () => {
-    const selectedBranch = branches.find(branch => branch.name === branchSelect.value);
+    const selectedBranch = branches.find((branch) => branch.name === branchSelect.value);
     groupSelect.innerHTML = '<option value="" disabled selected>Select a Group</option>';
     artistSelect.innerHTML = '<option value="" disabled selected>Select an Artist</option>';
     if (selectedBranch) {
-      selectedBranch.groups.forEach(group => {
+      selectedBranch.groups.forEach((group) => {
         const option = document.createElement("option");
         option.value = group;
         option.textContent = group;
@@ -120,55 +133,30 @@ document.addEventListener("DOMContentLoaded", () => {
     updateProgress();
   });
 
-  // Update artist dropdown based on group
+  // Update artist dropdown based on group selection
   groupSelect.addEventListener("change", () => {
     artistSelect.innerHTML = '<option value="" disabled selected>Select an Artist</option>';
     const selectedGroup = groupSelect.value;
-    if (selectedGroup === "BTS") {
-      ["RM", "Jin", "SUGA", "j-hope", "Jimin", "V", "Jungkook"].forEach(artist => {
-        const option = document.createElement("option");
-        option.value = artist;
-        option.textContent = artist;
-        artistSelect.appendChild(option);
-      });
-    } else if (selectedGroup === "TXT") {
-      ["Yeonjun", "Soobin", "Beomgyu", "Taehyun", "HueningKai"].forEach(artist => {
-        const option = document.createElement("option");
-        option.value = artist;
-        option.textContent = artist;
-        artistSelect.appendChild(option);
-      });
-    } else if (selectedGroup === "SEVENTEEN") {
-      ["S.Coups", "Jeonghan", "Joshua", "Jun", "Hoshi", "Wonwoo", "Woozi", "DK", "Mingyu", "The8", "Seungkwan", "Vernon", "Dino"].forEach(artist => {
-        const option = document.createElement("option");
-        option.value = artist;
-        option.textContent = artist;
-        artistSelect.appendChild(option);
-      });
-    } else if (selectedGroup === "LE SSERAFIM") {
-      ["Sakura", "Chaewon", "Yunjin", "Kazuha", "Eunchae"].forEach(artist => {
-        const option = document.createElement("option");
-        option.value = artist;
-        option.textContent = artist;
-        artistSelect.appendChild(option);
-      });
-    } else if (selectedGroup === "NewJeans") {
-      ["Minji", "Hanni", "Danielle", "Haerin", "Hyein"].forEach(artist => {
-        const option = document.createElement("option");
-        option.value = artist;
-        option.textContent = artist;
-        artistSelect.appendChild(option);
-      });
-    } else {
+    const artists = {
+      BTS: ["RM", "Jin", "SUGA", "j-hope", "Jimin", "V", "Jungkook"],
+      TXT: ["Yeonjun", "Soobin", "Beomgyu", "Taehyun", "HueningKai"],
+      SEVENTEEN: ["S.Coups", "Jeonghan", "Joshua", "Jun", "Hoshi", "Wonwoo", "Woozi", "DK", "Mingyu", "The8", "Seungkwan", "Vernon", "Dino"],
+      "LE SSERAFIM": ["Sakura", "Chaewon", "Yunjin", "Kazuha", "Eunchae"],
+      NewJeans: ["Minji", "Hanni", "Danielle", "Haerin", "Hyein"],
+    };
+    const groupArtists = artists[selectedGroup] || [selectedGroup];
+    groupArtists.forEach((artist) => {
       const option = document.createElement("option");
-      option.value = selectedGroup;
-      option.textContent = selectedGroup;
+      option.value = artist;
+      option.textContent = artist;
       artistSelect.appendChild(option);
-    }
+    });
     updateProgress();
   });
 
-  // Update progress bar
+  /**
+   * Updates the progress bar based on filled form fields
+   */
   function updateProgress() {
     const totalFields = 11; // referral-code, full-name, email, phone, dob, gender, branch, group, artist, payment-type, contact-method
     let filledFields = 0;
@@ -187,34 +175,62 @@ document.addEventListener("DOMContentLoaded", () => {
     progressBar.setAttribute("aria-valuenow", progress);
   }
 
-  // Show installment options or payment methods
+  // Toggle installment options and payment methods
   paymentTypeSelect.addEventListener("change", () => {
     if (paymentTypeSelect.value === "Installment") {
       installmentOptions.classList.remove("d-none");
       paymentMethods.classList.remove("d-none");
       document.getElementById("installment-plan").required = true;
-      document.querySelectorAll('input[name="payment-method"]').forEach(input => input.required = true);
+      document.querySelectorAll('input[name="payment-method"]').forEach((input) => (input.required = true));
     } else {
       installmentOptions.classList.add("d-none");
       paymentMethods.classList.remove("d-none");
       document.getElementById("installment-plan").required = false;
-      document.querySelectorAll('input[name="payment-method"]').forEach(input => input.required = true);
+      document.querySelectorAll('input[name="payment-method"]').forEach((input) => (input.required = true));
     }
     updateProgress();
   });
 
-  // Generate permit ID and submission ID
+  /**
+   * Generates a unique permit ID
+   * @returns {string} Permit ID in format HYBE-FP-timestamp-random
+   */
   function generatePermitId() {
     const timestamp = Date.now();
     const random = Math.floor(Math.random() * 10000);
     return `HYBE-FP-${timestamp}-${random}`;
   }
 
+  /**
+   * Generates a unique submission ID
+   * @returns {string} Submission ID in format SUB-timestamp-random
+   */
   function generateSubmissionId() {
     return `SUB-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
   }
 
-  // Form submission
+  /**
+   * Displays a form message with the specified text and type
+   * @param {string} text - Message to display
+   * @param {string} type - Alert type (success, danger, info)
+   */
+  function showMessage(text, type) {
+    formMessage.textContent = text;
+    formMessage.className = `alert alert-${type} mt-3`;
+    formMessage.classList.remove("d-none");
+    formMessage.focus(); // Improve accessibility
+  }
+
+  /**
+   * Resets the submit button to its initial state
+   */
+  function resetButton() {
+    submitBtn.disabled = false;
+    btnText.textContent = "Submit Subscription";
+    spinner.classList.add("d-none");
+  }
+
+  // Form submission handler (Merged with Stripe Checkout snippet)
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     submitBtn.disabled = true;
@@ -222,7 +238,14 @@ document.addEventListener("DOMContentLoaded", () => {
     spinner.classList.remove("d-none");
     formMessage.classList.add("d-none");
 
-    // Validation
+    // HTML5 form validation
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      resetButton();
+      return;
+    }
+
+    // Custom validation from original script
     if (referralCodeInput.value !== "HYBE2025") {
       showMessage("Invalid referral code. Use HYBE2025.", "danger");
       resetButton();
@@ -238,8 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
       resetButton();
       return;
     }
-    const phoneNumber = iti.getNumber(); // E.164 format
-    phoneInput.value = phoneNumber;
+    phoneInput.value = iti.getNumber(); // Store E.164 format
 
     const dob = new Date(dobInput.value);
     if (isNaN(dob) || dobInput.value !== dob.toISOString().split("T")[0]) {
@@ -279,6 +301,12 @@ document.addEventListener("DOMContentLoaded", () => {
       resetButton();
       return;
     }
+    const paymentMethod = form.querySelector('input[name="payment-method"]:checked');
+    if (!paymentMethod) {
+      showMessage("Please select a payment method.", "danger");
+      resetButton();
+      return;
+    }
     const contactMethods = document.querySelectorAll('input[name="contact-method"]:checked');
     if (contactMethods.length !== 1) {
       showMessage("Please select exactly one contact method.", "danger");
@@ -290,70 +318,85 @@ document.addEventListener("DOMContentLoaded", () => {
       resetButton();
       return;
     }
+    if (paymentTypeSelect.value === "Installment" && !document.getElementById("installment-plan").value) {
+      showMessage("Please select an installment plan.", "danger");
+      resetButton();
+      return;
+    }
 
     // Set permit and submission IDs
     permitIdInput.value = generatePermitId();
     submissionIdInput.value = generateSubmissionId();
 
-    // Show validation modal with countdown
-    validationModal.show();
-    let countdown = 5;
-    countdownElement.textContent = countdown;
-    const countdownInterval = setInterval(() => {
-      countdown--;
-      countdownElement.textContent = countdown;
-      if (countdown <= 0) {
-        clearInterval(countdownInterval);
-        validationModal.hide();
-        submitForm();
-      }
-    }, 1000);
-  });
-
-  async function submitForm() {
+    // Submit form to Netlify
     const formData = new FormData(form);
     try {
       const response = await fetch("/", {
         method: "POST",
         body: formData,
-        headers: {
-          Accept: "application/json",
-        },
+        headers: { Accept: "application/json" },
       });
-      if (response.ok) {
-        showMessage("Submission successful! Check your email for confirmation.", "success");
-        form.reset();
-        progressBar.style.width = "0%";
-        progressBar.setAttribute("aria-valuenow", 0);
-        installmentOptions.classList.add("d-none");
-        paymentMethods.classList.add("d-none");
-      } else {
-        throw new Error("Submission failed.");
+      if (!response.ok) {
+        throw new Error("Form submission failed.");
       }
+      // Show validation modal with countdown
+      validationModal.show();
+      let countdown = 5;
+      countdownElement.textContent = countdown;
+      const validationInterval = setInterval(() => {
+        countdown--;
+        countdownElement.textContent = countdown;
+        if (countdown <= 0) {
+          clearInterval(validationInterval);
+          validationModal.hide();
+          // Handle payment redirect (Merged from Stripe snippet)
+          if (paymentMethod.value === "Card Payment") {
+            paymentModal.show();
+            let paymentCountdown = 5;
+            const paymentCountdownElement = document.getElementById("payment-countdown");
+            paymentCountdownElement.textContent = paymentCountdown;
+            const paymentTimer = setInterval(() => {
+              paymentCountdown--;
+              paymentCountdownElement.textContent = paymentCountdown;
+              if (paymentCountdown <= 0) {
+                clearInterval(paymentTimer);
+                paymentModal.hide();
+                // Redirect to Stripe payment link
+                const paymentType = paymentTypeSelect.value;
+                if (paymentType === "Full Payment") {
+                  window.location.href = "https://buy.stripe.com/14AfZh1LD4eL9Kx0972ZO04";
+                } else if (paymentType === "Installment") {
+                  window.location.href = "https://buy.stripe.com/3cIfZhgGxdPlaOBaNL2ZO06";
+                }
+                // Log submission for analytics (Inspired by Document 5 - YouTube engagement)
+                console.log(`Subscription submitted: ${submissionIdInput.value}, Artist: ${artistSelect.value}, Payment: ${paymentType}`);
+              }
+            }, 1000);
+          } else if (paymentMethod.value === "Digital Currency") {
+            showMessage("Digital Currency payment coming soon!", "info");
+            resetButton();
+          } else {
+            showMessage("Selected payment method is not supported.", "danger");
+            resetButton();
+          }
+        }
+      }, 1000);
     } catch (error) {
       showMessage(`Submission failed: ${error.message}`, "danger");
-    } finally {
       resetButton();
     }
-  }
+  });
 
-  function showMessage(text, type) {
-    formMessage.textContent = text;
-    formMessage.classList.remove("d-none");
-    formMessage.classList.add(`alert-${type}`);
-  }
-
-  function resetButton() {
-    submitBtn.disabled = false;
-    btnText.textContent = "Submit Subscription";
-    spinner.classList.add("d-none");
-  }
-
-  // Update progress on input
-  [referralCodeInput, emailInput, phoneInput, dobInput, genderSelect, branchSelect, groupSelect, artistSelect, paymentTypeSelect].forEach(input => {
+  // Add input event listeners for progress updates
+  [referralCodeInput, emailInput, phoneInput, dobInput, genderSelect, branchSelect, groupSelect, artistSelect, paymentTypeSelect].forEach((input) => {
     input.addEventListener("input", updateProgress);
   });
-  document.querySelectorAll('input[name="contact-method"]').forEach(input => {
+  document.querySelectorAll('input[name="contact-method"]').forEach((input) => {
     input.addEventListener("change", updateProgress);
+  });
+
+  // Initialize tooltips for accessibility
+  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((tooltipTriggerEl) => {
+    new bootstrap.Tooltip(tooltipTriggerEl);
   });
 });
