@@ -11,18 +11,23 @@ class ModalManager {
       console.error(`Modal ${modalId} not found`);
       return null;
     }
-    const modal = new bootstrap.Modal(element);
-    this.activeModals.set(modalId, modal);
+    try {
+      const modal = new bootstrap.Modal(element);
+      this.activeModals.set(modalId, modal);
 
-    element.addEventListener(
-      "hidden.bs.modal",
-      () => {
-        this.cleanup(modalId);
-      },
-      { once: true }
-    );
+      element.addEventListener(
+        "hidden.bs.modal",
+        () => {
+          this.cleanup(modalId);
+        },
+        { once: true }
+      );
 
-    return modal;
+      return modal;
+    } catch (error) {
+      console.error(`Failed to initialize modal "${modalId}": ${error.message}`);
+      return null;
+    }
   }
 
   show(modalId, options = {}) {
@@ -45,7 +50,10 @@ class ModalManager {
 
   setupCountdown(modalId, { duration, elementId, onComplete }) {
     const countdownElement = document.getElementById(elementId);
-    if (!countdownElement) return;
+    if (!countdownElement) {
+      console.error(`Countdown element "${elementId}" not found`);
+      return;
+    }
 
     let countdown = duration;
     countdownElement.textContent = countdown;
@@ -58,7 +66,11 @@ class ModalManager {
         this.cleanup(modalId);
         this.hide(modalId);
         if (typeof onComplete === "function") {
-          onComplete();
+          try {
+            onComplete();
+          } catch (error) {
+            console.error(`Error in onComplete callback: ${error.message}`);
+          }
         }
       }
     }, 1000);
@@ -80,13 +92,14 @@ const modalManager = new ModalManager();
 document.addEventListener("DOMContentLoaded", () => {
   // Initialize AOS animations (run once for performance)
   if (typeof AOS !== "undefined") {
-    AOS.init({ once: true });
+    AOS.init({ duration: 800, once: true });
   }
 
   // Form and modal DOM elements
   const form = document.getElementById("subscription-form");
   const formMessage = document.getElementById("form-message");
   const referralCodeInput = document.getElementById("referral-code");
+  const fullNameInput = document.getElementById("full-name");
   const emailInput = document.getElementById("email");
   const phoneInput = document.getElementById("phone");
   const dobInput = document.getElementById("dob");
@@ -109,6 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const languageInput = document.getElementById("language");
   const permitIdInput = document.getElementById("permit-id");
   const submissionIdInput = document.getElementById("submission-id");
+  const digitalCurrencyHomeBtn = document.getElementById("digital-currency-home-btn");
 
   // Show onboarding modal immediately
   modalManager.show("onboardingModal");
@@ -200,11 +214,17 @@ document.addEventListener("DOMContentLoaded", () => {
    * Updates the progress bar based on filled form fields
    */
   function updateProgress() {
-    const totalFields = 11; // referral-code, full-name, email, phone, dob, gender, branch, group, artist, payment-type, contact-method
+    const totalFields = 14; // referral-code, full-name, email, phone, address-line1, city, state, postal-code, country-select, dob, gender, branch, group, artist, payment-type, contact-method
     let filledFields = 0;
     if (referralCodeInput.value) filledFields++;
+    if (fullNameInput.value) filledFields++;
     if (emailInput.value) filledFields++;
     if (phoneInput.value) filledFields++;
+    if (document.getElementById("address-line1").value) filledFields++;
+    if (document.getElementById("city").value) filledFields++;
+    if (document.getElementById("state").value) filledFields++;
+    if (document.getElementById("postal-code").value) filledFields++;
+    if (countrySelect.value) filledFields++;
     if (dobInput.value) filledFields++;
     if (genderSelect.value) filledFields++;
     if (branchSelect.value) filledFields++;
@@ -218,20 +238,29 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Toggle installment options and payment methods
-  paymentTypeSelect.addEventListener("change", () => {
-    if (paymentTypeSelect.value === "Installment") {
-      installmentOptions.classList.remove("d-none");
-      paymentMethods.classList.remove("d-none");
-      document.getElementById("installment-plan").required = true;
-      document.querySelectorAll('input[name="payment-method"]').forEach((input) => (input.required = true));
-    } else {
-      installmentOptions.classList.add("d-none");
-      paymentMethods.classList.remove("d-none");
-      document.getElementById("installment-plan").required = false;
-      document.querySelectorAll('input[name="payment-method"]').forEach((input) => (input.required = true));
-    }
-    updateProgress();
-  });
+  if (paymentTypeSelect && installmentOptions) {
+    paymentTypeSelect.addEventListener("change", () => {
+      if (paymentTypeSelect.value === "Installment") {
+        installmentOptions.classList.remove("d-none");
+        document.getElementById("installment-plan").required = true;
+      } else {
+        installmentOptions.classList.add("d-none");
+        document.getElementById("installment-plan").required = false;
+      }
+      document.querySelectorAll('input[name="payment-method"]').forEach((input) => {
+        input.required = true;
+      });
+      updateProgress();
+    });
+  }
+
+  // Digital currency home button
+  if (digitalCurrencyHomeBtn) {
+    digitalCurrencyHomeBtn.addEventListener("click", () => {
+      modalManager.hide("digitalCurrencySuccessModal");
+      window.location.href = "https://hybecorp.com";
+    });
+  }
 
   /**
    * Generates a unique permit ID
@@ -247,28 +276,39 @@ document.addEventListener("DOMContentLoaded", () => {
    * Show feedback messages for the user
    */
   function showMessage(message, type = "info") {
-    formMessage.className = `mt-3 text-center alert alert-${type} alert-dismissible fade show`;
-    formMessage.textContent = message;
-    formMessage.classList.remove("d-none");
-    setTimeout(() => {
-      formMessage.classList.add("d-none");
-    }, 7000);
+    if (formMessage) {
+      formMessage.className = `mt-3 text-center alert alert-${type} alert-dismissible fade show`;
+      formMessage.textContent = message;
+      formMessage.classList.remove("d-none");
+      setTimeout(() => {
+        formMessage.classList.add("d-none");
+      }, 7000);
+    }
   }
 
   /**
    * Reset the submit button state
    */
   function resetButton() {
-    submitBtn.disabled = false;
-    spinner.classList.add("d-none");
-    btnText.classList.remove("d-none");
+    if (submitBtn && spinner && btnText) {
+      submitBtn.disabled = false;
+      spinner.classList.add("d-none");
+      btnText.classList.remove("d-none");
+    }
   }
 
   // Add input event listeners for progress updates
   [
     referralCodeInput,
+    fullNameInput,
     emailInput,
     phoneInput,
+    document.getElementById("address-line1"),
+    document.getElementById("address-line2"),
+    document.getElementById("city"),
+    document.getElementById("state"),
+    document.getElementById("postal-code"),
+    countrySelect,
     dobInput,
     genderSelect,
     branchSelect,
@@ -276,7 +316,9 @@ document.addEventListener("DOMContentLoaded", () => {
     artistSelect,
     paymentTypeSelect,
   ].forEach((input) => {
-    input.addEventListener("input", updateProgress);
+    if (input) {
+      input.addEventListener("input", updateProgress);
+    }
   });
 
   document.querySelectorAll('input[name="contact-method"]').forEach((input) => {
@@ -290,7 +332,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Phone number input: International Telephone Input
   let iti;
-  if (window.intlTelInput) {
+  if (window.intlTelInput && phoneInput) {
     iti = window.intlTelInput(phoneInput, {
       separateDialCode: true,
       initialCountry: "auto",
@@ -308,121 +350,120 @@ document.addEventListener("DOMContentLoaded", () => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   // Form submission handler
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    submitBtn.disabled = true;
-    spinner.classList.remove("d-none");
-    btnText.classList.add("d-none");
-    formMessage.classList.add("d-none");
-
-    // Validation
-    try {
-      if (referralCodeInput.value !== "HYBE2025") {
-        showMessage("Invalid referral code. Use HYBE2025.", "danger");
-        resetButton();
-        return;
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (submitBtn && spinner && btnText) {
+        submitBtn.disabled = true;
+        spinner.classList.remove("d-none");
+        btnText.classList.add("d-none");
       }
-      if (!emailRegex.test(emailInput.value)) {
-        showMessage("Invalid email address.", "danger");
-        resetButton();
-        return;
-      }
-      if (!iti || !iti.isValidNumber()) {
-        showMessage("Invalid phone number.", "danger");
-        resetButton();
-        return;
-      }
-      phoneInput.value = iti.getNumber(); // Store E.164 format
-
-      const dob = new Date(dobInput.value);
-      if (isNaN(dob) || dobInput.value !== dob.toISOString().split("T")[0]) {
-        showMessage("Invalid date of birth. Use YYYY-MM-DD format.", "danger");
-        resetButton();
-        return;
-      }
-      const today = new Date();
-      const age = today.getFullYear() - dob.getFullYear();
-      if (age < 13) {
-        showMessage("You must be at least 13 years old to subscribe.", "danger");
-        resetButton();
-        return;
-      }
-      if (!genderSelect.value || genderSelect.value === "Select Gender") {
-        showMessage("Please select your gender.", "danger");
-        resetButton();
-        return;
-      }
-      if (!branchSelect.value || branchSelect.value === "Select a HYBE Branch") {
-        showMessage("Please select a HYBE branch.", "danger");
-        resetButton();
-        return;
-      }
-      if (!groupSelect.value || groupSelect.value === "Select a Group") {
-        showMessage("Please select a group.", "danger");
-        resetButton();
-        return;
-      }
-      if (!artistSelect.value || artistSelect.value === "Select an Artist") {
-        showMessage("Please select an artist.", "danger");
-        resetButton();
-        return;
-      }
-      if (!paymentTypeSelect.value || paymentTypeSelect.value === "Select Payment Type") {
-        showMessage("Please select a payment type.", "danger");
-        resetButton();
-        return;
-      }
-      const paymentMethod = form.querySelector('input[name="payment-method"]:checked');
-      if (!paymentMethod) {
-        showMessage("Please select a payment method.", "danger");
-        resetButton();
-        return;
+      if (formMessage) {
+        formMessage.classList.add("d-none");
       }
 
-      // Generate IDs
-      permitIdInput.value = generatePermitId();
-      submissionIdInput.value = `SUB-${Date.now()}`;
+      // Validation
+      try {
+        if (!form.checkValidity()) {
+          form.classList.add("was-validated");
+          showMessage("Please fill out all required fields correctly.", "danger");
+          resetButton();
+          return;
+        }
 
-      // Show validation modal with countdown
-      modalManager.show("validationModal", {
-        countdown: {
-          duration: 5,
-          elementId: "countdown",
-          onComplete: () => {
-            // Handle payment modal after validation
-            if (paymentMethod.value === "Card Payment") {
-              modalManager.show("paymentModal", {
-                countdown: {
-                  duration: 5,
-                  elementId: "payment-countdown",
-                  onComplete: () => {
-                    // Redirect to Stripe payment link
-                    const paymentType = paymentTypeSelect.value;
-                    if (paymentType === "Full Payment") {
-                      window.location.href = "https://buy.stripe.com/14AfZh1LD4eL9Kx0972ZO04";
-                    } else if (paymentType === "Installment") {
-                      window.location.href = "https://buy.stripe.com/3cIfZhgGxdPlaOBaNL2ZO06";
-                    }
+        if (referralCodeInput.value !== "HYBE2025") {
+          showMessage("Invalid referral code. Use HYBE2025.", "danger");
+          resetButton();
+          return;
+        }
+        if (!emailRegex.test(emailInput.value)) {
+          showMessage("Invalid email address.", "danger");
+          resetButton();
+          return;
+        }
+        if (!iti || !iti.isValidNumber()) {
+          showMessage("Invalid phone number.", "danger");
+          resetButton();
+          return;
+        }
+        phoneInput.value = iti.getNumber(); // Store E.164 format
+
+        const dob = new Date(dobInput.value);
+        if (isNaN(dob) || dobInput.value !== dob.toISOString().split("T")[0]) {
+          showMessage("Invalid date of birth. Use YYYY-MM-DD format.", "danger");
+          resetButton();
+          return;
+        }
+        const today = new Date();
+        const age = today.getFullYear() - dob.getFullYear();
+        if (age < 13) {
+          showMessage("You must be at least 13 years old to subscribe.", "danger");
+          resetButton();
+          return;
+        }
+        if (!privacyPolicy.checked) {
+          showMessage("You must agree to the Privacy Policy.", "danger");
+          resetButton();
+          return;
+        }
+        if (!subscriptionAgreement.checked) {
+          showMessage("You must agree to complete the subscription.", "danger");
+          resetButton();
+          return;
+        }
+
+        // Generate IDs
+        permitIdInput.value = generatePermitId();
+        submissionIdInput.value = `SUB-${Date.now()}`;
+
+        // Show validation modal with countdown
+        modalManager.show("validationModal", {
+          countdown: {
+            duration: 5,
+            elementId: "countdown",
+            onComplete: () => {
+              const paymentMethod = form.querySelector('input[name="payment-method"]:checked');
+              if (!paymentMethod) {
+                showMessage("Please select a payment method.", "danger");
+                resetButton();
+                return;
+              }
+
+              if (paymentMethod.value === "Card Payment") {
+                modalManager.show("paymentModal", {
+                  countdown: {
+                    duration: 5,
+                    elementId: "payment-countdown",
+                    onComplete: () => {
+                      // Redirect to Stripe payment link
+                      const paymentType = paymentTypeSelect.value;
+                      if (paymentType === "Full Payment") {
+                        window.location.href = "https://buy.stripe.com/14AfZh1LD4eL9Kx0972ZO04";
+                      } else if (paymentType === "Installment") {
+                        window.location.href = "https://buy.stripe.com/3cIfZhgGxdPlaOBaNL2ZO06";
+                      }
+                    },
                   },
-                },
-              });
-            } else if (paymentMethod.value === "Digital Currency") {
-              showMessage("Digital Currency payment coming soon!", "info");
-              resetButton();
-            } else {
-              showMessage("Selected payment method is not supported.", "danger");
-              resetButton();
-            }
-            // Log submission for analytics
-            console.log(
-              `Subscription submitted: ${submissionIdInput.value}, Artist: ${artistSelect.value}, Payment: ${paymentTypeSelect.value}`
-            );
+                });
+              } else if (paymentMethod.value === "Digital Currency") {
+                modalManager.show("digitalCurrencySuccessModal");
+                resetButton();
+              } else {
+                showMessage("Selected payment method is not supported.", "danger");
+                resetButton();
+              }
+
+              // Log submission for analytics
+              console.log(
+                `Subscription submitted: ${submissionIdInput.value}, Artist: ${artistSelect.value}, Payment: ${paymentTypeSelect.value}`
+              );
+            },
           },
-        },
-      });
-    } catch (error) {
-      showMessage(`Submission failed: ${error.message}`, "danger");
-      resetButton();
-    }
-  });
+        });
+      } catch (error) {
+        showMessage(`Submission failed: ${error.message}`, "danger");
+        resetButton();
+      }
+    });
+  }
 });
