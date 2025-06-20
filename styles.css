@@ -190,6 +190,11 @@ footer.bg-gradient {
   font-size: 0.9rem;
 }
 
+/* Alert fade-in transition */
+.alert {
+  transition: opacity 0.2s;
+}
+
 /* Utility class */
 .d-none {
   display: none !important;
@@ -220,7 +225,7 @@ noscript .container {
 
 .modal-content {
   outline: 0;
-  box-shadow: 0 5px 15px rgba(0,0,0,.5);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
   border-radius: 10px;
   background: #fff;
 }
@@ -231,9 +236,14 @@ noscript .container {
   border-width: 0.25em;
 }
 
+/* Payment Modal */
 #paymentModal .modal-content {
   background: #fff;
   border-radius: 10px;
+}
+
+#paymentModal .modal-body {
+  padding: 2rem;
 }
 
 #paymentModal .spinner-border {
@@ -241,35 +251,33 @@ noscript .container {
   height: 3rem;
 }
 
-#paymentModal .modal-body {
-  padding: 2rem;
-}
-
-#paymentModalDesc {
-  margin-top: 0.5rem;
-  font-size: 0.875rem; /* text-sm */
-  color: #6b7280; /* text-gray-500 */
-}
-
 /* Digital Currency Success Modal */
 #digitalCurrencySuccessModal .modal-content {
-  background: #fff;
-  border-radius: 10px;
+  border-radius: 12px;
+  background: #f8fafc;
+  box-shadow: 0 5px 30px rgba(16, 185, 129, 0.15);
 }
 
 #digitalCurrencySuccessModal .modal-body {
   padding: 2rem;
 }
 
-#digitalCurrencySuccessModal .btn-primary {
+#digitalCurrencySuccessModal .btn {
+  min-width: 180px;
   background: var(--primary-gradient);
   border: none;
   transition: all 0.3s ease;
 }
 
-#digitalCurrencySuccessModal .btn-primary:hover {
+#digitalCurrencySuccessModal .btn:hover {
   background: linear-gradient(90deg, #3498db, #8e44ad);
   transform: translateY(-2px);
+}
+
+/* Focus ring for accessibility inside modals */
+.modal-content:focus {
+  outline: 2px solid #0d6efd;
+  outline-offset: 2px;
 }
 
 /* Bilingual careers link styling */
@@ -292,16 +300,21 @@ footer a[lang="ko"] {
   .btn-gradient,
   .btn-secondary {
     font-size: 0.85rem;
+    padding: 0.5rem 1rem;
+  }
+  .modal-dialog {
+    margin: 1rem;
+    max-width: calc(100% - 2rem);
   }
   .modal .spinner-border,
   #paymentModal .spinner-border {
     width: 2rem;
     height: 2rem;
   }
-  .modal-dialog {
-    margin: 1rem;
-    max-width: calc(100% - 2rem);
-  }
+}
+
+/* Responsive modal text scaling */
+@media (max-width: 400px) {
   .modal-body,
   .modal-content,
   .modal-title {
@@ -317,15 +330,4 @@ footer a[lang="ko"] {
   .modal.fade .modal-dialog {
     transition: none;
   }
-}
-
-/* Fade-in for alert messages */
-.alert {
-  transition: opacity 0.2s;
-}
-
-/* Focus ring for accessibility inside modals */
-.modal-content:focus {
-  outline: 2px solid #0d6efd;
-  outline-offset: 2px;
 }
