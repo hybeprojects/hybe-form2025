@@ -65,7 +65,7 @@
       rel="stylesheet"
     />
     <!-- Custom CSS -->
-    <script type="module" crossorigin src="/assets/index-DK3KGlHC.js"></script>
+    <script type="module" crossorigin src="/assets/index-CQCuRLwB.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-C6R9e2j4.css">
   </head>
   <body>
@@ -277,7 +277,10 @@
                       name="email"
                       required
                       aria-required="true"
+                      aria-describedby="email-error"
+                      pattern="^[^@\s]+@[^@\s]+\.[^@\s]+$"
                     />
+                    <div id="email-error" class="invalid-feedback" aria-live="polite"></div>
                     <i
                       class="bi bi-info-circle tooltip-icon"
                       data-bs-toggle="tooltip"
@@ -307,8 +310,10 @@
                       required
                       aria-required="true"
                       aria-describedby="phone-error"
+                      aria-invalid="false"
+                      pattern="^\\+?[0-9\\s\\-()]{7,20}$"
                     />
-                    <div id="phone-error" class="error-message"></div>
+                    <div id="phone-error" class="invalid-feedback" aria-live="polite"></div>
                     <i
                       class="bi bi-info-circle tooltip-icon"
                       data-bs-toggle="tooltip"
@@ -395,7 +400,11 @@
                       name="dob"
                       required
                       aria-required="true"
+                      aria-describedby="dob-error"
+                      min="1900-01-01"
+                      max="2012-06-21"
                     />
+                    <div id="dob-error" class="invalid-feedback" aria-live="polite"></div>
                     <i
                       class="bi bi-info-circle tooltip-icon"
                       data-bs-toggle="tooltip"
@@ -554,6 +563,7 @@
                       style="
                         font-size: 1.5rem;
                         background: linear-gradient(90deg, #8e44ad, #3498db);
+                        background-clip: text;
                         -webkit-background-clip: text;
                         -webkit-text-fill-color: transparent;
                       "

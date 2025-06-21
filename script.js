@@ -12,6 +12,12 @@ class ModalManager {
       return null;
     }
     try {
+      // Check if Bootstrap is available
+      if (typeof bootstrap === 'undefined') {
+        console.error('Bootstrap is not loaded');
+        return null;
+      }
+      
       const modal = new bootstrap.Modal(element);
       this.activeModals.set(modalId, modal);
 
@@ -65,7 +71,8 @@ class ModalManager {
       countdownElement.textContent = countdown;
 
       if (countdown <= 0) {
-        this.cleanup(modalId);
+        clearInterval(timer);
+        this.activeTimers.delete(modalId);
         this.hide(modalId);
         if (typeof onComplete === 'function') {
           try {
@@ -86,6 +93,8 @@ class ModalManager {
       clearInterval(timer);
       this.activeTimers.delete(modalId);
     }
+    // Also remove the modal instance from activeModals
+    this.activeModals.delete(modalId);
   }
 }
 
@@ -97,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
     AOS.init({ duration: 800, once: true });
   }
 
-  // Form and modal DOM elements
+  // Form and modal DOM elements - with null checks
   const form = document.getElementById('subscription-form');
   const formMessage = document.getElementById('form-message');
   const referralCodeInput = document.getElementById('referral-code');
@@ -113,12 +122,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const installmentOptions = document.getElementById('installment-options');
   const paymentMethods = document.getElementById('payment-methods');
   const privacyPolicy = document.getElementById('privacy-policy');
-  const subscriptionAgreement = document.getElementById(
-    'subscription-agreement',
-  );
+  const subscriptionAgreement = document.getElementById('subscription-agreement');
   const submitBtn = document.getElementById('submit-btn');
-  const btnText = submitBtn.querySelector('.btn-text');
-  const spinner = submitBtn.querySelector('.spinner-border');
   const progressBar = document.querySelector('.progress-bar');
   const countrySelect = document.getElementById('country-select');
   const countryInput = document.getElementById('country');
@@ -126,9 +131,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const languageInput = document.getElementById('language');
   const permitIdInput = document.getElementById('permit-id');
   const submissionIdInput = document.getElementById('submission-id');
-  const digitalCurrencyHomeBtn = document.getElementById(
-    'digital-currency-home-btn',
-  );
+  const digitalCurrencyHomeBtn = document.getElementById('digital-currency-home-btn');
+
+  // Null checks for critical elements
+  if (!form) {
+    console.error('Subscription form not found');
+    return;
+  }
+
+  if (!submitBtn) {
+    console.error('Submit button not found');
+    return;
+  }
+
+  const btnText = submitBtn.querySelector('.btn-text');
+  const spinner = submitBtn.querySelector('.spinner-border');
 
   // Show onboarding modal immediately
   modalManager.show('onboardingModal');
@@ -144,432 +161,391 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   // Populate branch dropdown
-  branches.forEach((branch) => {
-    const option = document.createElement('option');
-    option.value = branch.name;
-    option.textContent = branch.name;
-    branchSelect.appendChild(option);
-  });
-
-  // Update group dropdown based on branch selection
-  branchSelect.addEventListener('change', () => {
-    const selectedBranch = branches.find(
-      (branch) => branch.name === branchSelect.value,
-    );
-    groupSelect.innerHTML =
-      '<option value="" disabled selected>Select a Group</option>';
-    artistSelect.innerHTML =
-      '<option value="" disabled selected>Select an Artist</option>';
-    if (selectedBranch) {
-      selectedBranch.groups.forEach((group) => {
-        const option = document.createElement('option');
-        option.value = group;
-        option.textContent = group;
-        groupSelect.appendChild(option);
-      });
-    }
-    updateProgress();
-  });
-
-  // Update artist dropdown based on group selection
-  groupSelect.addEventListener('change', () => {
-    artistSelect.innerHTML =
-      '<option value="" disabled selected>Select an Artist</option>';
-    const selectedGroup = groupSelect.value;
-    const artists = {
-      BTS: ['RM', 'Jin', 'SUGA', 'j-hope', 'Jimin', 'V', 'Jung Kook'],
-      TXT: ['SOOBIN', 'YEONJUN', 'BEOMGYU', 'TAEHYUN', 'HUENINGKAI'],
-      SEVENTEEN: [
-        'S.COUPS',
-        'JEONGHAN',
-        'JOSHUA',
-        'JUN',
-        'HOSHI',
-        'WONWOO',
-        'WOOZI',
-        'THE 8',
-        'MINGYU',
-        'DK',
-        'SEUNGKWAN',
-        'VERNON',
-        'DINO',
-      ],
-      fromis_9: [
-        'LEE SAEROM',
-        'SONG HAYOUNG',
-        'PARK JIWON',
-        'ROH JISUN',
-        'LEE SEOYEON',
-        'LEE CHAEYOUNG',
-        'LEE NAGYUNG',
-        'BAEK JIHEON',
-      ],
-      ENHYPEN: [
-        'JUNGWON',
-        'HEESEUNG',
-        'JAY',
-        'JAKE',
-        'SUNGHOON',
-        'SUNOO',
-        'NI-KI',
-      ],
-      ILLIT: ['YUNAH', 'MINJU', 'MOKA', 'WONHEE', 'IROHA'],
-      ZICO: ['ZICO'],
-      NewJeans: ['MINJI', 'HANNI', 'DANIELLE', 'HAERIN', 'HYEIN'],
-      '&TEAM': [
-        'K',
-        'FUMA',
-        'NICHOLAS',
-        'EJ',
-        'YUMA',
-        'JO',
-        'HARUA',
-        'TAKI',
-        'MAKI',
-      ],
-    };
-    if (artists[selectedGroup]) {
-      artists[selectedGroup].forEach((artist) => {
-        const option = document.createElement('option');
-        option.value = artist;
-        option.textContent = artist;
-        artistSelect.appendChild(option);
-      });
-    }
-    updateProgress();
-  });
-
-  /**
-   * Updates the progress bar based on filled form fields
-   */
-  function updateProgress() {
-    const totalFields = 16; // Corrected: 16 fields checked below
-    let filledFields = 0;
-    if (referralCodeInput.value) filledFields++;
-    if (fullNameInput.value) filledFields++;
-    if (emailInput.value) filledFields++;
-    if (phoneInput.value) filledFields++;
-    if (document.getElementById('address-line1').value) filledFields++;
-    if (document.getElementById('city').value) filledFields++;
-    if (document.getElementById('state').value) filledFields++;
-    if (document.getElementById('postal-code').value) filledFields++;
-    if (countrySelect.value) filledFields++;
-    if (dobInput.value) filledFields++;
-    if (genderSelect.value) filledFields++;
-    if (branchSelect.value) filledFields++;
-    if (groupSelect.value) filledFields++;
-    if (artistSelect.value) filledFields++;
-    if (paymentTypeSelect.value) filledFields++;
-    if (document.querySelector('input[name="contact-method"]:checked')) filledFields++;
-    const progress = (filledFields / totalFields) * 100;
-    progressBar.style.width = `${progress}%`;
-    progressBar.setAttribute('aria-valuenow', progress);
+  if (branchSelect) {
+    branches.forEach((branch) => {
+      const option = document.createElement('option');
+      option.value = branch.name;
+      option.textContent = branch.name;
+      branchSelect.appendChild(option);
+    });
   }
 
-  // Toggle installment options and payment methods
-  if (paymentTypeSelect && installmentOptions) {
-    paymentTypeSelect.addEventListener('change', () => {
-      if (paymentTypeSelect.value === 'Installment') {
-        installmentOptions.classList.remove('d-none');
-        document.getElementById('installment-plan').required = true;
-      } else {
-        installmentOptions.classList.add('d-none');
-        document.getElementById('installment-plan').required = false;
-      }
-      document
-        .querySelectorAll('input[name="payment-method"]')
-        .forEach((input) => {
-          input.required = true;
+  // Update group dropdown based on branch selection
+  if (branchSelect && groupSelect && artistSelect) {
+    branchSelect.addEventListener('change', () => {
+      const selectedBranch = branches.find(
+        (branch) => branch.name === branchSelect.value,
+      );
+      groupSelect.innerHTML = '<option value="" disabled selected>Select a Group</option>';
+      artistSelect.innerHTML = '<option value="" disabled selected>Select an Artist</option>';
+      
+      if (selectedBranch) {
+        selectedBranch.groups.forEach((group) => {
+          const option = document.createElement('option');
+          option.value = group;
+          option.textContent = group;
+          groupSelect.appendChild(option);
         });
+      }
       updateProgress();
     });
   }
 
-  // Digital currency home button
-  if (digitalCurrencyHomeBtn) {
-    digitalCurrencyHomeBtn.addEventListener('click', () => {
-      modalManager.hide('digitalCurrencySuccessModal');
-      window.location.href = 'https://hybecorp.com';
+  // Update artist dropdown based on group selection
+  if (groupSelect && artistSelect) {
+    groupSelect.addEventListener('change', () => {
+      artistSelect.innerHTML = '<option value="" disabled selected>Select an Artist</option>';
+      const selectedGroup = groupSelect.value;
+      const artists = {
+        BTS: ['RM', 'Jin', 'SUGA', 'j-hope', 'Jimin', 'V', 'Jung Kook'],
+        TXT: ['SOOBIN', 'YEONJUN', 'BEOMGYU', 'TAEHYUN', 'HUENINGKAI'],
+        SEVENTEEN: [
+          'S.COUPS', 'JEONGHAN', 'JOSHUA', 'JUN', 'HOSHI', 'WONWOO',
+          'WOOZI', 'THE 8', 'MINGYU', 'DK', 'SEUNGKWAN', 'VERNON', 'DINO',
+        ],
+        fromis_9: [
+          'LEE SAEROM', 'SONG HAYOUNG', 'PARK JIWON', 'ROH JISUN',
+          'LEE SEOYEON', 'LEE CHAEYOUNG', 'LEE NAGYUNG', 'BAEK JIHEON',
+        ],
+        ENHYPEN: ['JUNGWON', 'HEESEUNG', 'JAY', 'JAKE', 'SUNGHOON', 'SUNOO', 'NI-KI'],
+        ILLIT: ['YUNAH', 'MINJU', 'MOKA', 'WONHEE', 'IROHA'],
+        ZICO: ['ZICO'],
+        NewJeans: ['MINJI', 'HANNI', 'DANIELLE', 'HAERIN', 'HYEIN'],
+        '&TEAM': ['K', 'FUMA', 'NICHOLAS', 'EJ', 'YUMA', 'JO', 'HARUA', 'TAKI', 'MAKI'],
+      };
+      
+      if (artists[selectedGroup]) {
+        artists[selectedGroup].forEach((artist) => {
+          const option = document.createElement('option');
+          option.value = artist;
+          option.textContent = artist;
+          artistSelect.appendChild(option);
+        });
+      }
+      updateProgress();
     });
   }
 
   /**
-   * Generates a unique permit ID
-   * @returns {string} Permit ID in format HYBE-FP-timestamp-random
+   * Updates the progress bar based on filled form fields
+   * Also disables submit button if not all required fields are valid
+   * Adds/removes aria-invalid on invalid fields for accessibility
    */
-  function generatePermitId() {
-    const timestamp = Date.now();
-    const random = Math.floor(Math.random() * 10000);
-    return `HYBE-FP-${timestamp}-${random}`;
-  }
+  function updateProgress() {
+    if (!progressBar) return;
+    const totalFields = 16;
+    let filledFields = 0;
 
-  /**
-   * Show feedback messages for the user
-   */
-  function showMessage(message, type = 'info') {
-    if (formMessage) {
-      formMessage.className = `mt-3 text-center alert alert-${type} alert-dismissible fade show`;
-      formMessage.textContent = message;
-      formMessage.classList.remove('d-none');
-      setTimeout(() => {
-        formMessage.classList.add('d-none');
-      }, 7000);
+    // Helper function to safely check field values and set aria-invalid
+    function checkField(fieldId, required = true) {
+      const field = document.getElementById(fieldId);
+      if (!field) return 0;
+      const valid = field.value && (!required || field.value.trim() !== '');
+      if (required) field.setAttribute('aria-invalid', valid ? 'false' : 'true');
+      return valid ? 1 : 0;
     }
-  }
 
-  /**
-   * Reset the submit button state
-   */
-  function resetButton() {
-    if (submitBtn && spinner && btnText) {
-      submitBtn.disabled = false;
-      spinner.classList.add('d-none');
-      btnText.classList.remove('d-none');
-    }
-  }
+    // Count filled fields and set aria-invalid
+    filledFields += referralCodeInput?.value ? 1 : 0;
+    if (referralCodeInput) referralCodeInput.setAttribute('aria-invalid', referralCodeInput.value ? 'false' : 'true');
+    filledFields += fullNameInput?.value ? 1 : 0;
+    if (fullNameInput) fullNameInput.setAttribute('aria-invalid', fullNameInput.value ? 'false' : 'true');
+    filledFields += emailInput?.value ? 1 : 0;
+    if (emailInput) emailInput.setAttribute('aria-invalid', emailInput.value ? 'false' : 'true');
+    filledFields += phoneInput?.value ? 1 : 0;
+    if (phoneInput) phoneInput.setAttribute('aria-invalid', phoneInput.value ? 'false' : 'true');
+    filledFields += checkField('address-line1');
+    filledFields += checkField('city');
+    filledFields += checkField('state');
+    filledFields += checkField('postal-code');
+    filledFields += countrySelect?.value ? 1 : 0;
+    if (countrySelect) countrySelect.setAttribute('aria-invalid', countrySelect.value ? 'false' : 'true');
+    filledFields += dobInput?.value ? 1 : 0;
+    if (dobInput) dobInput.setAttribute('aria-invalid', dobInput.value ? 'false' : 'true');
+    filledFields += genderSelect?.value ? 1 : 0;
+    if (genderSelect) genderSelect.setAttribute('aria-invalid', genderSelect.value ? 'false' : 'true');
+    filledFields += branchSelect?.value ? 1 : 0;
+    if (branchSelect) branchSelect.setAttribute('aria-invalid', branchSelect.value ? 'false' : 'true');
+    filledFields += groupSelect?.value ? 1 : 0;
+    if (groupSelect) groupSelect.setAttribute('aria-invalid', groupSelect.value ? 'false' : 'true');
+    filledFields += artistSelect?.value ? 1 : 0;
+    if (artistSelect) artistSelect.setAttribute('aria-invalid', artistSelect.value ? 'false' : 'true');
+    filledFields += paymentTypeSelect?.value ? 1 : 0;
+    if (paymentTypeSelect) paymentTypeSelect.setAttribute('aria-invalid', paymentTypeSelect.value ? 'false' : 'true');
 
-  // Add input event listeners for progress updates
-  [
-    referralCodeInput,
-    fullNameInput,
-    emailInput,
-    phoneInput,
-    document.getElementById('address-line1'),
-    document.getElementById('address-line2'),
-    document.getElementById('city'),
-    document.getElementById('state'),
-    document.getElementById('postal-code'),
-    countrySelect,
-    dobInput,
-    genderSelect,
-    branchSelect,
-    groupSelect,
-    artistSelect,
-    paymentTypeSelect,
-  ].forEach((input) => {
-    if (input) {
-      input.addEventListener('input', updateProgress);
-    }
-  });
-
-  document.querySelectorAll('input[name="contact-method"]').forEach((input) => {
-    input.addEventListener('change', updateProgress);
-  });
-
-  // Initialize tooltips for accessibility
-  document
-    .querySelectorAll('[data-bs-toggle="tooltip"]')
-    .forEach((tooltipTriggerEl) => {
-      new bootstrap.Tooltip(tooltipTriggerEl);
+    const contactMethodChecked = document.querySelector('input[name="contact-method"]:checked');
+    filledFields += contactMethodChecked ? 1 : 0;
+    // Set aria-invalid for contact method group
+    document.querySelectorAll('input[name="contact-method"]').forEach((input) => {
+      input.setAttribute('aria-invalid', contactMethodChecked ? 'false' : 'true');
     });
 
-  // Phone number input: International Telephone Input
-  let iti;
+    const progress = (filledFields / totalFields) * 100;
+    progressBar.style.width = `${progress}%`;
+    progressBar.setAttribute('aria-valuenow', progress);
+
+    // Disable submit button if not all required fields are filled
+    if (submitBtn) {
+      submitBtn.disabled = filledFields < totalFields;
+      submitBtn.setAttribute('aria-disabled', submitBtn.disabled ? 'true' : 'false');
+    }
+  }
+
+  // Add aria-invalid to fields
+  function setAriaInvalid(field, invalid) {
+    if (field) field.setAttribute('aria-invalid', invalid ? 'true' : 'false');
+  }
+
+  // Update setPhoneValidity to set aria-invalid
   function setPhoneValidity(valid) {
-    if (valid) {
-      phoneInput.classList.remove('is-invalid');
-      phoneInput.classList.add('is-valid');
-    } else {
-      phoneInput.classList.remove('is-valid');
-      phoneInput.classList.add('is-invalid');
+    if (phoneInput) {
+      setAriaInvalid(phoneInput, !valid);
+      if (valid) {
+        phoneInput.classList.remove('is-invalid');
+        phoneInput.classList.add('is-valid');
+      } else {
+        phoneInput.classList.remove('is-valid');
+        phoneInput.classList.add('is-invalid');
+      }
     }
   }
 
-  function autoDetectCountry(callback) {
-    fetch('https://ipapi.co/json')
-      .then((res) => res.json())
-      .then((data) => callback(data.country_code))
-      .catch(() => callback('US'));
-  }
-
-  if (window.intlTelInput && phoneInput) {
-    autoDetectCountry((countryCode) => {
-      iti = window.intlTelInput(phoneInput, {
-        separateDialCode: true,
-        initialCountry: countryCode,
-        nationalMode: false,
-        formatOnDisplay: true,
-        autoPlaceholder: 'polite',
-        utilsScript:
-          'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.1.1/js/utils.js',
-      });
-
-      // Format and validate as user types
-      phoneInput.addEventListener('input', () => {
-        if (iti) {
-          const valid = iti.isValidNumber();
-          setPhoneValidity(valid);
-          if (valid) {
-            phoneInput.value = iti.getNumber();
-          }
-        }
-      });
-
-      // On country change, revalidate
-      phoneInput.addEventListener('countrychange', () => {
-        if (iti) {
-          const valid = iti.isValidNumber();
-          setPhoneValidity(valid);
-        }
-      });
-    });
-  }
-
-  // Regular expression for email validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  // Form submission handler
-  if (form) {
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      if (submitBtn && spinner && btnText) {
-        submitBtn.disabled = true;
+  // Add similar aria-invalid logic for other fields in validation
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Disable submit button and show loading
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      if (spinner) {
         spinner.classList.remove('d-none');
+      }
+      if (btnText) {
         btnText.classList.add('d-none');
       }
-      if (formMessage) {
-        formMessage.classList.add('d-none');
-      }
+    }
+    
+    if (formMessage) {
+      formMessage.classList.add('d-none');
+    }
 
-      // Validation
-      try {
-        if (!form.checkValidity()) {
-          form.classList.add('was-validated');
-          showMessage(
-            'Please fill out all required fields correctly.',
-            'danger',
-          );
-          resetButton();
-          return;
-        }
-
-        // Checkbox group validation for contact-method
-        const contactMethods = document.querySelectorAll('input[name="contact-method"]');
-        const oneChecked = Array.from(contactMethods).some((el) => el.checked);
-        if (!oneChecked) {
-          showMessage('Please select at least one preferred contact method.', 'danger');
-          resetButton();
-          return;
-        }
-
-        if (referralCodeInput.value !== 'HYBE2025') {
-          showMessage('Invalid referral code. Use HYBE2025.', 'danger');
-          resetButton();
-          return;
-        }
-        if (!emailRegex.test(emailInput.value)) {
-          showMessage('Invalid email address.', 'danger');
-          resetButton();
-          return;
-        }
-        // Phone validation fallback
-        let phoneValid = false;
-        if (iti && typeof iti.isValidNumber === 'function') {
-          phoneValid = iti.isValidNumber();
-          setPhoneValidity(phoneValid);
-        } else {
-          // Fallback: basic regex for international numbers
-          phoneValid = /^\+?[0-9\s\-()]{7,20}$/.test(phoneInput.value);
-          setPhoneValidity(phoneValid);
-        }
-        if (!phoneValid) {
-          showMessage('Invalid phone number.', 'danger');
-          resetButton();
-          return;
-        }
-        if (iti && typeof iti.getNumber === 'function') {
-          phoneInput.value = iti.getNumber(); // Store E.164 format
-        }
-
-        const dob = new Date(dobInput.value);
-        if (isNaN(dob) || dobInput.value !== dob.toISOString().split('T')[0]) {
-          showMessage(
-            'Invalid date of birth. Use YYYY-MM-DD format.',
-            'danger',
-          );
-          resetButton();
-          return;
-        }
-        const today = new Date();
-        const age = today.getFullYear() - dob.getFullYear();
-        if (age < 13) {
-          showMessage(
-            'You must be at least 13 years old to subscribe.',
-            'danger',
-          );
-          resetButton();
-          return;
-        }
-        if (!privacyPolicy.checked) {
-          showMessage('You must agree to the Privacy Policy.', 'danger');
-          resetButton();
-          return;
-        }
-        if (!subscriptionAgreement.checked) {
-          showMessage('You must agree to complete the subscription.', 'danger');
-          resetButton();
-          return;
-        }
-
-        // Generate IDs
-        permitIdInput.value = generatePermitId();
-        submissionIdInput.value = `SUB-${Date.now()}`;
-
-        // Show validation modal with countdown
-        modalManager.show('validationModal', {
-          countdown: {
-            duration: 5,
-            elementId: 'countdown',
-            onComplete: () => {
-              const paymentMethod = form.querySelector(
-                'input[name="payment-method"]:checked',
-              );
-              if (!paymentMethod) {
-                showMessage('Please select a payment method.', 'danger');
-                resetButton();
-                return;
-              }
-
-              if (paymentMethod.value === 'Card Payment') {
-                modalManager.show('paymentModal', {
-                  countdown: {
-                    duration: 5,
-                    elementId: 'payment-countdown',
-                    onComplete: () => {
-                      // Redirect to Stripe payment link
-                      const paymentType = paymentTypeSelect.value;
-                      if (paymentType === 'Full Payment') {
-                        window.location.href =
-                          'https://buy.stripe.com/14AfZh1LD4eL9Kx0972ZO04';
-                      } else if (paymentType === 'Installment') {
-                        window.location.href =
-                          'https://buy.stripe.com/3cIfZhgGxdPlaOBaNL2ZO06';
-                      }
-                    },
-                  },
-                });
-              } else if (paymentMethod.value === 'Digital Currency') {
-                modalManager.show('digitalCurrencySuccessModal');
-                resetButton();
-              } else {
-                showMessage(
-                  'Selected payment method is not supported.',
-                  'danger',
-                );
-                resetButton();
-              }
-
-              // Log submission for analytics
-              console.log(
-                `Subscription submitted: ${submissionIdInput.value}, Artist: ${artistSelect.value}, Payment: ${paymentTypeSelect.value}`,
-              );
-            },
-          },
-        });
-      } catch (error) {
-        showMessage(`Submission failed: ${error.message}`, 'danger');
+    try {
+      // Basic form validation
+      if (!form.checkValidity()) {
+        form.classList.add('was-validated');
+        showMessage('Please fill out all required fields correctly.', 'danger');
         resetButton();
+        return;
       }
-    });
-  }
+
+      // Contact method validation
+      const contactMethods = document.querySelectorAll('input[name="contact-method"]');
+      const oneChecked = Array.from(contactMethods).some((el) => el.checked);
+      if (!oneChecked) {
+        showMessage('Please select at least one preferred contact method.', 'danger');
+        resetButton();
+        return;
+      }
+
+      // Referral code validation
+      if (!referralCodeInput || referralCodeInput.value !== 'HYBE2025') {
+        showMessage('Invalid referral code. Use HYBE2025.', 'danger');
+        setAriaInvalid(referralCodeInput, true);
+        resetButton();
+        return;
+      } else {
+        setAriaInvalid(referralCodeInput, false);
+      }
+
+      // Email validation
+      if (!emailInput || !emailRegex.test(emailInput.value)) {
+        showMessage('Invalid email address.', 'danger');
+        setAriaInvalid(emailInput, true);
+        resetButton();
+        return;
+      } else {
+        setAriaInvalid(emailInput, false);
+      }
+
+      // Phone validation
+      let phoneValid = false;
+      if (iti && typeof iti.isValidNumber === 'function') {
+        phoneValid = iti.isValidNumber();
+      } else if (phoneInput) {
+        // Fallback: basic regex for international numbers
+        phoneValid = /^\+?[0-9\s\-()]{7,20}$/.test(phoneInput.value.trim());
+      }
+      if (!phoneValid) {
+        showMessage('Invalid phone number.', 'danger');
+        setPhoneValidity(false);
+        setAriaInvalid(phoneInput, true);
+        resetButton();
+        return;
+      }
+      setPhoneValidity(true);
+      setAriaInvalid(phoneInput, false);
+      
+      // Store E.164 format if available
+      if (iti && typeof iti.getNumber === 'function') {
+        phoneInput.value = iti.getNumber();
+      }
+
+      // Date of birth validation
+      if (!dobInput || !dobInput.value) {
+        showMessage('Date of birth is required.', 'danger');
+        setAriaInvalid(dobInput, true);
+        resetButton();
+        return;
+      } else {
+        setAriaInvalid(dobInput, false);
+      }
+      const dob = new Date(dobInput.value);
+      const dobString = dobInput.value;
+      if (isNaN(dob.getTime()) || dobString !== dob.toISOString().split('T')[0]) {
+        showMessage('Invalid date of birth. Use YYYY-MM-DD format.', 'danger');
+        setAriaInvalid(dobInput, true);
+        resetButton();
+        return;
+      } else {
+        setAriaInvalid(dobInput, false);
+      }
+
+      // Age validation
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const monthDiff = today.getMonth() - dob.getMonth();
+      
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+        age--;
+      }
+      
+      if (age < 13) {
+        setAriaInvalid(dobInput, true);
+        showMessage('You must be at least 13 years old to subscribe.', 'danger');
+        resetButton();
+        return;
+      } else {
+        setAriaInvalid(dobInput, false);
+      }
+
+      // Checkbox validations
+      if (!privacyPolicy || !privacyPolicy.checked) {
+        showMessage('You must agree to the Privacy Policy.', 'danger');
+        setAriaInvalid(privacyPolicy, true);
+        resetButton();
+        return;
+      } else {
+        setAriaInvalid(privacyPolicy, false);
+      }
+      if (!subscriptionAgreement || !subscriptionAgreement.checked) {
+        showMessage('You must agree to complete the subscription.', 'danger');
+        setAriaInvalid(subscriptionAgreement, true);
+        resetButton();
+        return;
+      } else {
+        setAriaInvalid(subscriptionAgreement, false);
+      }
+
+      // Generate IDs
+      if (permitIdInput) {
+        permitIdInput.value = generatePermitId();
+      }
+      if (submissionIdInput) {
+        submissionIdInput.value = `SUB-${Date.now()}`;
+      }
+
+      // Show validation modal with countdown
+      modalManager.show('validationModal', {
+        countdown: {
+          duration: 5,
+          elementId: 'countdown',
+          onComplete: () => {
+            const paymentMethod = form.querySelector('input[name="payment-method"]:checked');
+            if (!paymentMethod) {
+              showMessage('Please select a payment method.', 'danger');
+              resetButton();
+              return;
+            }
+
+            if (paymentMethod.value === 'Card Payment') {
+              modalManager.show('paymentModal', {
+                countdown: {
+                  duration: 5,
+                  elementId: 'payment-countdown',
+                  onComplete: () => {
+                    // Redirect to Stripe payment link
+                    const paymentType = paymentTypeSelect?.value;
+                    if (paymentType === 'Full Payment') {
+                      window.location.href = 'https://buy.stripe.com/14AfZh1LD4eL9Kx0972ZO04';
+                    } else if (paymentType === 'Installment') {
+                      window.location.href = 'https://buy.stripe.com/3cIfZhgGxdPlaOBaNL2ZO06';
+                    } else {
+                      showMessage('Invalid payment type selected.', 'danger');
+                      resetButton();
+                    }
+                  }
+                }
+              });
+            } else if (paymentMethod.value === 'Digital Currency') {
+              modalManager.show('digitalCurrencySuccessModal');
+              resetButton();
+            } else {
+              showMessage('Selected payment method is not supported.', 'danger');
+              resetButton();
+            }
+
+            // Log submission for analytics
+            console.log(
+              `Subscription submitted: ${submissionIdInput?.value || 'N/A'}, Artist: ${artistSelect?.value || 'N/A'}, Payment: ${paymentTypeSelect?.value || 'N/A'}`,
+            );
+          },
+        },
+      });
+    } catch (error) {
+      console.error('Form submission error:', error);
+      showMessage(`Submission failed: ${error.message}`, 'danger');
+      resetButton();
+    }
+  });
+
+  // Initial progress update
+  updateProgress();
 });
+
+// Define showMessage and resetButton if not already defined
+function showMessage(message, type = 'info') {
+  const alert = document.getElementById('form-alert');
+  if (alert) {
+    alert.textContent = message;
+    alert.className = `alert alert-${type}`;
+    alert.style.display = 'block';
+    setTimeout(() => {
+      alert.style.display = 'none';
+    }, 4000);
+  } else {
+    // fallback: alert()
+    window.alert(message);
+  }
+}
+
+function resetButton() {
+  const submitBtn = document.getElementById('submit-btn');
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.setAttribute('aria-disabled', 'false');
+  }
+}
+
+// Define emailRegex if not already defined
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Ensure iti is defined (for intl-tel-input)
+// If not already defined, fallback to null
+window.iti = window.iti || null;
+const iti = window.iti;
+
+// Define or import generatePermitId if not already defined
+function generatePermitId() {
+  // Simple random ID generator (customize as needed)
+  return 'HYBE-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+}
