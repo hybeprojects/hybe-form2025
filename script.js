@@ -243,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
    * Updates the progress bar based on filled form fields
    */
   function updateProgress() {
-    const totalFields = 14; // referral-code, full-name, email, phone, address-line1, city, state, postal-code, country-select, dob, gender, branch, group, artist, payment-type, contact-method
+    const totalFields = 16; // Corrected: 16 fields checked below
     let filledFields = 0;
     if (referralCodeInput.value) filledFields++;
     if (fullNameInput.value) filledFields++;
@@ -260,8 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (groupSelect.value) filledFields++;
     if (artistSelect.value) filledFields++;
     if (paymentTypeSelect.value) filledFields++;
-    if (document.querySelector('input[name="contact-method"]:checked'))
-      filledFields++;
+    if (document.querySelector('input[name="contact-method"]:checked')) filledFields++;
     const progress = (filledFields / totalFields) * 100;
     progressBar.style.width = `${progress}%`;
     progressBar.setAttribute('aria-valuenow', progress);
@@ -366,18 +365,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Phone number input: International Telephone Input
   let iti;
+  function setPhoneValidity(valid) {
+    if (valid) {
+      phoneInput.classList.remove('is-invalid');
+      phoneInput.classList.add('is-valid');
+    } else {
+      phoneInput.classList.remove('is-valid');
+      phoneInput.classList.add('is-invalid');
+    }
+  }
+
+  function autoDetectCountry(callback) {
+    fetch('https://ipapi.co/json')
+      .then((res) => res.json())
+      .then((data) => callback(data.country_code))
+      .catch(() => callback('US'));
+  }
+
   if (window.intlTelInput && phoneInput) {
-    iti = window.intlTelInput(phoneInput, {
-      separateDialCode: true,
-      initialCountry: 'auto',
-      geoIpLookup: function (success, failure) {
-        fetch('https://ipapi.co/json')
-          .then((res) => res.json())
-          .then((data) => success(data.country_code))
-          .catch(() => success('US'));
-      },
-      utilsScript:
-        'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.1.1/js/utils.js',
+    autoDetectCountry((countryCode) => {
+      iti = window.intlTelInput(phoneInput, {
+        separateDialCode: true,
+        initialCountry: countryCode,
+        nationalMode: false,
+        formatOnDisplay: true,
+        autoPlaceholder: 'polite',
+        utilsScript:
+          'https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.1.1/js/utils.js',
+      });
+
+      // Format and validate as user types
+      phoneInput.addEventListener('input', () => {
+        if (iti) {
+          const valid = iti.isValidNumber();
+          setPhoneValidity(valid);
+          if (valid) {
+            phoneInput.value = iti.getNumber();
+          }
+        }
+      });
+
+      // On country change, revalidate
+      phoneInput.addEventListener('countrychange', () => {
+        if (iti) {
+          const valid = iti.isValidNumber();
+          setPhoneValidity(valid);
+        }
+      });
     });
   }
 
@@ -409,6 +443,15 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
+        // Checkbox group validation for contact-method
+        const contactMethods = document.querySelectorAll('input[name="contact-method"]');
+        const oneChecked = Array.from(contactMethods).some((el) => el.checked);
+        if (!oneChecked) {
+          showMessage('Please select at least one preferred contact method.', 'danger');
+          resetButton();
+          return;
+        }
+
         if (referralCodeInput.value !== 'HYBE2025') {
           showMessage('Invalid referral code. Use HYBE2025.', 'danger');
           resetButton();
@@ -419,12 +462,24 @@ document.addEventListener('DOMContentLoaded', () => {
           resetButton();
           return;
         }
-        if (!iti || !iti.isValidNumber()) {
+        // Phone validation fallback
+        let phoneValid = false;
+        if (iti && typeof iti.isValidNumber === 'function') {
+          phoneValid = iti.isValidNumber();
+          setPhoneValidity(phoneValid);
+        } else {
+          // Fallback: basic regex for international numbers
+          phoneValid = /^\+?[0-9\s\-()]{7,20}$/.test(phoneInput.value);
+          setPhoneValidity(phoneValid);
+        }
+        if (!phoneValid) {
           showMessage('Invalid phone number.', 'danger');
           resetButton();
           return;
         }
-        phoneInput.value = iti.getNumber(); // Store E.164 format
+        if (iti && typeof iti.getNumber === 'function') {
+          phoneInput.value = iti.getNumber(); // Store E.164 format
+        }
 
         const dob = new Date(dobInput.value);
         if (isNaN(dob) || dobInput.value !== dob.toISOString().split('T')[0]) {
