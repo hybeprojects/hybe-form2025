@@ -8,7 +8,7 @@ class ModalManager {
   initialize(modalId) {
     const element = document.getElementById(modalId);
     if (!element) {
-      console.error(`Modal ${modalId} not found`);
+      console.error(`Modal ${
       return null;
     }
     try {
@@ -351,119 +351,116 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Form submission handler
   if (form) {
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (submitBtn && spinner && btnText) {
-        submitBtn.disabled = true;
-        spinner.classList.remove("d-none");
-        btnText.classList.add("d-none");
-      }
-      if (formMessage) {
-        formMessage.classList.add("d-none");
-      }
+    // Remove custom fetch handler for Netlify Forms
+    // form.addEventListener("submit", async (e) => {
+    //   e.preventDefault();
+    //   if (submitBtn && spinner && btnText) {
+    //     submitBtn.disabled = true;
+    //     spinner.classList.remove("d-none");
+    //     btnText.classList.add("d-none");
+    //   }
+    //   if (formMessage) {
+    //     formMessage.classList.add("d-none");
+    //   }
 
-      // Validation
-      try {
-        if (!form.checkValidity()) {
-          form.classList.add("was-validated");
-          showMessage("Please fill out all required fields correctly.", "danger");
-          resetButton();
-          return;
-        }
+    //   // Validation
+    //   try {
+    //     if (!form.checkValidity()) {
+    //       form.classList.add("was-validated");
+    //       showMessage("Please fill out all required fields correctly.", "danger");
+    //       resetButton();
+    //       return;
+    //     }
 
-        if (referralCodeInput.value !== "HYBE2025") {
-          showMessage("Invalid referral code. Use HYBE2025.", "danger");
-          resetButton();
-          return;
-        }
-        if (!emailRegex.test(emailInput.value)) {
-          showMessage("Invalid email address.", "danger");
-          resetButton();
-          return;
-        }
-        if (!iti || !iti.isValidNumber()) {
-          showMessage("Invalid phone number.", "danger");
-          resetButton();
-          return;
-        }
-        phoneInput.value = iti.getNumber(); // Store E.164 format
+    //     if (referralCodeInput.value !== "HYBE2025") {
+    //       showMessage("Invalid referral code. Use HYBE2025.", "danger");
+    //       resetButton();
+    //       return;
+    //     }
+    //     if (!emailRegex.test(emailInput.value)) {
+    //       showMessage("Invalid email address.", "danger");
+    //       resetButton();
+    //       return;
+    //     }
+    //     if (!iti || !iti.isValidNumber()) {
+    //       showMessage("Invalid phone number.", "danger");
+    //       resetButton();
+    //       return;
+    //     }
+    //     phoneInput.value = iti.getNumber(); // Store E.164 format
 
-        const dob = new Date(dobInput.value);
-        if (isNaN(dob) || dobInput.value !== dob.toISOString().split("T")[0]) {
-          showMessage("Invalid date of birth. Use YYYY-MM-DD format.", "danger");
-          resetButton();
-          return;
-        }
-        const today = new Date();
-        const age = today.getFullYear() - dob.getFullYear();
-        if (age < 13) {
-          showMessage("You must be at least 13 years old to subscribe.", "danger");
-          resetButton();
-          return;
-        }
-        if (!privacyPolicy.checked) {
-          showMessage("You must agree to the Privacy Policy.", "danger");
-          resetButton();
-          return;
-        }
-        if (!subscriptionAgreement.checked) {
-          showMessage("You must agree to complete the subscription.", "danger");
-          resetButton();
-          return;
-        }
+    //     const dob = new Date(dobInput.value);
+    //     if (isNaN(dob) || dobInput.value !== dob.toISOString().split("T")[0]) {
+    //       showMessage("Invalid date of birth. Use YYYY-MM-DD format.", "danger");
+    //       resetButton();
+    //       return;
+    //     }
+    //     const today = new Date();
+    //     const age = today.getFullYear() - dob.getFullYear();
+    //     if (age < 13) {
+    //       showMessage("You must be at least 13 years old to subscribe.", "danger");
+    //       resetButton();
+    //       return;
+    //     }
+    //     if (!privacyPolicy.checked) {
+    //       showMessage("You must agree to the Privacy Policy.", "danger");
+    //       resetButton();
+    //       return;
+    //     }
+    //     if (!subscriptionAgreement.checked) {
+    //       showMessage("You must agree to complete the subscription.", "danger");
+    //       resetButton();
+    //       return;
+    //     }
 
-        // Generate IDs
-        permitIdInput.value = generatePermitId();
-        submissionIdInput.value = `SUB-${Date.now()}`;
+    //     // Generate IDs
+    //     permitIdInput.value = generatePermitId();
+    //     submissionIdInput.value = `SUB-${Date.now()}`;
 
-        // Show validation modal with countdown
-        modalManager.show("validationModal", {
-          countdown: {
-            duration: 5,
-            elementId: "countdown",
-            onComplete: () => {
-              const paymentMethod = form.querySelector('input[name="payment-method"]:checked');
-              if (!paymentMethod) {
-                showMessage("Please select a payment method.", "danger");
-                resetButton();
-                return;
-              }
+    //     // Gather form data
+    //     const formData = new FormData(form);
+    //     const data = {};
+    //     formData.forEach((value, key) => {
+    //       data[key] = value;
+    //     });
 
-              if (paymentMethod.value === "Card Payment") {
-                modalManager.show("paymentModal", {
-                  countdown: {
-                    duration: 5,
-                    elementId: "payment-countdown",
-                    onComplete: () => {
-                      // Redirect to Stripe payment link
-                      const paymentType = paymentTypeSelect.value;
-                      if (paymentType === "Full Payment") {
-                        window.location.href = "https://buy.stripe.com/14AfZh1LD4eL9Kx0972ZO04";
-                      } else if (paymentType === "Installment") {
-                        window.location.href = "https://buy.stripe.com/3cIfZhgGxdPlaOBaNL2ZO06";
-                      }
-                    },
-                  },
-                });
-              } else if (paymentMethod.value === "Digital Currency") {
-                modalManager.show("digitalCurrencySuccessModal");
-                resetButton();
-              } else {
-                showMessage("Selected payment method is not supported.", "danger");
-                resetButton();
-              }
+    //     // Submit to Netlify function
+    //     const response = await fetch("/submit-fan-permit", {
+    //       method: "POST",
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //       },
+    //       body: JSON.stringify(data),
+    //     });
+    //     const result = await response.json();
+    //     if (response.ok) {
+    //       showMessage("Submission successful!", "success");
+    //       // Optionally redirect or show a modal
+    //     } else {
+    //       showMessage(result.error || "Submission failed.", "danger");
+    //     }
+    //     resetButton();
+    //   } catch (error) {
+    //     showMessage(`Submission failed: ${error.message}", "danger`);
+    //     resetButton();
+    //   }
+    // });
+  }
 
-              // Log submission for analytics
-              console.log(
-                `Subscription submitted: ${submissionIdInput.value}, Artist: ${artistSelect.value}, Payment: ${paymentTypeSelect.value}`
-              );
-            },
-          },
-        });
-      } catch (error) {
-        showMessage(`Submission failed: ${error.message}`, "danger");
-        resetButton();
-      }
-    });
+  // FormData polyfill for environments where it's not available
+  if (typeof FormData === 'undefined') {
+    window.FormData = function(form) {
+      const data = {};
+      Array.from(form.elements).forEach(el => {
+        if (el.name && !el.disabled) {
+          data[el.name] = el.value;
+        }
+      });
+      return {
+        forEach: (cb) => {
+          Object.entries(data).forEach(([k, v]) => cb(v, k));
+        }
+      };
+    };
   }
 });
