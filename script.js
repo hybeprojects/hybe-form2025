@@ -8,7 +8,7 @@ class ModalManager {
   initialize(modalId) {
     const element = document.getElementById(modalId);
     if (!element) {
-      console.error(`Modal ${
+      console.error(`Modal ${modalId} not found`);
       return null;
     }
     try {
