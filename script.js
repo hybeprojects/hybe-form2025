@@ -110,19 +110,23 @@ document.addEventListener("DOMContentLoaded", () => {
   const paymentTypeSelect = document.getElementById("payment-type");
   const installmentOptions = document.getElementById("installment-options");
   const paymentMethods = document.getElementById("payment-methods");
+  const digitalCurrencyHomeBtn = document.getElementById("digital-currency-home-btn");
   const privacyPolicy = document.getElementById("privacy-policy");
   const subscriptionAgreement = document.getElementById("subscription-agreement");
+  const permitIdInput = document.getElementById("permit-id");
+  const submissionIdInput = document.getElementById("submission-id");
   const submitBtn = document.getElementById("submit-btn");
-  const btnText = submitBtn.querySelector(".btn-text");
-  const spinner = submitBtn.querySelector(".spinner-border");
+  const btnText = submitBtn ? submitBtn.querySelector(".btn-text") : null;
+  const spinner = submitBtn ? submitBtn.querySelector(".spinner-border") : null;
   const progressBar = document.querySelector(".progress-bar");
   const countrySelect = document.getElementById("country-select");
   const countryInput = document.getElementById("country");
   const currencyInput = document.getElementById("currency");
   const languageInput = document.getElementById("language");
-  const permitIdInput = document.getElementById("permit-id");
-  const submissionIdInput = document.getElementById("submission-id");
-  const digitalCurrencyHomeBtn = document.getElementById("digital-currency-home-btn");
+  let iti;
+  let failure;
+  // Regular expression for email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   // Show onboarding modal immediately
   modalManager.show("onboardingModal");
@@ -263,16 +267,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /**
-   * Generates a unique permit ID
-   * @returns {string} Permit ID in format HYBE-FP-timestamp-random
-   */
-  function generatePermitId() {
-    const timestamp = Date.now();
-    const random = Math.floor(Math.random() * 10000);
-    return `HYBE-FP-${timestamp}-${random}`;
-  }
-
-  /**
    * Show feedback messages for the user
    */
   function showMessage(message, type = "info") {
@@ -331,7 +325,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Phone number input: International Telephone Input
-  let iti;
   if (window.intlTelInput && phoneInput) {
     iti = window.intlTelInput(phoneInput, {
       separateDialCode: true,
@@ -345,9 +338,6 @@ document.addEventListener("DOMContentLoaded", () => {
       utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.1.1/js/utils.js",
     });
   }
-
-  // Regular expression for email validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   // Form submission handler
   if (form) {

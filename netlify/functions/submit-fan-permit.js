@@ -1,5 +1,5 @@
 // Netlify serverless function for handling fan permit form submissions
-export async function handler(event, context) {
+export async function handler(event) {
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
@@ -14,7 +14,7 @@ export async function handler(event, context) {
       statusCode: 200,
       body: JSON.stringify({ message: 'Submission received', data }),
     };
-  } catch (error) {
+  } catch {
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Internal Server Error' }),
