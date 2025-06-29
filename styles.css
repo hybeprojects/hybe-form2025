@@ -26,37 +26,18 @@ body {
 }
 
 .payment-option.disabled {
-  opacity: 1;
+  opacity: 0.5;
   pointer-events: none;
 }
 
-.payment-option.disabled .form-check-label {
+.payment-option input[disabled] + .form-check-label {
   color: #adb5bd !important;
-  font-weight: 500;
-}
-
-.payment-option.disabled .form-check-label span {
-  color: #dc3545 !important;
-  font-weight: 400;
-  margin-left: 4px;
 }
 
 /* Logo animation */
 .logo-pulse {
-  max-width: 200px;
-  margin-bottom: 10px;
-  filter: drop-shadow(0 2px 8px rgba(52, 152, 219, 0.15));
-  border-radius: 12px;
-  background: #fff;
-  padding: 8px 16px;
+  max-width: 150px;
   animation: pulse 2s infinite;
-}
-
-@media (max-width: 576px) {
-  .logo-pulse {
-    max-width: 130px;
-    padding: 6px 10px;
-  }
 }
 
 @keyframes pulse {
@@ -242,7 +223,6 @@ footer.bg-gradient {
 .subscription-amount .form-control-plaintext {
   background: var(--primary-gradient);
   -webkit-background-clip: text;
-  background-clip: text;
   -webkit-text-fill-color: transparent;
   color: #2c3e50;
 }
