@@ -1009,5 +1009,18 @@
     ></script>
     <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.1.1/js/intlTelInput.min.js"></script>
+    <script>
+      // Ensure AOS and Bootstrap tooltips are initialized after DOM and scripts load
+      document.addEventListener('DOMContentLoaded', function() {
+        if (typeof AOS !== 'undefined') {
+          AOS.init({ duration: 800, once: true });
+        }
+        if (typeof bootstrap !== 'undefined') {
+          document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
+            new bootstrap.Tooltip(el);
+          });
+        }
+      });
+    </script>
   </body>
 </html>
