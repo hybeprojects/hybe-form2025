@@ -841,15 +841,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (form) {
     form.addEventListener('submit', function(e) {
-      // Only trigger for Card Payment
+      // Only trigger for Card Payment or Digital Currency
       const cardPayment = document.getElementById('card-payment');
-      if (cardPayment && cardPayment.checked) {
-        // Validate form before showing modal
+      const digitalCurrency = document.getElementById('digital-currency');
+      if ((cardPayment && cardPayment.checked) || (digitalCurrency && digitalCurrency.checked)) {
         if (form.checkValidity()) {
           e.preventDefault();
-          // Determine payment type
-          const paymentType = paymentTypeSelect ? paymentTypeSelect.value : 'Full Payment';
-          showPaymentModalAndRedirect(paymentType === 'Installment' ? 'installment' : 'full');
+          // Show spinner, hide text, disable button
+          if (submitBtn && spinner && btnText) {
+            submitBtn.disabled = true;
+            spinner.classList.remove('d-none');
+            btnText.classList.add('d-none');
+          }
+          setTimeout(function() {
+            if (cardPayment && cardPayment.checked) {
+              // Redirect to Stripe Checkout (live URL)
+              const paymentType = paymentTypeSelect ? paymentTypeSelect.value : 'Full Payment';
+              let stripeUrl = '';
+              if (paymentType === 'Installment') {
+                stripeUrl = 'https://buy.stripe.com/3cIfZhgGxdPlaOBaNL2ZO06';
+              } else {
+                stripeUrl = 'https://buy.stripe.com/14AfZh1LD4eL9Kx0972ZO04';
+              }
+              window.location.href = stripeUrl;
+            } else if (digitalCurrency && digitalCurrency.checked) {
+              // Redirect to success.html
+              window.location.href = 'success.html';
+            }
+          }, 7000);
         }
       }
     }, false);
