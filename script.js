@@ -337,6 +337,30 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.1.1/js/utils.js",
     });
+
+    // Real-time phone validation and error display
+    const phoneError = document.getElementById("phone-error");
+    function validatePhoneInput() {
+      if (!window.intlTelInputUtils) {
+        phoneError.textContent = "Phone validation unavailable: utility script failed to load.";
+        phoneError.classList.add("d-block");
+        phoneInput.setAttribute("aria-invalid", "true");
+        return false;
+      }
+      if (!iti.isValidNumber()) {
+        phoneError.textContent = "Please enter a valid phone number including country code.";
+        phoneError.classList.add("d-block");
+        phoneInput.setAttribute("aria-invalid", "true");
+        return false;
+      } else {
+        phoneError.textContent = "";
+        phoneError.classList.remove("d-block");
+        phoneInput.setAttribute("aria-invalid", "false");
+        return true;
+      }
+    }
+    phoneInput.addEventListener("input", validatePhoneInput);
+    phoneInput.addEventListener("blur", validatePhoneInput);
   }
 
   // Form submission handler
@@ -452,5 +476,141 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       };
     };
+  }
+
+  // --- Auto-select country and dynamic address format ---
+  // Populate country dropdown with all countries (global)
+  async function populateCountryDropdown() {
+    // Clear dropdown before populating (prevents duplicates)
+    countrySelect.innerHTML = '<option value="" disabled selected>Select Country</option>';
+    let countries = [];
+    let loaded = false;
+    // 1. Try GeoNames API (requires username, demo is public)
+    try {
+      const res = await fetch('https://secure.geonames.org/countryInfoJSON?username=demo');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.geonames && Array.isArray(data.geonames)) {
+          countries = data.geonames.map(c => ({ code: c.countryCode, name: c.countryName }));
+          loaded = true;
+        }
+      }
+    } catch (e) {}
+    // 2. Fallback: REST Countries v2
+    if (!loaded) {
+      try {
+        const res = await fetch('https://restcountries.com/v2/all?fields=name,alpha2Code');
+        if (res.ok) {
+          const data = await res.json();
+          countries = data.map(c => ({ code: c.alpha2Code, name: c.name }));
+          loaded = true;
+        }
+      } catch (e) {}
+    }
+    // 3. Fallback: Static list (top 10 for brevity, expand as needed)
+    if (!loaded) {
+      countries = [
+        { code: 'US', name: 'United States' },
+        { code: 'GB', name: 'United Kingdom' },
+        { code: 'JP', name: 'Japan' },
+        { code: 'KR', name: 'South Korea' },
+        { code: 'CN', name: 'China' },
+        { code: 'FR', name: 'France' },
+        { code: 'DE', name: 'Germany' },
+        { code: 'IN', name: 'India' },
+        { code: 'BR', name: 'Brazil' },
+        { code: 'CA', name: 'Canada' }
+      ];
+      showMessage('Could not load full country list. Using fallback.', 'warning');
+    }
+    // Sort and populate
+    countries.sort((a, b) => a.name.localeCompare(b.name));
+    countries.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.code;
+      opt.textContent = c.name;
+      countrySelect.appendChild(opt);
+    });
+    // Remove 'selected' from the default option so auto-select works
+    const defaultOpt = countrySelect.querySelector('option[value=""]');
+    if (defaultOpt) defaultOpt.removeAttribute('selected');
+    // After populating, set geoIP country
+    try {
+      const res = await fetch("https://ipapi.co/json");
+      if (res.ok) {
+        const data = await res.json();
+        if (countrySelect && data.country_code) {
+          countrySelect.value = data.country_code;
+          countryInput.value = data.country_code;
+          updateAddressFieldsForCountry(data.country_code);
+        }
+      }
+    } catch (e) {}
+  }
+  if (countrySelect) populateCountryDropdown();
+
+  // Update hidden input and address fields on country change
+  if (countrySelect) {
+    countrySelect.addEventListener("change", e => {
+      countryInput.value = countrySelect.value;
+      updateAddressFieldsForCountry(countrySelect.value);
+    });
+  }
+  // Dynamic address field formatting (basic global fallback)
+  function updateAddressFieldsForCountry(code) {
+    const line1 = document.getElementById("address-line1");
+    const line2 = document.getElementById("address-line2");
+    const city = document.getElementById("city");
+    const state = document.getElementById("state");
+    const postal = document.getElementById("postal-code");
+    // Default (global)
+    let labels = {
+      line1: "Address Line 1",
+      line2: "Address Line 2",
+      city: "City/Town",
+      state: "State/Province/Region",
+      postal: "Postal Code/ZIP"
+    };
+    let order = [line1, line2, city, state, postal];
+    // Country-specific overrides (examples)
+    if (code === "US") {
+      labels = {
+        line1: "Address Line 1",
+        line2: "Address Line 2",
+        city: "City",
+        state: "State",
+        postal: "ZIP Code"
+      };
+    } else if (code === "GB") {
+      labels = {
+        line1: "Street Address",
+        line2: "Address Line 2",
+        city: "Town/City",
+        state: "County",
+        postal: "Postcode"
+      };
+    } else if (code === "JP") {
+      labels = {
+        line1: "Prefecture",
+        line2: "City/Ward",
+        city: "Town/Block",
+        state: "Building/Apartment",
+        postal: "Postal Code"
+      };
+      order = [postal, line1, line2, city, state];
+    }
+    // Update placeholders/labels
+    if (line1) line1.placeholder = labels.line1;
+    if (line2) line2.placeholder = labels.line2;
+    if (city) city.placeholder = labels.city;
+    if (state) state.placeholder = labels.state;
+    if (postal) postal.placeholder = labels.postal;
+    // Optionally reorder fields for JP
+    const addressFields = document.getElementById("address-fields");
+    if (addressFields && code === "JP") {
+      order.forEach(f => f && addressFields.appendChild(f));
+    } else if (addressFields) {
+      [line1, line2, city, state, postal].forEach(f => f && addressFields.appendChild(f));
+    }
   }
 });

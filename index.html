@@ -371,17 +371,24 @@
                         placeholder="Postal Code"
                         required
                       />
-                      <select
-                        class="form-control"
-                        id="country-select"
-                        name="country-select"
-                        required
-                      >
-                        <option value="" disabled selected>
-                          Select Country
-                        </option>
-                      </select>
                     </div>
+                  </div>
+
+                  <!-- Country (moved here) -->
+                  <div class="mb-3" data-aos="fade-up" data-aos-delay="210">
+                    <label for="country-select" class="form-label">
+                      Country <span class="text-danger">*</span>
+                    </label>
+                    <select
+                      class="form-control"
+                      id="country-select"
+                      name="country-select"
+                      required
+                    >
+                      <option value="" disabled selected>
+                        Select Country
+                      </option>
+                    </select>
                   </div>
 
                   <!-- Date of Birth -->
