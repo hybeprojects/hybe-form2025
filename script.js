@@ -266,6 +266,59 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // --- Global Toast Notification System ---
+  const globalToast = document.getElementById('global-toast');
+  const globalToastBody = document.getElementById('global-toast-body');
+  let toastInstance = null;
+  function showToast(message, type = 'info', duration = 4000) {
+    if (!globalToast || !globalToastBody) return;
+    globalToastBody.textContent = message;
+    globalToast.classList.remove('bg-primary', 'bg-success', 'bg-danger', 'bg-warning', 'bg-info');
+    if (type === 'success') globalToast.classList.add('bg-success');
+    else if (type === 'error' || type === 'danger') globalToast.classList.add('bg-danger');
+    else if (type === 'warning') globalToast.classList.add('bg-warning');
+    else if (type === 'info') globalToast.classList.add('bg-info');
+    else globalToast.classList.add('bg-primary');
+    if (!toastInstance) toastInstance = new bootstrap.Toast(globalToast, { delay: duration });
+    else toastInstance._config.delay = duration;
+    toastInstance.show();
+  }
+  // Example: showToast('Welcome to HYBE Fan-Permit!', 'success');
+
+  // Patch showMessage to also show toast
+  function showMessage(message, type = "info") {
+    if (formMessage) {
+      formMessage.className = `mt-3 text-center alert alert-${type} alert-dismissible fade show`;
+      formMessage.textContent = message;
+      formMessage.classList.remove("d-none");
+      setTimeout(() => {
+        formMessage.classList.add("d-none");
+      }, 7000);
+    }
+    showToast(message, type);
+  }
+
+  // --- Language Switcher (auto-detect) ---
+  const languageSwitcher = document.getElementById('language-switcher');
+  function setLanguage(lang) {
+    // For demo: just set hidden input, can be extended for i18n
+    if (languageInput) languageInput.value = lang;
+    // Optionally, reload or update UI text here
+    showToast(`Language set to: ${languageSwitcher.options[languageSwitcher.selectedIndex].text}`, 'info');
+  }
+  if (languageSwitcher) {
+    // Auto-detect browser language on first load if auto
+    if (languageSwitcher.value === 'auto') {
+      const browserLang = navigator.language ? navigator.language.slice(0,2) : 'en';
+      const found = Array.from(languageSwitcher.options).find(opt => opt.value === browserLang);
+      if (found) languageSwitcher.value = browserLang;
+      setLanguage(languageSwitcher.value);
+    }
+    languageSwitcher.addEventListener('change', function() {
+      setLanguage(this.value);
+    });
+  }
+
   /**
    * Show feedback messages for the user
    */

@@ -69,6 +69,32 @@
     <script type="module" src="script.js" defer></script>
   </head>
   <body>
+    <!-- Language Switcher -->
+    <div class="container-fluid bg-light py-2 border-bottom">
+      <div class="d-flex justify-content-end align-items-center">
+        <label for="language-switcher" class="me-2 mb-0 visually-hidden">Language</label>
+        <select id="language-switcher" class="form-select form-select-sm w-auto" aria-label="Language Switcher">
+          <option value="auto" selected>🌐 Auto</option>
+          <option value="en">English</option>
+          <option value="ko">한국어</option>
+          <option value="ja">日本語</option>
+          <option value="es">Español</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+          <option value="zh">中文</option>
+        </select>
+      </div>
+    </div>
+    <!-- Global Toast Container -->
+    <div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 1080; min-width: 320px;">
+      <div id="global-toast" class="toast align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+          <div class="toast-body" id="global-toast-body"></div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+      </div>
+    </div>
+
     <!-- Enhanced JavaScript Fallback Message -->
     <noscript>
       <div class="container my-5 text-center">
