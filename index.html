@@ -298,19 +298,19 @@
                       Phone Number <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
-                      <span class="input-group-text" id="phone-prefix">🌐 +--</span>
+                      <span class="input-group-text" id="phone-prefix">+--</span>
                       <input
                         type="tel"
                         class="form-control"
                         id="phone"
                         name="phone"
-                        placeholder="Enter your number"
+                        placeholder="Enter your phone number"
                         required
                         aria-required="true"
                         aria-describedby="phone-error"
                         aria-invalid="false"
-                        pattern="[0-9\s\-()]{7,20}"
                         autocomplete="tel"
+                        maxlength="20"
                         style="max-width: 100%;"
                       />
                     </div>

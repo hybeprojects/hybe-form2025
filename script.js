@@ -327,6 +327,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Phone number: emoji flag + country code prefix, no dropdown ---
   const phonePrefix = document.getElementById("phone-prefix");
   if (phonePrefix && phoneInput) {
+    // Country data: code, dial, format, validation regex
+    const countryData = {
+      US: { dial: "+1", format: v => v.replace(/(\d{3})(\d{3})(\d{0,4})/, (m,a,b,c)=>c?`(${a}) ${b}-${c}`:b?`(${a}) ${b}`:a), regex: /^\d{10}$/ },
+      GB: { dial: "+44", format: v => v.replace(/(\d{5})(\d{0,6})/, (m,a,b)=>b?`${a} ${b}`:a), regex: /^\d{10,11}$/ },
+      JP: { dial: "+81", format: v => v.replace(/(\d{2,4})(\d{2,4})(\d{0,4})/, (m,a,b,c)=>c?`${a}-${b}-${c}`:b?`${a}-${b}`:a), regex: /^\d{10,11}$/ },
+      KR: { dial: "+82", format: v => v.replace(/(\d{2,3})(\d{3,4})(\d{0,4})/, (m,a,b,c)=>c?`${a}-${b}-${c}`:b?`${a}-${b}`:a), regex: /^\d{9,10}$/ },
+      // Add more as needed
+    };
     // Helper to get emoji flag from country code
     function countryCodeToFlagEmoji(cc) {
       if (!cc) return "🌐";
@@ -334,33 +342,49 @@ document.addEventListener("DOMContentLoaded", () => {
         .toUpperCase()
         .replace(/./g, char => String.fromCodePoint(127397 + char.charCodeAt()));
     }
-    // Map of country code to dial code (minimal, can be expanded)
-    const dialCodes = {
-      US: "+1", GB: "+44", JP: "+81", KR: "+82", CN: "+86", FR: "+33", DE: "+49", IN: "+91", BR: "+55", CA: "+1"
-      // Add more as needed
-    };
-    // Default
+    // Default to US
     let userCC = "US";
-    let userDial = "+1";
-    // GeoIP lookup
-    fetch("https://ipapi.co/json")
+    let userDial = countryData[userCC].dial;
+    let userFormat = countryData[userCC].format;
+    let userRegex = countryData[userCC].regex;
+    // GeoIP lookup (using ipwho.is for reliability)
+    fetch("https://ipwho.is/")
       .then(res => res.json())
       .then(data => {
-        if (data.country_code && dialCodes[data.country_code]) {
-          userCC = data.country_code;
-          userDial = dialCodes[userCC];
+        console.log('GeoIP response:', data); // Debug: see what country_code is returned
+        const cc = data.country_code ? data.country_code.toUpperCase() : '';
+        if (cc && countryData[cc]) {
+          userCC = cc;
+          userDial = countryData[userCC].dial;
+          userFormat = countryData[userCC].format;
+          userRegex = countryData[userCC].regex;
         }
         phonePrefix.textContent = `${countryCodeToFlagEmoji(userCC)} ${userDial}`;
       })
       .catch(() => {
         phonePrefix.textContent = `${countryCodeToFlagEmoji(userCC)} ${userDial}`;
       });
-    // Validation: only local number
+    // Expanded countryData for more coverage
+    Object.assign(countryData, {
+      CA: { dial: "+1", format: v => v.replace(/(\d{3})(\d{3})(\d{0,4})/, (m,a,b,c)=>c?`(${a}) ${b}-${c}`:b?`(${a}) ${b}`:a), regex: /^\d{10}$/ },
+      AU: { dial: "+61", format: v => v.replace(/(\d{1,4})(\d{3})(\d{0,3})/, (m,a,b,c)=>c?`${a} ${b} ${c}`:b?`${a} ${b}`:a), regex: /^\d{9,10}$/ },
+      IN: { dial: "+91", format: v => v.replace(/(\d{5})(\d{0,5})/, (m,a,b)=>b?`${a} ${b}`:a), regex: /^\d{10}$/ },
+      DE: { dial: "+49", format: v => v.replace(/(\d{3,5})(\d{3,8})/, (m,a,b)=>b?`${a} ${b}`:a), regex: /^\d{10,11}$/ },
+      FR: { dial: "+33", format: v => v.replace(/(\d{1})(\d{2})(\d{2})(\d{2})(\d{0,2})/, (m,a,b,c,d,e)=>e?`${a} ${b} ${c} ${d} ${e}`:d?`${a} ${b} ${c} ${d}`:c?`${a} ${b} ${c}`:b?`${a} ${b}`:a), regex: /^\d{9,10}$/ },
+      CN: { dial: "+86", format: v => v.replace(/(\d{3})(\d{4})(\d{0,4})/, (m,a,b,c)=>c?`${a} ${b} ${c}`:b?`${a} ${b}`:a), regex: /^\d{11}$/ },
+      BR: { dial: "+55", format: v => v.replace(/(\d{2})(\d{5})(\d{0,4})/, (m,a,b,c)=>c?`(${a}) ${b}-${c}`:b?`(${a}) ${b}`:a), regex: /^\d{10,11}$/ },
+      RU: { dial: "+7", format: v => v.replace(/(\d{3})(\d{3})(\d{0,4})/, (m,a,b,c)=>c?`${a} ${b} ${c}`:b?`${a} ${b}`:a), regex: /^\d{10}$/ },
+      ZA: { dial: "+27", format: v => v.replace(/(\d{2})(\d{3})(\d{0,4})/, (m,a,b,c)=>c?`${a} ${b} ${c}`:b?`${a} ${b}`:a), regex: /^\d{9}$/ },
+      NG: { dial: "+234", format: v => v.replace(/(\d{3})(\d{3})(\d{0,4})/, (m,a,b,c)=>c?`${a} ${b} ${c}`:b?`${a} ${b}`:a), regex: /^\d{10}$/ },
+      // Add more as needed
+    });
+    // Format and validate as user types
     const phoneError = document.getElementById("phone-error");
-    function validatePhoneInput() {
-      const val = phoneInput.value.trim();
-      // Basic: 7-20 digits, spaces, dashes, parentheses
-      if (!/^([0-9\s\-()]{7,20})$/.test(val)) {
+    function cleanNumber(val) { return val.replace(/\D/g,""); }
+    function formatAndValidate() {
+      let raw = cleanNumber(phoneInput.value);
+      phoneInput.value = userFormat(raw);
+      if (!userRegex.test(raw)) {
         phoneError.textContent = "Please enter a valid phone number.";
         phoneError.classList.add("d-block");
         phoneInput.setAttribute("aria-invalid", "true");
@@ -376,11 +400,11 @@ document.addEventListener("DOMContentLoaded", () => {
         return true;
       }
     }
-    phoneInput.addEventListener("input", validatePhoneInput);
-    phoneInput.addEventListener("blur", validatePhoneInput);
+    phoneInput.addEventListener("input", formatAndValidate);
+    phoneInput.addEventListener("blur", formatAndValidate);
     if (form) {
       form.addEventListener("submit", function(e) {
-        if (!validatePhoneInput()) {
+        if (!formatAndValidate()) {
           e.preventDefault();
           phoneInput.focus();
           showMessage("Please enter a valid phone number before submitting.", "danger");
@@ -640,3 +664,46 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 });
+
+// --- Global country support ---
+// ISO country code to dial code (partial, but covers all ISO countries)
+const dialCodeMap = {
+  US: "+1", CA: "+1", GB: "+44", AU: "+61", IN: "+91", DE: "+49", FR: "+33", JP: "+81", KR: "+82", CN: "+86", BR: "+55", RU: "+7", ZA: "+27", NG: "+234",
+  // ... (add all ISO country codes and dial codes here, or use a public JSON if preferred)
+  // For brevity, only a sample is shown. In production, use a full mapping.
+};
+// Default to US
+let userCC = "US";
+let userDial = dialCodeMap[userCC] || "+1";
+let userFormat = v => v; // Default: no formatting
+let userRegex = /^\d{7,15}$/; // Generic: 7-15 digits
+// Country-specific formatting/validation (expand as needed)
+const countryData = {
+  US: { format: v => v.replace(/(\d{3})(\d{3})(\d{0,4})/, (m,a,b,c)=>c?`(${a}) ${b}-${c}`:b?`(${a}) ${b}`:a), regex: /^\d{10}$/ },
+  GB: { format: v => v.replace(/(\d{5})(\d{0,6})/, (m,a,b)=>b?`${a} ${b}`:a), regex: /^\d{10,11}$/ },
+  JP: { format: v => v.replace(/(\d{2,4})(\d{2,4})(\d{0,4})/, (m,a,b,c)=>c?`${a}-${b}-${c}`:b?`${a}-${b}`:a), regex: /^\d{10,11}$/ },
+  KR: { format: v => v.replace(/(\d{2,3})(\d{3,4})(\d{0,4})/, (m,a,b,c)=>c?`${a}-${b}-${c}`:b?`${a}-${b}`:a), regex: /^\d{9,10}$/ },
+  // ...add more for best UX
+};
+// GeoIP lookup (using ipwho.is for reliability)
+fetch("https://ipwho.is/")
+  .then(res => res.json())
+  .then(data => {
+    console.log('GeoIP response:', data); // Debug: see what country_code is returned
+    const cc = data.country_code ? data.country_code.toUpperCase() : '';
+    if (cc && dialCodeMap[cc]) {
+      userCC = cc;
+      userDial = dialCodeMap[userCC];
+      if (countryData[userCC]) {
+        userFormat = countryData[userCC].format;
+        userRegex = countryData[userCC].regex;
+      } else {
+        userFormat = v => v; // No formatting for unknown
+        userRegex = /^\d{7,15}$/; // Generic validation
+      }
+    }
+    phonePrefix.textContent = `${countryCodeToFlagEmoji(userCC)} ${userDial}`;
+  })
+  .catch(() => {
+    phonePrefix.textContent = `${countryCodeToFlagEmoji(userCC)} ${userDial}`;
+  });
