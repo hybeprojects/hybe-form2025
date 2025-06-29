@@ -66,6 +66,46 @@
     />
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css" />
+    <style>
+      .modal-body.text-center {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        padding: 2rem;
+      }
+      .shake {
+        animation: shake 0.5s;
+      }
+      @keyframes shake {
+        0% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        50% { transform: translateX(5px); }
+        75% { transform: translateX(-5px); }
+        100% { transform: translateX(0); }
+      }
+      .tooltip-icon {
+        position: absolute;
+        right: 10px;
+        top: 40px;
+        cursor: pointer;
+      }
+      .hover-link:hover {
+        text-decoration: underline;
+      }
+      .max-width-150 {
+        max-width: 150px;
+      }
+      .logo-pulse {
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+      }
+    </style>
+    <!-- Stripe.js loaded dynamically in script.js -->
     <script type="module" src="script.js" defer></script>
   </head>
   <body>
@@ -85,6 +125,7 @@
         </select>
       </div>
     </div>
+
     <!-- Global Toast Container -->
     <div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 1080; min-width: 320px;">
       <div id="global-toast" class="toast align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
@@ -113,19 +154,20 @@
       </div>
     </noscript>
 
-    <!-- Onboarding Intro Modal -->
+    <!-- Onboarding Modal -->
     <div
       class="modal fade"
       id="onboardingModal"
       tabindex="-1"
       aria-labelledby="onboardingModalLabel"
+      aria-describedby="onboardingModalDesc"
       aria-hidden="true"
     >
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content hero">
           <div class="modal-body text-center">
             <h2 id="onboardingModalLabel">Welcome to HYBE’s Fan-Permit!</h2>
-            <p>
+            <p id="onboardingModalDesc">
               Gain exclusive access to artist events, official merchandise, and
               direct fan engagement. This form provides a secure and private
               channel for connecting with your favorite artists, in full
@@ -141,6 +183,34 @@
             >
               Start Now
             </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div
+      class="modal fade"
+      id="paymentModal"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="paymentModalLabel"
+      aria-describedby="paymentModalDesc"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-body text-center p-4">
+            <div class="spinner-border text-primary mb-3" role="status" aria-label="Processing payment, please wait">
+              <span class="visually-hidden">Processing payment...</span>
+            </div>
+            <h5 id="paymentModalLabel" class="mb-3">
+              Processing Payment
+            </h5>
+            <p id="paymentModalDesc">
+              Redirecting to payment in <span id="payment-countdown" aria-live="polite">3</span> seconds...
+              <br>Please do not refresh or close this page.
+            </p>
           </div>
         </div>
       </div>
@@ -170,7 +240,7 @@
                     alt="HYBE Corporation Logo"
                     class="img-fluid logo-pulse hybe-logo-large"
                     loading="lazy"
-                    style="max-width: 220px; height: auto; font-weight: bold;"
+                    style="max-width: 220px; height: auto;"
                   />
                 </div>
 
@@ -214,7 +284,7 @@
                   <p>
                     <a
                       href="https://careers.hybecorp.com"
-                      class="text-decoration-none"
+                      class="text-decoration-none hover-link"
                       >Learn more about our culture</a
                     >.
                   </p>
@@ -246,21 +316,22 @@
                     data-aos-delay="100"
                   >
                     <label for="referral-code" class="form-label">
-                      Referral Code <span class="text-danger">*</span>
+                      Referral Code
                     </label>
                     <input
                       type="text"
                       class="form-control"
                       id="referral-code"
                       name="referral-code"
-                      placeholder="Enter referral code"
-                      required
-                      aria-required="true"
+                      placeholder="Enter referral code (optional)"
+                      data-error="Referral code must be 6-10 alphanumeric characters"
+                      aria-describedby="referral-code-error"
                     />
+                    <div id="referral-code-error" class="invalid-feedback" aria-live="polite"></div>
                     <i
                       class="bi bi-info-circle tooltip-icon"
                       data-bs-toggle="tooltip"
-                      data-bs-title="Enter your exclusive referral code"
+                      data-bs-title="Enter your exclusive referral code, if available"
                     ></i>
                   </div>
 
@@ -280,7 +351,10 @@
                       name="full-name"
                       required
                       aria-required="true"
+                      data-error="Please enter your full name"
+                      aria-describedby="full-name-error"
                     />
+                    <div id="full-name-error" class="invalid-feedback" aria-live="polite"></div>
                     <i
                       class="bi bi-info-circle tooltip-icon"
                       data-bs-toggle="tooltip"
@@ -304,6 +378,7 @@
                       name="email"
                       required
                       aria-required="true"
+                      data-error="Please enter a valid email address (e.g., user@domain.com)"
                       aria-describedby="email-error"
                       pattern="^[^@\s]+@[^@\s]+\.[^@\s]+$"
                     />
@@ -314,8 +389,7 @@
                       data-bs-title="Use a valid, non-temporary email"
                     ></i>
                     <p class="text-muted small">
-                      A verification email will be sent to confirm your email
-                      address.
+                      A verification email will be sent to confirm your email address.
                     </p>
                   </div>
 
@@ -325,7 +399,7 @@
                       Phone Number <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
-                      <span class="input-group-text" id="phone-prefix">+--</span>
+                      <span class="input-group-text" id="phone-prefix">+1</span>
                       <input
                         type="tel"
                         class="form-control"
@@ -334,14 +408,19 @@
                         placeholder="Enter your phone number"
                         required
                         aria-required="true"
+                        data-error="Please enter a valid phone number"
                         aria-describedby="phone-error"
                         aria-invalid="false"
                         autocomplete="tel"
                         maxlength="20"
-                        style="max-width: 100%;"
                       />
                     </div>
                     <div id="phone-error" class="invalid-feedback" aria-live="polite"></div>
+                    <i
+                      class="bi bi-info-circle tooltip-icon"
+                      data-bs-toggle="tooltip"
+                      data-bs-title="Enter your phone number for verification"
+                    ></i>
                   </div>
 
                   <!-- Address -->
@@ -351,67 +430,91 @@
                     data-aos-delay="200"
                     id="address-section"
                   >
-                    <label class="form-label"
-                      >Address <span class="text-danger">*</span></label
-                    >
+                    <label class="form-label">
+                      Address <span class="text-danger">*</span>
+                    </label>
                     <div id="address-fields">
-                      <input
-                        type="text"
-                        class="form-control mb-2"
-                        id="address-line1"
-                        name="address-line1"
-                        placeholder="Address Line 1"
-                        required
-                      />
-                      <input
-                        type="text"
-                        class="form-control mb-2"
-                        id="address-line2"
-                        name="address-line2"
-                        placeholder="Address Line 2"
-                      />
-                      <input
-                        type="text"
-                        class="form-control mb-2"
-                        id="city"
-                        name="city"
-                        placeholder="City"
-                        required
-                      />
-                      <input
-                        type="text"
-                        class="form-control mb-2"
-                        id="state"
-                        name="state"
-                        placeholder="State/Province"
-                        required
-                      />
-                      <input
-                        type="text"
-                        class="form-control mb-2"
-                        id="postal-code"
-                        name="postal-code"
-                        placeholder="Postal Code"
-                        required
-                      />
+                      <div class="mb-2">
+                        <label for="address-line1" class="form-label">Street Address</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="address-line1"
+                          name="address-line1"
+                          placeholder="Address Line 1"
+                          required
+                          data-error="Please enter a valid street address"
+                          aria-describedby="address-line1-error"
+                        />
+                        <div id="address-line1-error" class="invalid-feedback" aria-live="polite"></div>
+                      </div>
+                      <div class="mb-2">
+                        <label for="address-line2" class="form-label">Apt/Suite (optional)</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="address-line2"
+                          name="address-line2"
+                          placeholder="Address Line 2"
+                        />
+                      </div>
+                      <div class="mb-2">
+                        <label for="city" class="form-label">City</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="city"
+                          name="city"
+                          placeholder="City"
+                          required
+                          data-error="Please enter a city"
+                          aria-describedby="city-error"
+                        />
+                        <div id="city-error" class="invalid-feedback" aria-live="polite"></div>
+                      </div>
+                      <div class="mb-2">
+                        <label for="state" class="form-label">State/Province</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="state"
+                          name="state"
+                          placeholder="State/Province"
+                        />
+                      </div>
+                      <div class="mb-2">
+                        <label for="postal-code" class="form-label">Postal Code</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="postal-code"
+                          name="postal-code"
+                          placeholder="Postal Code"
+                          required
+                          data-error="Please enter a valid postal code"
+                          aria-describedby="postal-code-error"
+                        />
+                        <div id="postal-code-error" class="invalid-feedback" aria-live="polite"></div>
+                      </div>
                     </div>
                   </div>
 
-                  <!-- Country (moved here) -->
+                  <!-- Country -->
                   <div class="mb-3" data-aos="fade-up" data-aos-delay="210">
                     <label for="country-select" class="form-label">
                       Country <span class="text-danger">*</span>
                     </label>
                     <select
-                      class="form-control"
+                      class="form-select"
                       id="country-select"
                       name="country-select"
                       required
+                      data-error="Please select a country"
+                      aria-describedby="country-select-error"
                     >
-                      <option value="" disabled selected>
-                        Select Country
-                      </option>
+                      <option value="" disabled selected>Select Country</option>
                     </select>
+                    <div id="country-select-error" class="invalid-feedback" aria-live="polite"></div>
                   </div>
 
                   <!-- Date of Birth -->
@@ -430,15 +533,16 @@
                       name="dob"
                       required
                       aria-required="true"
+                      data-error="You must be at least 13 years old"
                       aria-describedby="dob-error"
                       min="1900-01-01"
-                      max="2012-06-21"
+                      max="2012-06-29"
                     />
                     <div id="dob-error" class="invalid-feedback" aria-live="polite"></div>
                     <i
                       class="bi bi-info-circle tooltip-icon"
                       data-bs-toggle="tooltip"
-                      data-bs-title="Enter your birth date"
+                      data-bs-title="Enter your birth date (must be 13+)"
                     ></i>
                   </div>
 
@@ -453,15 +557,16 @@
                       name="gender"
                       required
                       aria-required="true"
+                      data-error="Please select a gender"
+                      aria-describedby="gender-error"
                     >
                       <option value="" disabled selected>Select Gender</option>
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
                       <option value="Other">Other</option>
-                      <option value="Prefer Not to Say">
-                        Prefer Not to Say
-                      </option>
+                      <option value="Prefer Not to Say">Prefer Not to Say</option>
                     </select>
+                    <div id="gender-error" class="invalid-feedback" aria-live="polite"></div>
                   </div>
 
                   <!-- Fan-To-Artist Preferences -->
@@ -471,8 +576,7 @@
                     data-aos-delay="275"
                   >
                     <label for="branch" class="form-label">
-                      Fan-To-Artist Preferences
-                      <span class="text-danger">*</span>
+                      Fan-To-Artist Preferences <span class="text-danger">*</span>
                     </label>
                     <select
                       class="form-select"
@@ -480,11 +584,12 @@
                       name="branch"
                       required
                       aria-required="true"
+                      data-error="Please select a HYBE branch"
+                      aria-describedby="branch-error"
                     >
-                      <option value="" disabled selected>
-                        Select a HYBE Branch
-                      </option>
+                      <option value="" disabled selected>Select a HYBE Branch</option>
                     </select>
+                    <div id="branch-error" class="invalid-feedback" aria-live="polite"></div>
                     <i
                       class="bi bi-info-circle tooltip-icon"
                       data-bs-toggle="tooltip"
@@ -499,8 +604,7 @@
                     data-aos-delay="300"
                   >
                     <label for="group" class="form-label">
-                      Select Your Favorite Group
-                      <span class="text-danger">*</span>
+                      Select Your Favorite Group <span class="text-danger">*</span>
                     </label>
                     <select
                       class="form-select"
@@ -508,9 +612,12 @@
                       name="group"
                       required
                       aria-required="true"
+                      data-error="Please select a group"
+                      aria-describedby="group-error"
                     >
                       <option value="" disabled selected>Select a Group</option>
                     </select>
+                    <div id="group-error" class="invalid-feedback" aria-live="polite"></div>
                     <i
                       class="bi bi-info-circle tooltip-icon"
                       data-bs-toggle="tooltip"
@@ -525,8 +632,7 @@
                     data-aos-delay="325"
                   >
                     <label for="artist" class="form-label">
-                      Select Your Favorite Artist(s)
-                      <span class="text-danger">*</span>
+                      Select Your Favorite Artist(s) <span class="text-danger">*</span>
                     </label>
                     <select
                       class="form-select"
@@ -534,11 +640,12 @@
                       name="artist"
                       required
                       aria-required="true"
+                      data-error="Please select an artist"
+                      aria-describedby="artist-error"
                     >
-                      <option value="" disabled selected>
-                        Select an Artist
-                      </option>
+                      <option value="" disabled selected>Select an Artist</option>
                     </select>
+                    <div id="artist-error" class="invalid-feedback" aria-live="polite"></div>
                     <i
                       class="bi bi-info-circle tooltip-icon"
                       data-bs-toggle="tooltip"
@@ -622,13 +729,14 @@
                       name="payment-type"
                       required
                       aria-required="true"
+                      data-error="Please select a payment type"
+                      aria-describedby="payment-type-error"
                     >
-                      <option value="" disabled selected>
-                        Select Payment Type
-                      </option>
+                      <option value="" disabled selected>Select Payment Type</option>
                       <option value="Full Payment">Full Payment</option>
                       <option value="Installment">Installment</option>
                     </select>
+                    <div id="payment-type-error" class="invalid-feedback" aria-live="polite"></div>
                     <i
                       class="bi bi-info-circle tooltip-icon"
                       data-bs-toggle="tooltip"
@@ -644,24 +752,21 @@
                     data-aos-delay="425"
                   >
                     <label for="installment-plan" class="form-label">
-                      Installment Plan <span class="text-danger">*</span>
+                      Installment Plan
                     </label>
                     <select
                       class="form-select"
                       id="installment-plan"
                       name="installment-plan"
-                      required
+                      data-error="Please select an installment plan"
+                      aria-describedby="installment-plan-error"
                     >
-                      <option value="" disabled selected>
-                        Select Installment Plan
-                      </option>
-                      <option value="2-installment">
-                        2 Installments ($283.66 x 2)
-                      </option>
+                      <option value="" disabled selected>Select Installment Plan</option>
+                      <option value="2-installment">2 Installments ($283.66 x 2)</option>
                     </select>
+                    <div id="installment-plan-error" class="invalid-feedback" aria-live="polite"></div>
                     <p class="mt-2 text-muted">
-                      Installments must be completed within the subscription
-                      year.
+                      Installments must be completed within the subscription year.
                     </p>
                   </div>
 
@@ -672,9 +777,9 @@
                     data-aos="fade-up"
                     data-aos-delay="450"
                   >
-                    <label class="form-label"
-                      >Payment Methods <span class="text-danger">*</span></label
-                    >
+                    <label class="form-label">
+                      Payment Methods <span class="text-danger">*</span>
+                    </label>
                     <div class="form-check payment-option">
                       <input
                         class="form-check-input"
@@ -683,10 +788,10 @@
                         id="card-payment"
                         value="Card Payment"
                         required
+                        data-error="Please select a payment method"
+                        aria-describedby="payment-methods-error"
                       />
-                      <label class="form-check-label" for="card-payment"
-                        >Card Payment</label
-                      >
+                      <label class="form-check-label" for="card-payment">Card Payment</label>
                     </div>
                     <div class="form-check payment-option">
                       <input
@@ -696,9 +801,7 @@
                         id="digital-currency"
                         value="Digital Currency"
                       />
-                      <label class="form-check-label" for="digital-currency"
-                        >Digital Currency</label
-                      >
+                      <label class="form-check-label" for="digital-currency">Digital Currency</label>
                     </div>
                     <div class="form-check payment-option disabled">
                       <input
@@ -711,8 +814,7 @@
                       <label
                         class="form-check-label text-muted"
                         for="bank-transfer"
-                        >Bank Transfer
-                        <span class="ms-1">(Unavailable)</span></label
+                        >Bank Transfer <span class="ms-1">(Unavailable)</span></label
                       >
                     </div>
                     <div class="form-check payment-option disabled">
@@ -726,8 +828,7 @@
                       <label
                         class="form-check-label text-muted"
                         for="mobile-money"
-                        >Mobile Money
-                        <span class="ms-1">(Unavailable)</span></label
+                        >Mobile Money <span class="ms-1">(Unavailable)</span></label
                       >
                     </div>
                     <div class="form-check payment-option disabled">
@@ -742,74 +843,43 @@
                         >Cash <span class="ms-1">(Unavailable)</span></label
                       >
                     </div>
-                  </div>
-
-                  <!-- Enhanced Payment Processing Modal for Stripe -->
-                  <div
-                    class="modal fade"
-                    id="paymentModal"
-                    tabindex="-1"
-                    role="dialog"
-                    aria-labelledby="paymentModalLabel"
-                    aria-describedby="paymentModalDesc"
-                    aria-hidden="true"
-                  >
-                    <div class="modal-dialog modal-dialog-centered" role="document">
-                      <div class="modal-content">
-                        <div class="modal-body text-center p-4">
-                          <div class="spinner-border text-primary mb-3" role="status">
-                            <span class="visually-hidden">Processing payment...</span>
-                          </div>
-                          <h5 id="paymentModalLabel" class="mb-3">
-                            You’ll be redirected to our secure payment gateway in <span id="payment-countdown">5</span> seconds...
-                          </h5>
-                          <p id="paymentModalDesc">
-                            Please do not refresh or close this page.<br>
-                            Completing your HYBE subscription payment securely.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                    <div id="payment-methods-error" class="invalid-feedback" aria-live="polite"></div>
                   </div>
 
                   <!-- Preferred Contact Method -->
                   <div class="mb-3" data-aos="fade-up" data-aos-delay="475">
-                    <label class="form-label"
-                      >Preferred Contact Method
-                      <span class="text-danger">*</span></label
-                    >
+                    <label class="form-label">
+                      Preferred Contact Method <span class="text-danger">*</span>
+                    </label>
                     <div class="form-check">
                       <input
                         class="form-check-input"
-                        type="checkbox"
+                        type="radio"
                         name="contact-method"
                         id="email-contact"
                         value="Via Email"
                         required
+                        data-error="Please select a contact method"
+                        aria-describedby="contact-method-error"
                       />
-                      <label class="form-check-label" for="email-contact"
-                        >Via Email</label
-                      >
+                      <label class="form-check-label" for="email-contact">Via Email</label>
                     </div>
                     <div class="form-check">
                       <input
                         class="form-check-input"
-                        type="checkbox"
+                        type="radio"
                         name="contact-method"
                         id="sms-contact"
                         value="Via SMS"
                       />
-                      <label class="form-check-label" for="sms-contact"
-                        >Via SMS</label
-                      >
+                      <label class="form-check-label" for="sms-contact">Via SMS</label>
                     </div>
+                    <div id="contact-method-error" class="invalid-feedback" aria-live="polite"></div>
                   </div>
 
                   <!-- Feedback -->
                   <div class="mb-3" data-aos="fade-up" data-aos-delay="500">
-                    <label for="feedback" class="form-label"
-                      >Feedback (Optional)</label
-                    >
+                    <label for="feedback" class="form-label">Feedback (Optional)</label>
                     <textarea
                       class="form-control"
                       id="feedback"
@@ -827,9 +897,9 @@
                         id="installment-terms"
                         name="installment-terms"
                       />
-                      <label class="form-check-label" for="installment-terms"
-                        >Agree to installment terms.</label
-                      >
+                      <label class="form-check-label" for="installment-terms">
+                        Agree to installment terms (if applicable).
+                      </label>
                     </div>
                     <div class="form-check">
                       <input
@@ -838,21 +908,24 @@
                         id="privacy-policy"
                         name="privacy-policy"
                         required
+                        data-error="You must agree to the Privacy Policy"
+                        aria-describedby="privacy-policy-error"
                       />
                       <label class="form-check-label" for="privacy-policy">
                         I agree to HYBE’s
                         <a
                           href="https://hybecorp.com/eng/career/crew/content"
-                          class="text-decoration-none"
+                          class="text-decoration-none hover-link"
                           >Privacy Policy</a
                         >
                         and
                         <a
                           href="https://hybecorp.com"
-                          class="text-decoration-none"
+                          class="text-decoration-none hover-link"
                           >Terms of Service</a
                         >.
                       </label>
+                      <div id="privacy-policy-error" class="invalid-feedback" aria-live="polite"></div>
                     </div>
                     <div class="form-check">
                       <input
@@ -861,12 +934,15 @@
                         id="subscription-agreement"
                         name="subscription-agreement"
                         required
+                        data-error="You must agree to complete the subscription"
+                        aria-describedby="subscription-agreement-error"
                       />
                       <label
                         class="form-check-label"
                         for="subscription-agreement"
                         >Agree and complete subscription.</label
                       >
+                      <div id="subscription-agreement-error" class="invalid-feedback" aria-live="polite"></div>
                     </div>
                   </div>
 
@@ -882,40 +958,20 @@
                     <span
                       class="spinner-border spinner-border-sm d-none"
                       role="status"
-                      aria-hidden="true"
-                    ></span>
+                      aria-label="Submitting form"
+                    >
+                      <span class="visually-hidden">Loading...</span>
+                    </span>
                   </button>
+
+                  <!-- Form Message -->
+                  <p
+                    id="form-message"
+                    class="mt-3 text-center alert alert-dismissible fade show d-none"
+                    role="alert"
+                    aria-live="polite"
+                  ></p>
                 </form>
-
-                <p
-                  id="form-message"
-                  class="mt-3 text-center alert alert-dismissible fade show d-none"
-                  role="alert"
-                  aria-live="polite"
-                ></p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Validation Countdown Modal -->
-      <div
-        class="modal fade"
-        id="validationModal"
-        tabindex="-1"
-        aria-labelledby="validationModalLabel"
-        aria-hidden="true"
-      >
-        <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content">
-            <div class="modal-body text-center">
-              <p>
-                Verifying your answers, please wait...
-                <span id="countdown">5</span>
-              </p>
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
               </div>
             </div>
           </div>
@@ -984,18 +1040,5 @@
     ></script>
     <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.1.1/js/intlTelInput.min.js"></script>
-    <script>
-      // Ensure AOS and Bootstrap tooltips are initialized after DOM and scripts load
-      document.addEventListener('DOMContentLoaded', function() {
-        if (typeof AOS !== 'undefined') {
-          AOS.init({ duration: 800, once: true });
-        }
-        if (typeof bootstrap !== 'undefined') {
-          document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
-            new bootstrap.Tooltip(el);
-          });
-        }
-      });
-    </script>
   </body>
 </html>
