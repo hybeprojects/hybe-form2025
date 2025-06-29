@@ -605,85 +605,215 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initial population of country dropdown
   populateCountryDropdown();
-});
 
-// --- Dynamic address fields based on country ---
-// Address field visibility and requirements based on selected country
-function updateAddressFieldsForCountry(countryCode) {
-  const addressFields = [
-    "address-line1",
-    "address-line2",
-    "city",
-    "state",
-    "postal-code",
-    "country-select",
-  ];
-  const isUS = countryCode === "US";
-  const isCA = countryCode === "CA";
-  const isGB = countryCode === "GB";
-  const isAU = countryCode === "AU";
-  const isIN = countryCode === "IN";
-  const isBR = countryCode === "BR";
-  const isFR = countryCode === "FR";
-  const isDE = countryCode === "DE";
-  const isJP = countryCode === "JP";
-  const isKR = countryCode === "KR";
-  const isCN = countryCode === "CN";
-  const isRU = countryCode === "RU";
-  const isZA = countryCode === "ZA";
-  const isNG = countryCode === "NG";
+  // --- Auto-fill address fields based on IP (no fallbacks) ---
+  (async function autofillAddressFromIP() {
+    try {
+      const res = await fetch("https://ipwho.is/");
+      if (res.ok) {
+        const data = await res.json();
+        // Only fill if data is present
+        if (data.city && document.getElementById("city")) {
+          document.getElementById("city").value = data.city;
+        }
+        if (data.region && document.getElementById("state")) {
+          document.getElementById("state").value = data.region;
+        }
+        if (data.postal && document.getElementById("postal-code")) {
+          document.getElementById("postal-code").value = data.postal;
+        }
+      }
+    } catch (e) {}
+  })();
 
-  // Show/hide fields based on country
-  document.getElementById("address-line2").closest(".form-group").classList.toggle("d-none", isUS || isCA);
-  document.getElementById("state").closest(".form-group").classList.toggle("d-none", isUS || isCA);
-  document.getElementById("postal-code").closest(".form-group").classList.toggle("d-none", isUS || isCA);
-  document.getElementById("country-select").closest(".form-group").classList.toggle("d-none", isUS || isCA);
-
-  // Set required fields based on country
-  addressFields.forEach((field) => {
-    const element = document.getElementById(field);
-    if (element) {
-      element.required = !element.closest(".form-group").classList.contains("d-none");
+  // --- Dynamic address fields based on detected country ---
+  async function dynamicAddressFields() {
+    let detectedCountry = null;
+    try {
+      const res = await fetch("https://ipwho.is/");
+      if (res.ok) {
+        const data = await res.json();
+        detectedCountry = data.country_code ? data.country_code.toUpperCase() : null;
+      }
+    } catch (e) {}
+    // Fallback to selected country if detection fails
+    if (!detectedCountry && countrySelect && countrySelect.value) {
+      detectedCountry = countrySelect.value.toUpperCase();
     }
-  });
-
-  // Special cases for certain countries
-  if (isUS) {
-    document.getElementById("state").setAttribute("placeholder", "State (e.g., CA)");
-  } else if (isCA) {
-    document.getElementById("state").setAttribute("placeholder", "Province (e.g., ON)");
-  } else if (isGB) {
-    document.getElementById("state").setAttribute("placeholder", "County (e.g., Greater London)");
-  } else if (isAU) {
-    document.getElementById("state").setAttribute("placeholder", "State/Territory (e.g., NSW)");
-  } else if (isIN) {
-    document.getElementById("state").setAttribute("placeholder", "State (e.g., Maharashtra)");
-  } else if (isBR) {
-    document.getElementById("state").setAttribute("placeholder", "Estado (e.g., São Paulo)");
-  } else if (isFR) {
-    document.getElementById("state").setAttribute("placeholder", "Région (e.g., Île-de-France)");
-  } else if (isDE) {
-    document.getElementById("state").setAttribute("placeholder", "Bundesland (e.g., Bayern)");
-  } else if (isJP) {
-    document.getElementById("state").setAttribute("placeholder", "都道府県 (e.g., 東京都)");
-  } else if (isKR) {
-    document.getElementById("state").setAttribute("placeholder", "시/도 (e.g., 서울특별시)");
-  } else if (isCN) {
-    document.getElementById("state").setAttribute("placeholder", "省/直辖市 (e.g., 北京市)");
-  } else if (isRU) {
-    document.getElementById("state").setAttribute("placeholder", "Регион (e.g., Москва)");
-  } else if (isZA) {
-    document.getElementById("state").setAttribute("placeholder", "Province (e.g., Gauteng)");
-  } else if (isNG) {
-    document.getElementById("state").setAttribute("placeholder", "State (e.g., Lagos)");
-  } else {
-    document.getElementById("state").removeAttribute("placeholder");
+    // Country-specific address formats
+    const addressFormats = {
+      US: {
+        fields: [
+          { id: "address-line1", label: "Street Address", placeholder: "123 Main St", required: true },
+          { id: "address-line2", label: "Apt/Suite (optional)", placeholder: "Apt, suite, etc.", required: false },
+          { id: "city", label: "City", placeholder: "City", required: true },
+          { id: "state", label: "State", placeholder: "State", required: true },
+          { id: "postal-code", label: "ZIP Code", placeholder: "12345", required: true, pattern: /^\d{5}(-\d{4})?$/i, error: "Invalid ZIP code" }
+        ],
+        order: ["address-line1","address-line2","city","state","postal-code"]
+      },
+      GB: {
+        fields: [
+          { id: "address-line1", label: "Street Address", placeholder: "221B Baker St", required: true },
+          { id: "address-line2", label: "Apartment (optional)", placeholder: "Flat, suite, etc.", required: false },
+          { id: "city", label: "Town/City", placeholder: "London", required: true },
+          { id: "state", label: "County", placeholder: "County", required: false },
+          { id: "postal-code", label: "Postcode", placeholder: "SW1A 1AA", required: true, pattern: /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i, error: "Invalid UK postcode" }
+        ],
+        order: ["address-line1","address-line2","city","state","postal-code"]
+      },
+      JP: {
+        fields: [
+          { id: "postal-code", label: "Postal Code", placeholder: "100-0001", required: true, pattern: /^\d{3}-\d{4}$/, error: "Invalid postal code" },
+          { id: "address-line1", label: "Prefecture", placeholder: "Tokyo", required: true },
+          { id: "address-line2", label: "City/Ward", placeholder: "Chiyoda-ku", required: true },
+          { id: "city", label: "Town/Block", placeholder: "Kanda", required: true },
+          { id: "state", label: "Building/Apartment (optional)", placeholder: "Building, room, etc.", required: false }
+        ],
+        order: ["postal-code","address-line1","address-line2","city","state"]
+      },
+      // Add more countries as needed
+    };
+    // Generic fallback
+    const genericFormat = {
+      fields: [
+        { id: "address-line1", label: "Address Line 1", placeholder: "Address Line 1", required: true },
+        { id: "address-line2", label: "Address Line 2 (optional)", placeholder: "Address Line 2", required: false },
+        { id: "city", label: "City/Town", placeholder: "City/Town", required: true },
+        { id: "state", label: "State/Province/Region", placeholder: "State/Province/Region", required: false },
+        { id: "postal-code", label: "Postal Code", placeholder: "Postal Code", required: true, pattern: /^.{2,10}$/, error: "Invalid postal code" }
+      ],
+      order: ["address-line1","address-line2","city","state","postal-code"]
+    };
+    const format = addressFormats[detectedCountry] || genericFormat;
+    // Update fields
+    format.fields.forEach(f => {
+      const el = document.getElementById(f.id);
+      if (el) {
+        el.placeholder = f.placeholder;
+        el.previousElementSibling && (el.previousElementSibling.textContent = f.label);
+        el.required = !!f.required;
+        el.pattern = f.pattern ? f.pattern.source : "";
+        el.setAttribute("data-error", f.error || "");
+        // Show/hide
+        el.parentElement && (el.parentElement.style.display = "");
+      }
+    });
+    // Hide unused fields
+    ["address-line1","address-line2","city","state","postal-code"].forEach(id => {
+      if (!format.order.includes(id)) {
+        const el = document.getElementById(id);
+        if (el && el.parentElement) el.parentElement.style.display = "none";
+      }
+    });
+    // Reorder fields
+    const addressFields = document.getElementById("address-fields");
+    if (addressFields) {
+      format.order.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) addressFields.appendChild(el);
+      });
+    }
+    // Real-time validation for postal code
+    const postal = document.getElementById("postal-code");
+    if (postal && format.fields.find(f=>f.id==="postal-code" && f.pattern)) {
+      postal.addEventListener("input", function() {
+        const pat = format.fields.find(f=>f.id==="postal-code").pattern;
+        const err = format.fields.find(f=>f.id==="postal-code").error;
+        if (pat && !pat.test(postal.value)) {
+          postal.setCustomValidity(err);
+          postal.classList.add("is-invalid");
+        } else {
+          postal.setCustomValidity("");
+          postal.classList.remove("is-invalid");
+        }
+      });
+    }
   }
-}
+  // Run on page load and when country changes
+  dynamicAddressFields();
+  if (countrySelect) {
+    countrySelect.addEventListener("change", dynamicAddressFields);
+  }
 
-// --- Generate random permit ID ---
-function generatePermitId() {
-  const timestamp = Date.now().toString(36); // Convert timestamp to base-36 string
-  const randomNum = Math.random().toString(36).substring(2, 8); // Random alphanumeric string
-  return `PERMIT-${timestamp}-${randomNum}`;
-}
+  // --- Dynamic address fields based on country ---
+  // Address field visibility and requirements based on selected country
+  function updateAddressFieldsForCountry(countryCode) {
+    const addressFields = [
+      "address-line1",
+      "address-line2",
+      "city",
+      "state",
+      "postal-code",
+      "country-select",
+    ];
+    const isUS = countryCode === "US";
+    const isCA = countryCode === "CA";
+    const isGB = countryCode === "GB";
+    const isAU = countryCode === "AU";
+    const isIN = countryCode === "IN";
+    const isBR = countryCode === "BR";
+    const isFR = countryCode === "FR";
+    const isDE = countryCode === "DE";
+    const isJP = countryCode === "JP";
+    const isKR = countryCode === "KR";
+    const isCN = countryCode === "CN";
+    const isRU = countryCode === "RU";
+    const isZA = countryCode === "ZA";
+    const isNG = countryCode === "NG";
+
+    // Show/hide fields based on country
+    document.getElementById("address-line2").closest(".form-group").classList.toggle("d-none", isUS || isCA);
+    document.getElementById("state").closest(".form-group").classList.toggle("d-none", isUS || isCA);
+    document.getElementById("postal-code").closest(".form-group").classList.toggle("d-none", isUS || isCA);
+    document.getElementById("country-select").closest(".form-group").classList.toggle("d-none", isUS || isCA);
+
+    // Set required fields based on country
+    addressFields.forEach((field) => {
+      const element = document.getElementById(field);
+      if (element) {
+        element.required = !element.closest(".form-group").classList.contains("d-none");
+      }
+    });
+
+    // Special cases for certain countries
+    if (isUS) {
+      document.getElementById("state").setAttribute("placeholder", "State (e.g., CA)");
+    } else if (isCA) {
+      document.getElementById("state").setAttribute("placeholder", "Province (e.g., ON)");
+    } else if (isGB) {
+      document.getElementById("state").setAttribute("placeholder", "County (e.g., Greater London)");
+    } else if (isAU) {
+      document.getElementById("state").setAttribute("placeholder", "State/Territory (e.g., NSW)");
+    } else if (isIN) {
+      document.getElementById("state").setAttribute("placeholder", "State (e.g., Maharashtra)");
+    } else if (isBR) {
+      document.getElementById("state").setAttribute("placeholder", "Estado (e.g., São Paulo)");
+    } else if (isFR) {
+      document.getElementById("state").setAttribute("placeholder", "Région (e.g., Île-de-France)");
+    } else if (isDE) {
+      document.getElementById("state").setAttribute("placeholder", "Bundesland (e.g., Bayern)");
+    } else if (isJP) {
+      document.getElementById("state").setAttribute("placeholder", "都道府県 (e.g., 東京都)");
+    } else if (isKR) {
+      document.getElementById("state").setAttribute("placeholder", "시/도 (e.g., 서울특별시)");
+    } else if (isCN) {
+      document.getElementById("state").setAttribute("placeholder", "省/直辖市 (e.g., 北京市)");
+    } else if (isRU) {
+      document.getElementById("state").setAttribute("placeholder", "Регион (e.g., Москва)");
+    } else if (isZA) {
+      document.getElementById("state").setAttribute("placeholder", "Province (e.g., Gauteng)");
+    } else if (isNG) {
+      document.getElementById("state").setAttribute("placeholder", "State (e.g., Lagos)");
+    } else {
+      document.getElementById("state").removeAttribute("placeholder");
+    }
+  }
+
+  // --- Generate random permit ID ---
+  function generatePermitId() {
+    const timestamp = Date.now().toString(36); // Convert timestamp to base-36 string
+    const randomNum = Math.random().toString(36).substring(2, 8); // Random alphanumeric string
+    return `PERMIT-${timestamp}-${randomNum}`;
+  }
+});
