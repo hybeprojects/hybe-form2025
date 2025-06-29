@@ -293,32 +293,28 @@
                   </div>
 
                   <!-- Phone Number -->
-                  <div
-                    class="mb-3 position-relative"
-                    data-aos="fade-up"
-                    data-aos-delay="175"
-                  >
+                  <div class="mb-3 position-relative" data-aos="fade-up" data-aos-delay="175">
                     <label for="phone" class="form-label">
                       Phone Number <span class="text-danger">*</span>
                     </label>
-                    <input
-                      type="tel"
-                      class="form-control"
-                      id="phone"
-                      name="phone"
-                      placeholder="Enter phone number"
-                      required
-                      aria-required="true"
-                      aria-describedby="phone-error"
-                      aria-invalid="false"
-                      pattern="^\\+?[0-9\\s\\-()]{7,20}$"
-                    />
+                    <div class="input-group">
+                      <span class="input-group-text" id="phone-prefix">🌐 +--</span>
+                      <input
+                        type="tel"
+                        class="form-control"
+                        id="phone"
+                        name="phone"
+                        placeholder="Enter your number"
+                        required
+                        aria-required="true"
+                        aria-describedby="phone-error"
+                        aria-invalid="false"
+                        pattern="[0-9\s\-()]{7,20}"
+                        autocomplete="tel"
+                        style="max-width: 100%;"
+                      />
+                    </div>
                     <div id="phone-error" class="invalid-feedback" aria-live="polite"></div>
-                    <i
-                      class="bi bi-info-circle tooltip-icon"
-                      data-bs-toggle="tooltip"
-                      data-bs-title="Include country code"
-                    ></i>
                   </div>
 
                   <!-- Address -->

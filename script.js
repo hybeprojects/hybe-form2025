@@ -324,43 +324,69 @@ document.addEventListener("DOMContentLoaded", () => {
     new bootstrap.Tooltip(tooltipTriggerEl);
   });
 
-  // Phone number input: International Telephone Input
-  if (window.intlTelInput && phoneInput) {
-    iti = window.intlTelInput(phoneInput, {
-      separateDialCode: true,
-      initialCountry: "auto",
-      geoIpLookup: function (success, failure) {
-        fetch("https://ipapi.co/json")
-          .then((res) => res.json())
-          .then((data) => success(data.country_code))
-          .catch(() => success("US"));
-      },
-      utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.1.1/js/utils.js",
-    });
-
-    // Real-time phone validation and error display
+  // --- Phone number: emoji flag + country code prefix, no dropdown ---
+  const phonePrefix = document.getElementById("phone-prefix");
+  if (phonePrefix && phoneInput) {
+    // Helper to get emoji flag from country code
+    function countryCodeToFlagEmoji(cc) {
+      if (!cc) return "🌐";
+      return cc
+        .toUpperCase()
+        .replace(/./g, char => String.fromCodePoint(127397 + char.charCodeAt()));
+    }
+    // Map of country code to dial code (minimal, can be expanded)
+    const dialCodes = {
+      US: "+1", GB: "+44", JP: "+81", KR: "+82", CN: "+86", FR: "+33", DE: "+49", IN: "+91", BR: "+55", CA: "+1"
+      // Add more as needed
+    };
+    // Default
+    let userCC = "US";
+    let userDial = "+1";
+    // GeoIP lookup
+    fetch("https://ipapi.co/json")
+      .then(res => res.json())
+      .then(data => {
+        if (data.country_code && dialCodes[data.country_code]) {
+          userCC = data.country_code;
+          userDial = dialCodes[userCC];
+        }
+        phonePrefix.textContent = `${countryCodeToFlagEmoji(userCC)} ${userDial}`;
+      })
+      .catch(() => {
+        phonePrefix.textContent = `${countryCodeToFlagEmoji(userCC)} ${userDial}`;
+      });
+    // Validation: only local number
     const phoneError = document.getElementById("phone-error");
     function validatePhoneInput() {
-      if (!window.intlTelInputUtils) {
-        phoneError.textContent = "Phone validation unavailable: utility script failed to load.";
+      const val = phoneInput.value.trim();
+      // Basic: 7-20 digits, spaces, dashes, parentheses
+      if (!/^([0-9\s\-()]{7,20})$/.test(val)) {
+        phoneError.textContent = "Please enter a valid phone number.";
         phoneError.classList.add("d-block");
         phoneInput.setAttribute("aria-invalid", "true");
-        return false;
-      }
-      if (!iti.isValidNumber()) {
-        phoneError.textContent = "Please enter a valid phone number including country code.";
-        phoneError.classList.add("d-block");
-        phoneInput.setAttribute("aria-invalid", "true");
+        phoneInput.classList.add("is-invalid");
+        phoneInput.classList.remove("is-valid");
         return false;
       } else {
         phoneError.textContent = "";
         phoneError.classList.remove("d-block");
         phoneInput.setAttribute("aria-invalid", "false");
+        phoneInput.classList.remove("is-invalid");
+        phoneInput.classList.add("is-valid");
         return true;
       }
     }
     phoneInput.addEventListener("input", validatePhoneInput);
     phoneInput.addEventListener("blur", validatePhoneInput);
+    if (form) {
+      form.addEventListener("submit", function(e) {
+        if (!validatePhoneInput()) {
+          e.preventDefault();
+          phoneInput.focus();
+          showMessage("Please enter a valid phone number before submitting.", "danger");
+        }
+      });
+    }
   }
 
   // Form submission handler
