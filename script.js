@@ -1,13 +1,3 @@
-<<<<<<< HEAD
-document.addEventListener("DOMContentLoaded", () => {
-  // Accessibility: Focus management for modals
-  function focusFirstInput(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-      const firstInput = modal.querySelector('input, button, select, textarea, [tabindex]:not([tabindex="-1"])');
-      if (firstInput) firstInput.focus();
-    }
-=======
 // Ensure Stripe.js is loaded
 const stripeScript = document.createElement('script');
 stripeScript.src = 'https://js.stripe.com/v3/';
@@ -25,7 +15,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initialize AOS animations
   if (typeof AOS !== "undefined") {
     AOS.init({ duration: 800, once: true });
->>>>>>> 0a241ef36559e87154b1a6e0f59ece83fbf7ec5d
   }
 
   // Show onboarding modal and focus first input
@@ -33,7 +22,10 @@ document.addEventListener("DOMContentLoaded", () => {
   if (onboardingModal) {
     const onboardingInstance = new bootstrap.Modal(onboardingModal);
     onboardingInstance.show();
-    onboardingModal.addEventListener('shown.bs.modal', () => focusFirstInput("onboardingModal"));
+    onboardingModal.addEventListener('shown.bs.modal', () => {
+      const firstInput = onboardingModal.querySelector('input, button, select, textarea, [tabindex]:not([tabindex="-1"])');
+      if (firstInput) firstInput.focus();
+    });
   }
 
   // ARIA live region for feedback
@@ -156,13 +148,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const paymentCountdown = document.getElementById("payment-countdown");
   let paymentTimer = null;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  // Onboarding modal logic
-  const onboardingModal = document.getElementById("onboardingModal");
-  if (onboardingModal) {
-    const onboardingInstance = new bootstrap.Modal(onboardingModal, { keyboard: true });
-    onboardingInstance.show();
-  }
 
   // HYBE branch and group data
   const branches = [
