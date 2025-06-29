@@ -721,4 +721,40 @@ document.addEventListener("DOMContentLoaded", () => {
     const randomNum = Math.random().toString(36).substring(2, 8); // Random alphanumeric string
     return `PERMIT-${timestamp}-${randomNum}`;
   }
+
+  // Utility: Shake an input field for invalid feedback
+  function shakeField(field) {
+    if (!field) return;
+    field.classList.remove('shake'); // reset if already shaking
+    // Force reflow to restart animation
+    void field.offsetWidth;
+    field.classList.add('shake');
+    field.addEventListener('animationend', function handler() {
+      field.classList.remove('shake');
+      field.removeEventListener('animationend', handler);
+    });
+  }
+
+  // Example: Shake on invalid phone
+  if (phoneInput) {
+    phoneInput.addEventListener('invalid', function(e) {
+      shakeField(phoneInput);
+    });
+  }
+
+  // Shake on invalid for all required fields
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      let firstInvalid = null;
+      form.querySelectorAll('input, select, textarea').forEach(function(field) {
+        if (!field.checkValidity()) {
+          shakeField(field);
+          if (!firstInvalid) firstInvalid = field;
+        }
+      });
+      if (firstInvalid) {
+        firstInvalid.focus();
+      }
+    }, true);
+  }
 });
