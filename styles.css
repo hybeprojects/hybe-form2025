@@ -36,8 +36,20 @@ body {
 
 /* Logo animation */
 .logo-pulse {
-  max-width: 150px;
+  max-width: 200px;
+  margin-bottom: 10px;
+  filter: drop-shadow(0 2px 8px rgba(52, 152, 219, 0.15));
+  border-radius: 12px;
+  background: #fff;
+  padding: 8px 16px;
   animation: pulse 2s infinite;
+}
+
+@media (max-width: 576px) {
+  .logo-pulse {
+    max-width: 130px;
+    padding: 6px 10px;
+  }
 }
 
 @keyframes pulse {
@@ -223,6 +235,7 @@ footer.bg-gradient {
 .subscription-amount .form-control-plaintext {
   background: var(--primary-gradient);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   color: #2c3e50;
 }
