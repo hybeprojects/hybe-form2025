@@ -1,17 +1,39 @@
-HYB10250GB0680
+require('dotenv').config();
+const express = require('express');
+const Stripe = require('stripe');
+const app = express();
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-Generate for each user a unique ID in this format
-(HYB10250GB0680) which i will be able fetch successful users form data for future project extebtions, Only users who completed full subscription will i be able to store the ID's 
-they wint see it, It will be sent to my netlify
+app.use(express.json());
+app.use(express.static('public')); // Serve static files
 
-<!-- Smartsupp Live Chat script -->
-<script type="text/javascript">
-var _smartsupp = _smartsupp || {};
-_smartsupp.key = '5f1c58441c7ea587d4a9b5ff8db35cd3004979d3';
-window.smartsupp||(function(d) {
-	var s,c,o=smartsupp=function(){ o._.push(arguments)};o._=[];
-	s=d.getElementsByTagName('script')[0];c=d.createElement('script');
-	c.type='text/javascript';c.charset='utf-8';c.async=true;
-	c.src='https://www.smartsuppchat.com/loader.js?';s.parentNode.insertBefore(c,s);
-})(document);
-</script>
+app.post('/create-checkout-session', async (req, res) => {
+  try {
+    const { paymentType, userId, referralCode, email, fullName } = req.body;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Invalid email address' });
+    }
+    if (referralCode && !/^[A-Z0-9]{6,10}$/.test(referralCode)) {
+      return res.status(400).json({ error: 'Invalid referral code' });
+    }
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price: paymentType === 'Installment' ? 'price_installment_id' : 'price_full_id', // Replace with actual Stripe price IDs
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: 'https://your-site.com/success',
+      cancel_url: 'https://your-site.com/cancel',
+      metadata: { userId, referralCode, email, fullName },
+    });
+    res.json({ url: session.url });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create payment session' });
+  }
+});
+
+app.listen(3000, () => console.log('Server running on port 3000'));
