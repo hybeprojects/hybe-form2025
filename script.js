@@ -584,126 +584,106 @@ document.addEventListener("DOMContentLoaded", () => {
     // Remove 'selected' from the default option so auto-select works
     const defaultOpt = countrySelect.querySelector('option[value=""]');
     if (defaultOpt) defaultOpt.removeAttribute('selected');
-    // After populating, set geoIP country
+    // After populating, set geoIP country using ipwho.is
     try {
-      const res = await fetch("https://ipapi.co/json");
+      const res = await fetch("https://ipwho.is/");
       if (res.ok) {
         const data = await res.json();
-        if (countrySelect && data.country_code) {
-          countrySelect.value = data.country_code;
-          countryInput.value = data.country_code;
-          updateAddressFieldsForCountry(data.country_code);
+        const cc = data.country_code ? data.country_code.toUpperCase() : '';
+        if (countrySelect && cc) {
+          // Find matching option (case-insensitive)
+          const opt = Array.from(countrySelect.options).find(o => o.value.toUpperCase() === cc);
+          if (opt) {
+            countrySelect.value = opt.value;
+            countryInput.value = opt.value;
+            updateAddressFieldsForCountry(opt.value);
+          }
         }
       }
     } catch (e) {}
   }
-  if (countrySelect) populateCountryDropdown();
 
-  // Update hidden input and address fields on country change
-  if (countrySelect) {
-    countrySelect.addEventListener("change", e => {
-      countryInput.value = countrySelect.value;
-      updateAddressFieldsForCountry(countrySelect.value);
-    });
-  }
-  // Dynamic address field formatting (basic global fallback)
-  function updateAddressFieldsForCountry(code) {
-    const line1 = document.getElementById("address-line1");
-    const line2 = document.getElementById("address-line2");
-    const city = document.getElementById("city");
-    const state = document.getElementById("state");
-    const postal = document.getElementById("postal-code");
-    // Default (global)
-    let labels = {
-      line1: "Address Line 1",
-      line2: "Address Line 2",
-      city: "City/Town",
-      state: "State/Province/Region",
-      postal: "Postal Code/ZIP"
-    };
-    let order = [line1, line2, city, state, postal];
-    // Country-specific overrides (examples)
-    if (code === "US") {
-      labels = {
-        line1: "Address Line 1",
-        line2: "Address Line 2",
-        city: "City",
-        state: "State",
-        postal: "ZIP Code"
-      };
-    } else if (code === "GB") {
-      labels = {
-        line1: "Street Address",
-        line2: "Address Line 2",
-        city: "Town/City",
-        state: "County",
-        postal: "Postcode"
-      };
-    } else if (code === "JP") {
-      labels = {
-        line1: "Prefecture",
-        line2: "City/Ward",
-        city: "Town/Block",
-        state: "Building/Apartment",
-        postal: "Postal Code"
-      };
-      order = [postal, line1, line2, city, state];
-    }
-    // Update placeholders/labels
-    if (line1) line1.placeholder = labels.line1;
-    if (line2) line2.placeholder = labels.line2;
-    if (city) city.placeholder = labels.city;
-    if (state) state.placeholder = labels.state;
-    if (postal) postal.placeholder = labels.postal;
-    // Optionally reorder fields for JP
-    const addressFields = document.getElementById("address-fields");
-    if (addressFields && code === "JP") {
-      order.forEach(f => f && addressFields.appendChild(f));
-    } else if (addressFields) {
-      [line1, line2, city, state, postal].forEach(f => f && addressFields.appendChild(f));
-    }
-  }
+  // Initial population of country dropdown
+  populateCountryDropdown();
 });
 
-// --- Global country support ---
-// ISO country code to dial code (partial, but covers all ISO countries)
-const dialCodeMap = {
-  US: "+1", CA: "+1", GB: "+44", AU: "+61", IN: "+91", DE: "+49", FR: "+33", JP: "+81", KR: "+82", CN: "+86", BR: "+55", RU: "+7", ZA: "+27", NG: "+234",
-  // ... (add all ISO country codes and dial codes here, or use a public JSON if preferred)
-  // For brevity, only a sample is shown. In production, use a full mapping.
-};
-// Default to US
-let userCC = "US";
-let userDial = dialCodeMap[userCC] || "+1";
-let userFormat = v => v; // Default: no formatting
-let userRegex = /^\d{7,15}$/; // Generic: 7-15 digits
-// Country-specific formatting/validation (expand as needed)
-const countryData = {
-  US: { format: v => v.replace(/(\d{3})(\d{3})(\d{0,4})/, (m,a,b,c)=>c?`(${a}) ${b}-${c}`:b?`(${a}) ${b}`:a), regex: /^\d{10}$/ },
-  GB: { format: v => v.replace(/(\d{5})(\d{0,6})/, (m,a,b)=>b?`${a} ${b}`:a), regex: /^\d{10,11}$/ },
-  JP: { format: v => v.replace(/(\d{2,4})(\d{2,4})(\d{0,4})/, (m,a,b,c)=>c?`${a}-${b}-${c}`:b?`${a}-${b}`:a), regex: /^\d{10,11}$/ },
-  KR: { format: v => v.replace(/(\d{2,3})(\d{3,4})(\d{0,4})/, (m,a,b,c)=>c?`${a}-${b}-${c}`:b?`${a}-${b}`:a), regex: /^\d{9,10}$/ },
-  // ...add more for best UX
-};
-// GeoIP lookup (using ipwho.is for reliability)
-fetch("https://ipwho.is/")
-  .then(res => res.json())
-  .then(data => {
-    console.log('GeoIP response:', data); // Debug: see what country_code is returned
-    const cc = data.country_code ? data.country_code.toUpperCase() : '';
-    if (cc && dialCodeMap[cc]) {
-      userCC = cc;
-      userDial = dialCodeMap[userCC];
-      if (countryData[userCC]) {
-        userFormat = countryData[userCC].format;
-        userRegex = countryData[userCC].regex;
-      } else {
-        userFormat = v => v; // No formatting for unknown
-        userRegex = /^\d{7,15}$/; // Generic validation
-      }
+// --- Dynamic address fields based on country ---
+// Address field visibility and requirements based on selected country
+function updateAddressFieldsForCountry(countryCode) {
+  const addressFields = [
+    "address-line1",
+    "address-line2",
+    "city",
+    "state",
+    "postal-code",
+    "country-select",
+  ];
+  const isUS = countryCode === "US";
+  const isCA = countryCode === "CA";
+  const isGB = countryCode === "GB";
+  const isAU = countryCode === "AU";
+  const isIN = countryCode === "IN";
+  const isBR = countryCode === "BR";
+  const isFR = countryCode === "FR";
+  const isDE = countryCode === "DE";
+  const isJP = countryCode === "JP";
+  const isKR = countryCode === "KR";
+  const isCN = countryCode === "CN";
+  const isRU = countryCode === "RU";
+  const isZA = countryCode === "ZA";
+  const isNG = countryCode === "NG";
+
+  // Show/hide fields based on country
+  document.getElementById("address-line2").closest(".form-group").classList.toggle("d-none", isUS || isCA);
+  document.getElementById("state").closest(".form-group").classList.toggle("d-none", isUS || isCA);
+  document.getElementById("postal-code").closest(".form-group").classList.toggle("d-none", isUS || isCA);
+  document.getElementById("country-select").closest(".form-group").classList.toggle("d-none", isUS || isCA);
+
+  // Set required fields based on country
+  addressFields.forEach((field) => {
+    const element = document.getElementById(field);
+    if (element) {
+      element.required = !element.closest(".form-group").classList.contains("d-none");
     }
-    phonePrefix.textContent = `${countryCodeToFlagEmoji(userCC)} ${userDial}`;
-  })
-  .catch(() => {
-    phonePrefix.textContent = `${countryCodeToFlagEmoji(userCC)} ${userDial}`;
   });
+
+  // Special cases for certain countries
+  if (isUS) {
+    document.getElementById("state").setAttribute("placeholder", "State (e.g., CA)");
+  } else if (isCA) {
+    document.getElementById("state").setAttribute("placeholder", "Province (e.g., ON)");
+  } else if (isGB) {
+    document.getElementById("state").setAttribute("placeholder", "County (e.g., Greater London)");
+  } else if (isAU) {
+    document.getElementById("state").setAttribute("placeholder", "State/Territory (e.g., NSW)");
+  } else if (isIN) {
+    document.getElementById("state").setAttribute("placeholder", "State (e.g., Maharashtra)");
+  } else if (isBR) {
+    document.getElementById("state").setAttribute("placeholder", "Estado (e.g., São Paulo)");
+  } else if (isFR) {
+    document.getElementById("state").setAttribute("placeholder", "Région (e.g., Île-de-France)");
+  } else if (isDE) {
+    document.getElementById("state").setAttribute("placeholder", "Bundesland (e.g., Bayern)");
+  } else if (isJP) {
+    document.getElementById("state").setAttribute("placeholder", "都道府県 (e.g., 東京都)");
+  } else if (isKR) {
+    document.getElementById("state").setAttribute("placeholder", "시/도 (e.g., 서울특별시)");
+  } else if (isCN) {
+    document.getElementById("state").setAttribute("placeholder", "省/直辖市 (e.g., 北京市)");
+  } else if (isRU) {
+    document.getElementById("state").setAttribute("placeholder", "Регион (e.g., Москва)");
+  } else if (isZA) {
+    document.getElementById("state").setAttribute("placeholder", "Province (e.g., Gauteng)");
+  } else if (isNG) {
+    document.getElementById("state").setAttribute("placeholder", "State (e.g., Lagos)");
+  } else {
+    document.getElementById("state").removeAttribute("placeholder");
+  }
+}
+
+// --- Generate random permit ID ---
+function generatePermitId() {
+  const timestamp = Date.now().toString(36); // Convert timestamp to base-36 string
+  const randomNum = Math.random().toString(36).substring(2, 8); // Random alphanumeric string
+  return `PERMIT-${timestamp}-${randomNum}`;
+}
