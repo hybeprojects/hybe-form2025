@@ -827,12 +827,12 @@ document.addEventListener("DOMContentLoaded", () => {
       if (seconds <= 0) {
         clearInterval(paymentTimer);
         modal.hide();
-        // Stripe Checkout URLs (replace with your real session URLs)
+        // Stripe Checkout URLs (live)
         let stripeUrl = '';
         if (amountType === 'installment') {
-          stripeUrl = 'https://checkout.stripe.com/pay/cs_test_installment';
+          stripeUrl = 'https://buy.stripe.com/3cIfZhgGxdPlaOBaNL2ZO06';
         } else {
-          stripeUrl = 'https://checkout.stripe.com/pay/cs_test_full';
+          stripeUrl = 'https://buy.stripe.com/14AfZh1LD4eL9Kx0972ZO04';
         }
         window.location.href = stripeUrl;
       }
