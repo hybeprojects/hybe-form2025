@@ -1,3 +1,4 @@
+
 // Ensure Stripe.js is loaded
 const stripeScript = document.createElement('script');
 stripeScript.src = 'https://js.stripe.com/v3/';
