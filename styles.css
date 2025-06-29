@@ -26,12 +26,19 @@ body {
 }
 
 .payment-option.disabled {
-  opacity: 0.5;
+  opacity: 1;
   pointer-events: none;
 }
 
-.payment-option input[disabled] + .form-check-label {
+.payment-option.disabled .form-check-label {
   color: #adb5bd !important;
+  font-weight: 500;
+}
+
+.payment-option.disabled .form-check-label span {
+  color: #dc3545 !important;
+  font-weight: 400;
+  margin-left: 4px;
 }
 
 /* Logo animation */
