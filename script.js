@@ -757,4 +757,48 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }, true);
   }
+
+  // Payment modal and Stripe redirect logic
+  const paymentModal = document.getElementById('paymentModal');
+  const paymentCountdown = document.getElementById('payment-countdown');
+  let paymentTimer = null;
+
+  function showPaymentModalAndRedirect(amountType) {
+    let seconds = 5;
+    if (paymentCountdown) paymentCountdown.textContent = seconds;
+    const modal = new bootstrap.Modal(paymentModal);
+    modal.show();
+    paymentTimer = setInterval(() => {
+      seconds--;
+      if (paymentCountdown) paymentCountdown.textContent = seconds;
+      if (seconds <= 0) {
+        clearInterval(paymentTimer);
+        modal.hide();
+        // Stripe Checkout URLs (replace with your real session URLs)
+        let stripeUrl = '';
+        if (amountType === 'installment') {
+          stripeUrl = 'https://checkout.stripe.com/pay/cs_test_installment';
+        } else {
+          stripeUrl = 'https://checkout.stripe.com/pay/cs_test_full';
+        }
+        window.location.href = stripeUrl;
+      }
+    }, 1000);
+  }
+
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      // Only trigger for Card Payment
+      const cardPayment = document.getElementById('card-payment');
+      if (cardPayment && cardPayment.checked) {
+        // Validate form before showing modal
+        if (form.checkValidity()) {
+          e.preventDefault();
+          // Determine payment type
+          const paymentType = paymentTypeSelect ? paymentTypeSelect.value : 'Full Payment';
+          showPaymentModalAndRedirect(paymentType === 'Installment' ? 'installment' : 'full');
+        }
+      }
+    }, false);
+  }
 });

@@ -717,7 +717,7 @@
                     </div>
                   </div>
 
-                  <!-- Updated Payment Processing Modal -->
+                  <!-- Enhanced Payment Processing Modal for Stripe -->
                   <div
                     class="modal fade"
                     id="paymentModal"
@@ -727,26 +727,18 @@
                     aria-describedby="paymentModalDesc"
                     aria-hidden="true"
                   >
-                    <div
-                      class="modal-dialog modal-dialog-centered"
-                      role="document"
-                    >
+                    <div class="modal-dialog modal-dialog-centered" role="document">
                       <div class="modal-content">
                         <div class="modal-body text-center p-4">
-                          <div
-                            class="spinner-border text-primary mb-3"
-                            role="status"
-                          >
-                            <span class="visually-hidden"
-                              >Processing payment...</span
-                            >
+                          <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Processing payment...</span>
                           </div>
                           <h5 id="paymentModalLabel" class="mb-3">
-                            Redirecting to secure payment gateway...
+                            You’ll be redirected to our secure payment gateway in <span id="payment-countdown">5</span> seconds...
                           </h5>
                           <p id="paymentModalDesc">
-                            Do not refresh this page. Redirecting in
-                            <span id="payment-countdown">5</span> seconds...
+                            Please do not refresh or close this page.<br>
+                            Completing your HYBE subscription payment securely.
                           </p>
                         </div>
                       </div>
