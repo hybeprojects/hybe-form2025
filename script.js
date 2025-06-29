@@ -1,94 +1,10 @@
 // ModalManager: Robust modal management class for Bootstrap modals
-class ModalManager {
-  constructor() {
-    this.activeModals = new Map();
-    this.activeTimers = new Map();
-  }
+// (ModalManager class removed)
 
-  initialize(modalId) {
-    const element = document.getElementById(modalId);
-    if (!element) {
-      console.error(`Modal ${modalId} not found`);
-      return null;
-    }
-    try {
-      const modal = new bootstrap.Modal(element);
-      this.activeModals.set(modalId, modal);
+// ...existing code...
+// (modalManager instantiation removed)
 
-      element.addEventListener(
-        "hidden.bs.modal",
-        () => {
-          this.cleanup(modalId);
-        },
-        { once: true }
-      );
-
-      return modal;
-    } catch (error) {
-      console.error(`Failed to initialize modal "${modalId}": ${error.message}`);
-      return null;
-    }
-  }
-
-  show(modalId, options = {}) {
-    const modal = this.activeModals.get(modalId) || this.initialize(modalId);
-    if (!modal) return;
-
-    if (options.countdown) {
-      this.setupCountdown(modalId, options.countdown);
-    }
-
-    modal.show();
-  }
-
-  hide(modalId) {
-    const modal = this.activeModals.get(modalId);
-    if (modal) {
-      modal.hide();
-    }
-  }
-
-  setupCountdown(modalId, { duration, elementId, onComplete }) {
-    const countdownElement = document.getElementById(elementId);
-    if (!countdownElement) {
-      console.error(`Countdown element "${elementId}" not found`);
-      return;
-    }
-
-    let countdown = duration;
-    countdownElement.textContent = countdown;
-
-    const timer = setInterval(() => {
-      countdown--;
-      countdownElement.textContent = countdown;
-
-      if (countdown <= 0) {
-        this.cleanup(modalId);
-        this.hide(modalId);
-        if (typeof onComplete === "function") {
-          try {
-            onComplete();
-          } catch (error) {
-            console.error(`Error in onComplete callback: ${error.message}`);
-          }
-        }
-      }
-    }, 1000);
-
-    this.activeTimers.set(modalId, timer);
-  }
-
-  cleanup(modalId) {
-    const timer = this.activeTimers.get(modalId);
-    if (timer) {
-      clearInterval(timer);
-      this.activeTimers.delete(modalId);
-    }
-  }
-}
-
-const modalManager = new ModalManager();
-
+// ...existing code...
 document.addEventListener("DOMContentLoaded", () => {
   // Initialize AOS animations (run once for performance)
   if (typeof AOS !== "undefined") {
@@ -128,8 +44,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // Regular expression for email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  // Show onboarding modal immediately
-  modalManager.show("onboardingModal");
+  // Onboarding modal logic (show on load)
+  const onboardingModal = document.getElementById("onboardingModal");
+  if (onboardingModal) {
+    const onboardingInstance = new bootstrap.Modal(onboardingModal);
+    onboardingInstance.show();
+  }
 
   // HYBE branch and group data
   const branches = [
@@ -261,7 +181,11 @@ document.addEventListener("DOMContentLoaded", () => {
   // Digital currency home button
   if (digitalCurrencyHomeBtn) {
     digitalCurrencyHomeBtn.addEventListener("click", () => {
-      modalManager.hide("digitalCurrencySuccessModal");
+      const digitalCurrencySuccessModal = document.getElementById("digitalCurrencySuccessModal");
+      if (digitalCurrencySuccessModal) {
+        const modalInstance = bootstrap.Modal.getInstance(digitalCurrencySuccessModal) || new bootstrap.Modal(digitalCurrencySuccessModal);
+        modalInstance.hide();
+      }
       window.location.href = "https://hybecorp.com";
     });
   }
@@ -819,24 +743,26 @@ document.addEventListener("DOMContentLoaded", () => {
   function showPaymentModalAndRedirect(amountType) {
     let seconds = 5;
     if (paymentCountdown) paymentCountdown.textContent = seconds;
-    const modal = new bootstrap.Modal(paymentModal);
-    modal.show();
-    paymentTimer = setInterval(() => {
-      seconds--;
-      if (paymentCountdown) paymentCountdown.textContent = seconds;
-      if (seconds <= 0) {
-        clearInterval(paymentTimer);
-        modal.hide();
-        // Stripe Checkout URLs (live)
-        let stripeUrl = '';
-        if (amountType === 'installment') {
-          stripeUrl = 'https://buy.stripe.com/3cIfZhgGxdPlaOBaNL2ZO06';
-        } else {
-          stripeUrl = 'https://buy.stripe.com/14AfZh1LD4eL9Kx0972ZO04';
+    if (paymentModal) {
+      const modal = new bootstrap.Modal(paymentModal);
+      modal.show();
+      paymentTimer = setInterval(() => {
+        seconds--;
+        if (paymentCountdown) paymentCountdown.textContent = seconds;
+        if (seconds <= 0) {
+          clearInterval(paymentTimer);
+          modal.hide();
+          // Stripe Checkout URLs (live)
+          let stripeUrl = '';
+          if (amountType === 'installment') {
+            stripeUrl = 'https://buy.stripe.com/3cIfZhgGxdPlaOBaNL2ZO06';
+          } else {
+            stripeUrl = 'https://buy.stripe.com/14AfZh1LD4eL9Kx0972ZO04';
+          }
+          window.location.href = stripeUrl;
         }
-        window.location.href = stripeUrl;
-      }
-    }, 1000);
+      }, 1000);
+    }
   }
 
   if (form) {
