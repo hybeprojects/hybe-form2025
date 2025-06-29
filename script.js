@@ -288,17 +288,49 @@ document.addEventListener("DOMContentLoaded", () => {
     new bootstrap.Tooltip(tooltipTriggerEl);
   });
 
-  // Phone number input: International Telephone Input
+  // Phone number input: International Telephone Input with multi-API geoIpLookup fallback
   let iti;
   if (window.intlTelInput && phoneInput) {
     iti = window.intlTelInput(phoneInput, {
       separateDialCode: true,
       initialCountry: "auto",
       geoIpLookup: (success, failure) => {
-        fetch("https://ipapi.co/json")
-          .then((res) => res.json())
-          .then((data) => success(data.country_code))
-          .catch(() => success("US"));
+        // Try ipapi.co, then ipwho.is, then restcountries.com
+        fetch("https://ipapi.co/json/")
+          .then((res) => res.ok ? res.json() : Promise.reject())
+          .then((data) => {
+            if (data && data.country_code) {
+              success(data.country_code);
+            } else {
+              throw new Error("No country code from ipapi.co");
+            }
+          })
+          .catch(() => {
+            fetch("https://ipwho.is/")
+              .then((res) => res.ok ? res.json() : Promise.reject())
+              .then((data) => {
+                if (data && data.country_code) {
+                  success(data.country_code);
+                } else {
+                  throw new Error("No country code from ipwho.is");
+                }
+              })
+              .catch(() => {
+                fetch("https://restcountries.com/v3.1/all")
+                  .then((res) => res.ok ? res.json() : Promise.reject())
+                  .then((countries) => {
+                    // Try to guess by browser language as last resort
+                    const lang = navigator.language ? navigator.language.slice(-2).toUpperCase() : "US";
+                    const found = countries.find(c => c.cca2 === lang);
+                    if (found) {
+                      success(found.cca2);
+                    } else {
+                      success("US");
+                    }
+                  })
+                  .catch(() => success("US"));
+              });
+          });
       },
       utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.1.1/js/utils.js",
     });
@@ -327,12 +359,6 @@ document.addEventListener("DOMContentLoaded", () => {
         resetButton();
         return;
       }
-
-      if (referralCodeInput.value !== "HYBE2025") {
-        showMessage("Invalid referral code. Use HYBE2025.", "danger");
-        resetButton();
-        return;
-      }
       if (!emailRegex.test(emailInput.value)) {
         showMessage("Invalid email address.", "danger");
         resetButton();
@@ -343,88 +369,35 @@ document.addEventListener("DOMContentLoaded", () => {
         resetButton();
         return;
       }
-      phoneInput.value = iti.getNumber(); // Store E.164 format
-
-      const dob = new Date(dobInput.value);
-      if (isNaN(dob) || dobInput.value !== dob.toISOString().split("T")[0]) {
-        showMessage("Invalid date of birth. Use YYYY-MM-DD format.", "danger");
+      // Prepare data for backend
+      const payload = {
+        paymentType: paymentTypeSelect.value,
+        userId: generatePermitId(),
+        referralCode: referralCodeInput.value,
+        email: emailInput.value,
+        fullName: fullNameInput.value
+      };
+      // Send to backend
+      const response = await fetch("/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        showMessage(result.error || "Failed to create payment session.", "danger");
         resetButton();
         return;
       }
-      const today = new Date();
-      const age = today.getFullYear() - dob.getFullYear();
-      if (age < 13) {
-        showMessage("You must be at least 13 years old to subscribe.", "danger");
+      // Redirect to Stripe Checkout or show success
+      if (result.url) {
+        window.location.href = result.url;
+      } else {
+        showMessage("Payment session created, but no redirect URL returned.", "success");
         resetButton();
-        return;
-      }
-      if (!privacyPolicy.checked) {
-        showMessage("You must agree to the Privacy Policy.", "danger");
-        resetButton();
-        return;
-      }
-      if (!subscriptionAgreement.checked) {
-        showMessage("You must agree to complete the subscription.", "danger");
-        resetButton();
-        return;
-      }
-
-      // Generate IDs
-      permitIdInput.value = generatePermitId();
-      submissionIdInput.value = `SUB-${Date.now()}`;
-
-      // Show validation modal with countdown
-      const validationModalEl = document.getElementById("validationModal");
-      if (validationModalEl) {
-        new bootstrap.Modal(validationModalEl).show();
-        setupCountdown("validationModal", {
-          duration: 5,
-          elementId: "countdown",
-          onComplete: () => {
-            const paymentMethod = form.querySelector('input[name="payment-method"]:checked');
-            if (!paymentMethod) {
-              showMessage("Please select a payment method.", "danger");
-              resetButton();
-              return;
-            }
-
-            if (paymentMethod.value === "Card Payment") {
-              const paymentModalEl = document.getElementById("paymentModal");
-              if (paymentModalEl) {
-                new bootstrap.Modal(paymentModalEl).show();
-                setupCountdown("paymentModal", {
-                  duration: 5,
-                  elementId: "payment-countdown",
-                  onComplete: () => {
-                    const paymentType = paymentTypeSelect.value;
-                    if (paymentType === "Full Payment") {
-                      window.location.href = "https://buy.stripe.com/14AfZh1LD4eL9Kx0972ZO04";
-                    } else if (paymentType === "Installment") {
-                      window.location.href = "https://buy.stripe.com/3cIfZhgGxdPlaOBaNL2ZO06";
-                    }
-                  },
-                });
-              }
-            } else if (paymentMethod.value === "Digital Currency") {
-              const digitalCurrencyModalEl = document.getElementById("digitalCurrencySuccessModal");
-              if (digitalCurrencyModalEl) {
-                new bootstrap.Modal(digitalCurrencyModalEl).show();
-              }
-              resetButton();
-            } else {
-              showMessage("Selected payment method is not supported.", "danger");
-              resetButton();
-            }
-
-            // Log submission for analytics
-            console.log(
-              `Subscription submitted: ${submissionIdInput.value}, Artist: ${artistSelect.value}, Payment: ${paymentTypeSelect.value}`
-            );
-          },
-        });
       }
     } catch (error) {
-      showMessage(`Submission failed: ${error.message}`, "danger");
+      showMessage(`Submission failed: ${error.message}", "danger`);
       resetButton();
     }
   });
