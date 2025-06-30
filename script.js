@@ -372,7 +372,24 @@ if (typeof FormData === 'undefined') {
   };
 }
 
-// Auto-select country and dynamic address format
+// --- Address Section Refactor Start ---
+
+let cachedIPData = null;
+
+async function getIPData() {
+  if (cachedIPData) return cachedIPData;
+  try {
+    const res = await fetch("https://ipwho.is/");
+    if (res.ok) {
+      cachedIPData = await res.json();
+      return cachedIPData;
+    }
+  } catch (e) {
+    // Silent fail, will fallback
+  }
+  return {};
+}
+
 async function populateCountryDropdown() {
   try {
     if (!countrySelect) throw new Error("Country select element not found");
@@ -380,6 +397,7 @@ async function populateCountryDropdown() {
     let countries = [];
     let loaded = false;
 
+    // Try GeoNames
     try {
       const res = await fetch('https://secure.geonames.org/countryInfoJSON?username=demo');
       if (res.ok) {
@@ -387,17 +405,13 @@ async function populateCountryDropdown() {
         if (data.geonames && Array.isArray(data.geonames)) {
           countries = data.geonames.map(c => ({ code: c.countryCode, name: c.countryName }));
           loaded = true;
-        } else {
-          throw new Error("Invalid GeoNames API response");
         }
-      } else {
-        throw new Error(`GeoNames API failed with status ${res.status}`);
       }
     } catch (e) {
-      console.warn("GeoNames API failed:", e.message);
-      showToast("Failed to load countries from primary source", "warning");
+      // Silent fail
     }
 
+    // Try REST Countries if GeoNames fails
     if (!loaded) {
       try {
         const res = await fetch('https://restcountries.com/v2/all?fields=name,alpha2Code');
@@ -405,15 +419,13 @@ async function populateCountryDropdown() {
           const data = await res.json();
           countries = data.map(c => ({ code: c.alpha2Code, name: c.name }));
           loaded = true;
-        } else {
-          throw new Error(`REST Countries API failed with status ${res.status}`);
         }
       } catch (e) {
-        console.warn("REST Countries API failed:", e.message);
-        showToast("Failed to load countries from secondary source", "warning");
+        // Silent fail
       }
     }
 
+    // Fallback
     if (!loaded) {
       countries = [
         { code: 'US', name: 'United States' },
@@ -427,7 +439,7 @@ async function populateCountryDropdown() {
         { code: 'BR', name: 'Brazil' },
         { code: 'CA', name: 'Canada' }
       ];
-      showMessage('Could not load full country list. Using fallback.', 'warning');
+      showToast('Could not load full country list. Using fallback.', 'warning');
     }
 
     countries.sort((a, b) => a.name.localeCompare(b.name));
@@ -441,74 +453,42 @@ async function populateCountryDropdown() {
     const defaultOpt = countrySelect.querySelector('option[value=""]');
     if (defaultOpt) defaultOpt.removeAttribute('selected');
 
-    try {
-      const res = await fetch("https://ipwho.is/");
-      if (res.ok) {
-        const data = await res.json();
-        const cc = data.country_code ? data.country_code.toUpperCase() : '';
-        if (cc) {
-          const opt = Array.from(countrySelect.options).find(o => o.value.toUpperCase() === cc);
-          if (opt) {
-            countrySelect.value = opt.value;
-            countryInput.value = opt.value;
-            updateAddressFieldsForCountry(opt.value);
-          }
-        }
-      } else {
-        throw new Error(`GeoIP API failed with status ${res.status}`);
+    // Use cached IP data for country selection
+    const ipData = await getIPData();
+    const cc = ipData.country_code ? ipData.country_code.toUpperCase() : '';
+    if (cc) {
+      const opt = Array.from(countrySelect.options).find(o => o.value.toUpperCase() === cc);
+      if (opt) {
+        countrySelect.value = opt.value;
+        countryInput.value = opt.value;
+        updateAddressFieldsForCountry(opt.value);
       }
-    } catch (e) {
-      console.warn("GeoIP country detection failed:", e.message);
-      showToast("Unable to auto-detect country", "warning");
     }
   } catch (error) {
-    console.error("Error populating country dropdown:", error.message);
     showToast("Error loading country options", "danger");
   }
 }
 
-populateCountryDropdown();
-
-// Auto-fill address fields based on IP
+// Auto-fill address fields based on IP (single call)
 (async function autofillAddressFromIP() {
-  try {
-    const res = await fetch("https://ipwho.is/");
-    if (res.ok) {
-      const data = await res.json();
-      if (data.city && document.getElementById("city")) {
-        document.getElementById("city").value = data.city;
-      }
-      if (data.region && document.getElementById("state")) {
-        document.getElementById("state").value = data.region;
-      }
-      if (data.postal && document.getElementById("postal-code")) {
-        document.getElementById("postal-code").value = data.postal;
-      }
-    } else {
-      throw new Error(`GeoIP API failed with status ${res.status}`);
-    }
-  } catch (e) {
-    console.error("Error autofilling address:", e.message);
-    showToast("Unable to auto-fill address", "warning");
+  const ipData = await getIPData();
+  if (ipData.city && document.getElementById("city")) {
+    document.getElementById("city").value = ipData.city;
+  }
+  if (ipData.region && document.getElementById("state")) {
+    document.getElementById("state").value = ipData.region;
+  }
+  if (ipData.postal && document.getElementById("postal-code")) {
+    document.getElementById("postal-code").value = ipData.postal;
   }
 })();
 
-// Dynamic address fields based on detected country
+// Dynamic address fields based on detected country (single IP call)
 async function dynamicAddressFields() {
   try {
     let detectedCountry = null;
-    try {
-      const res = await fetch("https://ipwho.is/");
-      if (res.ok) {
-        const data = await res.json();
-        detectedCountry = data.country_code ? data.country_code.toUpperCase() : null;
-      } else {
-        throw new Error(`GeoIP API failed with status ${res.status}`);
-      }
-    } catch (e) {
-      console.warn("GeoIP detection failed:", e.message);
-    }
-
+    const ipData = await getIPData();
+    if (ipData.country_code) detectedCountry = ipData.country_code.toUpperCase();
     if (!detectedCountry && countrySelect && countrySelect.value) {
       detectedCountry = countrySelect.value.toUpperCase();
     }
@@ -562,18 +542,26 @@ async function dynamicAddressFields() {
       const el = document.getElementById(f.id);
       if (el) {
         el.placeholder = f.placeholder;
-        el.previousElementSibling && (el.previousElementSibling.textContent = f.label);
+        // Only set label if previous sibling is a label element
+        if (el.previousElementSibling && el.previousElementSibling.tagName && el.previousElementSibling.tagName.toLowerCase() === 'label') {
+          el.previousElementSibling.textContent = f.label;
+        }
         el.required = !!f.required;
         el.pattern = f.pattern ? f.pattern.source : "";
         el.setAttribute("data-error", f.error || "");
-        el.parentElement && (el.parentElement.style.display = "");
+        // Only show/hide if parentElement is a div
+        if (el.parentElement && el.parentElement.tagName && el.parentElement.tagName.toLowerCase() === 'div') {
+          el.parentElement.style.display = "";
+        }
       }
     });
 
     ["address-line1", "address-line2", "city", "state", "postal-code"].forEach(id => {
-      if (!format.order.includes(id)) {
-        const el = document.getElementById(id);
-        if (el && el.parentElement) el.parentElement.style.display = "none";
+      const el = document.getElementById(id);
+      if (el && el.parentElement && el.parentElement.tagName && el.parentElement.tagName.toLowerCase() === 'div') {
+        if (!format.order.includes(id)) {
+          el.parentElement.style.display = "none";
+        }
       }
     });
 
@@ -581,7 +569,9 @@ async function dynamicAddressFields() {
     if (addressFields) {
       format.order.forEach(id => {
         const el = document.getElementById(id);
-        if (el && el.parentElement) addressFields.appendChild(el.parentElement);
+        if (el && el.parentElement && el.parentElement.tagName && el.parentElement.tagName.toLowerCase() === 'div') {
+          addressFields.appendChild(el.parentElement);
+        }
       });
     }
 
@@ -600,122 +590,16 @@ async function dynamicAddressFields() {
       });
     }
   } catch (error) {
-    console.error("Error setting dynamic address fields:", error.message);
     showToast("Error configuring address fields", "danger");
   }
 }
 
+populateCountryDropdown();
 dynamicAddressFields();
 if (countrySelect) {
   countrySelect.addEventListener("change", dynamicAddressFields);
 }
-
-// Dynamic address fields based on country
-function updateAddressFieldsForCountry(countryCode) {
-  try {
-    const addressFields = [
-      "address-line1", "address-line2", "city", "state", "postal-code", "country-select"
-    ];
-    const isUS = countryCode === "US";
-    const isCA = countryCode === "CA";
-    const isGB = countryCode === "GB";
-    const isAU = countryCode === "AU";
-    const isIN = countryCode === "IN";
-    const isBR = countryCode === "BR";
-    const isFR = countryCode === "FR";
-    const isDE = countryCode === "DE";
-    const isJP = countryCode === "JP";
-    const isKR = countryCode === "KR";
-    const isCN = countryCode === "CN";
-    const isRU = countryCode === "RU";
-    const isZA = countryCode === "ZA";
-    const isNG = countryCode === "NG";
-
-    document.getElementById("address-line2").closest(".form-group").classList.toggle("d-none", isUS || isCA);
-    document.getElementById("state").closest(".form-group").classList.toggle("d-none", isUS || isCA);
-    document.getElementById("postal-code").closest(".form-group").classList.toggle("d-none", isUS || isCA);
-    document.getElementById("country-select").closest(".form-group").classList.toggle("d-none", isUS || isCA);
-
-    addressFields.forEach((field) => {
-      const element = document.getElementById(field);
-      if (element) {
-        element.required = !element.closest(".form-group").classList.contains("d-none");
-      }
-    });
-
-    if (isUS) document.getElementById("state").setAttribute("placeholder", "State (e.g., CA)");
-    else if (isCA) document.getElementById("state").setAttribute("placeholder", "Province (e.g., ON)");
-    else if (isGB) document.getElementById("state").setAttribute("placeholder", "County (e.g., Greater London)");
-    else if (isAU) document.getElementById("state").setAttribute("placeholder", "State/Territory (e.g., NSW)");
-    else if (isIN) document.getElementById("state").setAttribute("placeholder", "State (e.g., Maharashtra)");
-    else if (isBR) document.getElementById("state").setAttribute("placeholder", "Estado (e.g., São Paulo)");
-    else if (isFR) document.getElementById("state").setAttribute("placeholder", "Région (e.g., Île-de-France)");
-    else if (isDE) document.getElementById("state").setAttribute("placeholder", "Bundesland (e.g., Bayern)");
-    else if (isJP) document.getElementById("state").setAttribute("placeholder", "都道府県 (e.g., 東京都)");
-    else if (isKR) document.getElementById("state").setAttribute("placeholder", "시/도 (e.g., 서울특별시)");
-    else if (isCN) document.getElementById("state").setAttribute("placeholder", "省/直辖市 (e.g., 北京市)");
-    else if (isRU) document.getElementById("state").setAttribute("placeholder", "Регион (e.g., Москва)");
-    else if (isZA) document.getElementById("state").setAttribute("placeholder", "Province (e.g., Gauteng)");
-    else if (isNG) document.getElementById("state").setAttribute("placeholder", "State (e.g., Lagos)");
-    else document.getElementById("state").removeAttribute("placeholder");
-  } catch (error) {
-    console.error("Error updating address fields:", error.message);
-    showToast("Error updating address fields", "danger");
-  }
-}
-
-// Generate random permit ID
-function generatePermitId() {
-  try {
-    const timestamp = Date.now().toString(36);
-    const randomNum = Math.random().toString(36).substring(2, 8);
-    return `PERMIT-${timestamp}-${randomNum}`;
-  } catch (error) {
-    console.error("Error generating permit ID:", error.message);
-    return "";
-  }
-}
-
-// Utility: Shake an input field for invalid feedback
-function shakeField(field) {
-  try {
-    if (!field) return;
-    field.classList.remove('shake');
-    void field.offsetWidth;
-    field.classList.add('shake');
-    field.addEventListener('animationend', function handler() {
-      field.classList.remove('shake');
-      field.removeEventListener('animationend', handler);
-    });
-  } catch (error) {
-    console.error("Error shaking field:", error.message);
-  }
-}
-
-if (phoneInput) {
-  phoneInput.addEventListener('invalid', function(e) {
-    shakeField(phoneInput);
-  });
-}
-
-if (form) {
-  form.addEventListener('submit', function(e) {
-    try {
-      let firstInvalid = null;
-      form.querySelectorAll('input, select, textarea').forEach(function(field) {
-        if (!field.checkValidity()) {
-          shakeField(field);
-          if (!firstInvalid) firstInvalid = field;
-        }
-      });
-      if (firstInvalid) {
-        firstInvalid.focus();
-      }
-    } catch (error) {
-      console.error("Error handling form validation:", error.message);
-    }
-  }, true);
-}
+// --- Address Section Refactor End ---
 
 // Backend submission with fetch
 async function submitFormData(formData) {
