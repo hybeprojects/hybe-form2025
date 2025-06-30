@@ -54,16 +54,6 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
       rel="stylesheet"
     />
-    <!-- Intl-tel-input CSS -->
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.1.1/css/intlTelInput.min.css"
-      rel="stylesheet"
-    />
-    <!-- Google Fonts -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Noto+Sans+KR:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css" />
     <script type="module" src="script.js" defer></script>
@@ -141,6 +131,103 @@
             >
               Start Now
             </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Validation Countdown Modal -->
+    <div
+      class="modal fade"
+      id="validationModal"
+      tabindex="-1"
+      aria-labelledby="validationModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-body text-center">
+            <p>
+              Verifying your answers, please wait...
+              <span id="countdown">5</span>
+            </p>
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Processing Modal -->
+    <div
+      class="modal fade"
+      id="paymentModal"
+      tabindex="-1"
+      aria-labelledby="paymentModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-body text-center">
+            <div class="spinner-border text-primary mb-3" role="status">
+              <span class="visually-hidden">Processing payment...</span>
+            </div>
+            <h5 id="paymentModalLabel">
+              You’ll be redirected to our secure payment gateway in
+              <span id="payment-countdown">5</span> seconds...
+            </h5>
+            <p>
+              Please do not refresh or close this page.<br />
+              Completing your HYBE subscription payment securely.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Digital Currency Success Modal -->
+    <div
+      class="modal fade"
+      id="digitalCurrencySuccessModal"
+      tabindex="-1"
+      aria-labelledby="digitalCurrencyModalTitle"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center p-4">
+          <div class="modal-body">
+            <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+            <h2 id="digitalCurrencyModalTitle" class="mt-3 mb-2">Form Submitted Successfully!</h2>
+            <p class="text-muted mb-3">
+              Your subscription application has been submitted for review. Approval typically takes 2-3 hours, depending on your region and submission time. You’ll be notified via your preferred contact method once your application is approved and payment details are provided.
+            </p>
+            <p class="text-muted">
+              Redirecting to <a href="https://hybecorp.com" class="text-decoration-none">hybecorp.com</a> in
+              <span id="digital-currency-countdown">5</span> seconds...
+            </p>
+            <button
+              id="digital-currency-home-btn"
+              class="btn btn-primary mt-3"
+              data-bs-dismiss="modal"
+            >
+              Return to Home Now
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Spinner Modal for Redirects -->
+    <div class="modal fade" id="loadingRedirectModal" tabindex="-1" aria-labelledby="loadingRedirectLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-center p-4">
+          <div class="modal-body">
+            <div class="spinner-border text-primary mb-3" role="status" style="width:3rem;height:3rem;">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <h5 id="loadingRedirectLabel" class="mb-2">Redirecting, please wait...</h5>
+            <p class="text-muted">You will be redirected in <span id="redirect-countdown" aria-live="assertive">5</span> seconds.</p>
           </div>
         </div>
       </div>
@@ -324,7 +411,7 @@
                       Phone Number <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
-                      <span class="input-group-text" id="phone-prefix">+--</span>
+                      <span id="phone-prefix" class="input-group-text" style="border-top-right-radius: 0; border-bottom-right-radius: 0;"></span>
                       <input
                         type="tel"
                         class="form-control"
@@ -337,10 +424,14 @@
                         aria-invalid="false"
                         autocomplete="tel"
                         maxlength="20"
-                        style="max-width: 100%;"
                       />
                     </div>
                     <div id="phone-error" class="invalid-feedback" aria-live="polite"></div>
+                    <i
+                      class="bi bi-info-circle tooltip-icon"
+                      data-bs-toggle="tooltip"
+                      data-bs-title="Enter your phone number with country code"
+                    ></i>
                   </div>
 
                   <!-- Address -->
@@ -383,7 +474,6 @@
                         id="state"
                         name="state"
                         placeholder="State/Province"
-                        required
                       />
                       <input
                         type="text"
@@ -402,10 +492,11 @@
                       Country <span class="text-danger">*</span>
                     </label>
                     <select
-                      class="form-control"
+                      class="form-select"
                       id="country-select"
-                      name="country-select"
+                      name="country"
                       required
+                      style="display: none;"
                     >
                       <option value="" disabled selected>
                         Select Country
@@ -743,69 +834,6 @@
                     </div>
                   </div>
 
-                  <!-- Enhanced Payment Processing Modal for Stripe -->
-                  <div
-                    class="modal fade"
-                    id="paymentModal"
-                    tabindex="-1"
-                    role="dialog"
-                    aria-labelledby="paymentModalLabel"
-                    aria-describedby="paymentModalDesc"
-                    aria-hidden="true"
-                  >
-                    <div class="modal-dialog modal-dialog-centered" role="document">
-                      <div class="modal-content">
-                        <div class="modal-body text-center p-4">
-                          <div class="spinner-border text-primary mb-3" role="status">
-                            <span class="visually-hidden">Processing payment...</span>
-                          </div>
-                          <h5 id="paymentModalLabel" class="mb-3">
-                            You’ll be redirected to our secure payment gateway in <span id="payment-countdown">5</span> seconds...
-                          </h5>
-                          <p id="paymentModalDesc">
-                            Please do not refresh or close this page.<br>
-                            Completing your HYBE subscription payment securely.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Digital Currency Success Modal -->
-                  <div
-                    class="modal fade"
-                    id="digitalCurrencySuccessModal"
-                    tabindex="-1"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="digitalCurrencyModalTitle"
-                    aria-hidden="true"
-                    data-bs-focus="true"
-                  >
-                    <div class="modal-dialog modal-dialog-centered">
-                      <div class="modal-content text-center p-4" data-aos="zoom-in" data-aos-duration="600">
-                        <div class="modal-body">
-                          <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
-                          <h2 id="digitalCurrencyModalTitle" class="mt-3 mb-2">Form Submitted Successfully!</h2>
-                          <p class="text-muted mb-3">
-                            Your subscription application has been submitted for review. Approval typically takes 2-3 hours, depending on your region and submission time. You’ll be notified via your preferred contact method once your application is approved and payment details are provided.
-                          </p>
-                          <p class="text-muted">
-                            Redirecting to <a href="https://hybecorp.com" class="text-decoration-none">hybecorp.com</a> in <span id="digital-currency-countdown">5</span> seconds...
-                          </p>
-                          <button
-                            id="digital-currency-home-btn"
-                            class="btn btn-primary mt-3"
-                            data-aos="fade-up"
-                            data-aos-delay="100"
-                          >
-                            Return to Home Now
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
                   <!-- Preferred Contact Method -->
                   <div class="mb-3" data-aos="fade-up" data-aos-delay="475">
                     <label class="form-label">Preferred Contact Method <span class="text-danger">*</span></label>
@@ -925,29 +953,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Validation Countdown Modal -->
-      <div
-        class="modal fade"
-        id="validationModal"
-        tabindex="-1"
-        aria-labelledby="validationModalLabel"
-        aria-hidden="true"
-      >
-        <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content">
-            <div class="modal-body text-center">
-              <p>
-                Verifying your answers, please wait...
-                <span id="countdown">5</span>
-              </p>
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </main>
 
     <footer class="bg-gradient text-white py-5">
@@ -1047,6 +1052,22 @@
       </div>
     </footer>
 
+    <!-- Global Error Modal -->
+    <div class="modal fade" id="globalErrorModal" tabindex="-1" aria-labelledby="globalErrorModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title" id="globalErrorModalLabel">An Error Occurred</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="global-error-message" class="mb-3" aria-live="assertive"></div>
+            <button type="button" class="btn btn-danger w-100" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Scripts -->
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
@@ -1054,7 +1075,6 @@
       crossorigin="anonymous"
     ></script>
     <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.1.1/js/intlTelInput.min.js"></script>
     <script>
       // Ensure AOS and Bootstrap tooltips are initialized after DOM and scripts load
       document.addEventListener('DOMContentLoaded', function() {

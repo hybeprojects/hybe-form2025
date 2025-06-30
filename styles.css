@@ -1,5 +1,3 @@
-/* styles.css */
-
 /* Root variables for consistent theming */
 :root {
   --primary-gradient: linear-gradient(90deg, #8e44ad, #3498db);
@@ -118,6 +116,7 @@ body {
   background: #f8f9fa;
   border: 1px solid #ced4da;
   border-right: none;
+  padding: 0 6px; /* Consistent padding */
 }
 
 .iti__selected-flag {
@@ -134,6 +133,11 @@ body {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   font-family: 'Poppins', sans-serif;
   font-size: 0.9rem;
+  display: none; /* Ensure closed on load */
+}
+
+.iti__country-list--open { /* Show only when opened by user */
+  display: block;
 }
 
 .iti__country-list .iti__country {
@@ -152,6 +156,7 @@ body {
 .form-control.iti__tel-input {
   padding-left: 100px; /* Adjust for flag and dial code */
   border-radius: 0 5px 5px 0;
+  border-left: none; /* Remove left border to align with flag container */
 }
 
 .form-control.iti__tel-input:focus {
@@ -165,6 +170,17 @@ body {
 
 .form-control.is-valid ~ .iti__flag-container {
   border-color: #198754;
+}
+
+/* Country select styling */
+#country-select {
+  appearance: none; /* Remove default arrow */
+  padding: 0.5rem 1rem;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='currentColor' class='bi bi-caret-down-fill' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") no-repeat right 0.75rem center / 12px;
+  background-color: #fff;
+  border: 1px solid #ced4da;
+  border-radius: 0.375rem;
+  cursor: pointer;
 }
 
 /* Tooltip styling */
@@ -225,6 +241,7 @@ footer.bg-gradient {
 .subscription-amount .form-control-plaintext {
   background: var(--primary-gradient);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   color: #2c3e50;
 }
@@ -340,12 +357,6 @@ noscript .container {
   animation: pulse 1.5s ease-in-out infinite;
 }
 
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); }
-}
-
 /* Focus ring for accessibility inside modals */
 .modal-content:focus {
   outline: 2px solid #0d6efd;
@@ -391,7 +402,6 @@ footer a[lang='ko'] {
   }
 }
 
-/* Responsive modal text scaling */
 @media (max-width: 400px) {
   .modal-body,
   .modal-content,
@@ -431,4 +441,63 @@ footer a[lang='ko'] {
 .shake {
   animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
   border-color: #dc3545 !important;
+}
+
+/* Additional spacing and layout fixes */
+.iti-container-wrapper {
+  margin-bottom: 0.5rem; /* Consistent spacing */
+}
+
+#country-select {
+  margin-bottom: 0.5rem; /* Match other form elements */
+}
+
+#phone-error,
+#email-error,
+#dob-error {
+  margin-top: 0.25rem; /* Consistent error spacing */
+}
+
+/* Ensure country select is styled consistently with form controls */
+#country-select:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+}
+
+#country-select.is-invalid {
+  border-color: #dc3545;
+}
+
+/* Global error modal header for strong visual feedback */
+.modal-header.bg-danger {
+  background: #dc3545;
+  color: #fff;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+/* Ensure error modal button is prominent */
+#globalErrorModal .btn-danger {
+  background: #dc3545;
+  border: none;
+  font-weight: 600;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px rgba(220,53,69,0.08);
+}
+#globalErrorModal .btn-danger:focus, #globalErrorModal .btn-danger:hover {
+  background: #b52a37;
+  outline: 2px solid #fff;
+}
+
+#globalErrorModal .modal-content {
+  border-radius: 12px;
+  box-shadow: 0 5px 30px rgba(220,53,69,0.15);
+}
+
+#global-error-message {
+  font-size: 1.1rem;
+  color: #dc3545;
+  font-weight: 500;
+  text-align: center;
+  word-break: break-word;
 }
