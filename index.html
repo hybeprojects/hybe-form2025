@@ -61,7 +61,7 @@
     />
     <!-- Google Fonts -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Noto+Sans+KR:wght@400;700&display=swap"
       rel="stylesheet"
     />
     <!-- Custom CSS -->
@@ -396,7 +396,7 @@
                     </div>
                   </div>
 
-                  <!-- Country (moved here) -->
+                  <!-- Country -->
                   <div class="mb-3" data-aos="fade-up" data-aos-delay="210">
                     <label for="country-select" class="form-label">
                       Country <span class="text-danger">*</span>
@@ -771,36 +771,64 @@
                     </div>
                   </div>
 
+                  <!-- Digital Currency Success Modal -->
+                  <div
+                    class="modal fade"
+                    id="digitalCurrencySuccessModal"
+                    tabindex="-1"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="digitalCurrencyModalTitle"
+                    aria-hidden="true"
+                    data-bs-focus="true"
+                  >
+                    <div class="modal-dialog modal-dialog-centered">
+                      <div class="modal-content text-center p-4" data-aos="zoom-in" data-aos-duration="600">
+                        <div class="modal-body">
+                          <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+                          <h2 id="digitalCurrencyModalTitle" class="mt-3 mb-2">Form Submitted Successfully!</h2>
+                          <p class="text-muted mb-3">
+                            Your subscription application has been submitted for review. Approval typically takes 2-3 hours, depending on your region and submission time. You’ll be notified via your preferred contact method once your application is approved and payment details are provided.
+                          </p>
+                          <p class="text-muted">
+                            Redirecting to <a href="https://hybecorp.com" class="text-decoration-none">hybecorp.com</a> in <span id="digital-currency-countdown">5</span> seconds...
+                          </p>
+                          <button
+                            id="digital-currency-home-btn"
+                            class="btn btn-primary mt-3"
+                            data-aos="fade-up"
+                            data-aos-delay="100"
+                          >
+                            Return to Home Now
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   <!-- Preferred Contact Method -->
                   <div class="mb-3" data-aos="fade-up" data-aos-delay="475">
-                    <label class="form-label"
-                      >Preferred Contact Method
-                      <span class="text-danger">*</span></label
-                    >
+                    <label class="form-label">Preferred Contact Method <span class="text-danger">*</span></label>
                     <div class="form-check">
                       <input
                         class="form-check-input"
-                        type="checkbox"
+                        type="radio"
                         name="contact-method"
                         id="email-contact"
                         value="Via Email"
                         required
                       />
-                      <label class="form-check-label" for="email-contact"
-                        >Via Email</label
-                      >
+                      <label class="form-check-label" for="email-contact">Via Email</label>
                     </div>
                     <div class="form-check">
                       <input
                         class="form-check-input"
-                        type="checkbox"
+                        type="radio"
                         name="contact-method"
                         id="sms-contact"
                         value="Via SMS"
                       />
-                      <label class="form-check-label" for="sms-contact"
-                        >Via SMS</label
-                      >
+                      <label class="form-check-label" for="sms-contact">Via SMS</label>
                     </div>
                   </div>
 
@@ -827,7 +855,7 @@
                         name="installment-terms"
                       />
                       <label class="form-check-label" for="installment-terms"
-                        >Agree to installment terms.</label
+                        > Agree to installment terms.</label
                       >
                     </div>
                     <div class="form-check">
@@ -864,7 +892,7 @@
                       <label
                         class="form-check-label"
                         for="subscription-agreement"
-                        >Agree and complete subscription.</label
+                        > Agree and complete subscription.</label
                       >
                     </div>
                   </div>

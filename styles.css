@@ -1,3 +1,5 @@
+/* styles.css */
+
 /* Root variables for consistent theming */
 :root {
   --primary-gradient: linear-gradient(90deg, #8e44ad, #3498db);
@@ -331,6 +333,17 @@ noscript .container {
 #digitalCurrencySuccessModal .btn:hover {
   background: linear-gradient(90deg, #3498db, #8e44ad);
   transform: translateY(-2px);
+}
+
+/* Success icon animation for digitalCurrencySuccessModal */
+.bi-check-circle-fill {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
 }
 
 /* Focus ring for accessibility inside modals */
