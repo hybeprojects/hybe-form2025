@@ -803,6 +803,82 @@ document.addEventListener("DOMContentLoaded", () => {
     }, false);
   }
 
+  // --- MODERN ERROR HANDLING & ENHANCED REDIRECT UI/UX ---
+  function showModernError(message, details) {
+    const errorModal = document.getElementById('globalErrorModal');
+    const errorMsg = document.getElementById('global-error-message');
+    if (errorMsg) {
+      errorMsg.innerHTML = `<div class='mb-2 fw-bold'><i class='bi bi-exclamation-triangle-fill text-danger'></i> ${message}</div>` +
+        (details ? `<div class='small text-muted'>${details}</div>` : '');
+    }
+    if (errorModal) {
+      const modal = new bootstrap.Modal(errorModal);
+      modal.show();
+    } else {
+      alert(message + (details ? '\n' + details : ''));
+    }
+  }
+
+  // Override all error popups to use modern modal
+  function showGlobalError(message, details) {
+    showModernError(message, details);
+  }
+
+  // Enhanced loading/redirect modal with animation and countdown
+  function showEnhancedLoadingRedirectModal(redirectUrl, message = 'Redirecting, please wait...') {
+    const modal = document.getElementById('loadingRedirectModal');
+    const countdownEl = document.getElementById('redirect-countdown');
+    const label = document.getElementById('loadingRedirectLabel');
+    let seconds = 5;
+    if (countdownEl) countdownEl.textContent = seconds;
+    if (label) label.textContent = message;
+    if (modal) {
+      const bsModal = new bootstrap.Modal(modal, { backdrop: 'static', keyboard: false });
+      bsModal.show();
+      const timer = setInterval(() => {
+        seconds--;
+        if (countdownEl) countdownEl.textContent = seconds;
+        if (seconds <= 0) {
+          clearInterval(timer);
+          bsModal.hide();
+          window.location.href = redirectUrl;
+        }
+      }, 1000);
+    } else {
+      setTimeout(() => { window.location.href = redirectUrl; }, 5000);
+    }
+  }
+
+  // Patch all redirects to use enhanced modal
+  if (form) {
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      if (!form.checkValidity()) {
+        showModernError('Please fill all required fields correctly.');
+        return;
+      }
+      let redirectUrl = 'success.html';
+      const paymentMethod = document.querySelector('input[name="payment-method"]:checked');
+      if (paymentMethod && paymentMethod.value === 'Card') {
+        redirectUrl = 'stripe-success.html';
+      } else {
+        redirectUrl = 'success.html';
+      }
+      const formData = new FormData(form);
+      let netlifyError = false;
+      try {
+        await fetch('/.netlify/functions/submit-form', {
+          method: 'POST',
+          body: formData
+        });
+      } catch (err) {
+        netlifyError = true;
+        showModernError('Submission failed. Please try again.', err.message);
+      }
+      showEnhancedLoadingRedirectModal(redirectUrl);
+    });
+  }
+
   // --- GLOBAL ERROR HANDLING ---
   function showGlobalError(message) {
     const errorModal = document.getElementById('globalErrorModal');
