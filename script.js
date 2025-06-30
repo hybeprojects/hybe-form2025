@@ -1160,4 +1160,57 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 5000);
     });
   }
+
+  // --- ENHANCED GEOIP-BASED PHONE & ADDRESS FORMATTING ON PAGE LOAD ---
+  document.addEventListener('DOMContentLoaded', function() {
+    // GeoIP detection for phone and address
+    safeFetch('https://ipwho.is/')
+      .then(res => res.json())
+      .then(data => {
+        // --- PHONE ---
+        if (phonePrefix && phoneInput) {
+          const cc = data.country_code ? data.country_code.toUpperCase() : 'US';
+          // Use countryData from earlier
+          let userCC = cc;
+          let userDial = countryData[userCC] ? countryData[userCC].dial : countryData['US'].dial;
+          let userFormat = countryData[userCC] ? countryData[userCC].format : countryData['US'].format;
+          let userRegex = countryData[userCC] ? countryData[userCC].regex : countryData['US'].regex;
+          phonePrefix.textContent = `${countryCodeToFlagEmoji(userCC)} ${userDial}`;
+          phoneInput.placeholder = userFormat('1234567890');
+          // Attach validation/formatting
+          function cleanNumber(val) { return val.replace(/\D/g,""); }
+          function formatAndValidate() {
+            let raw = cleanNumber(phoneInput.value);
+            phoneInput.value = userFormat(raw);
+            if (!userRegex.test(raw)) {
+              phoneError.textContent = "Please enter a valid phone number.";
+              phoneError.classList.add("d-block");
+              phoneInput.setAttribute("aria-invalid", "true");
+              phoneInput.classList.add("is-invalid");
+              phoneInput.classList.remove("is-valid");
+              return false;
+            } else {
+              phoneError.textContent = "";
+              phoneError.classList.remove("d-block");
+              phoneInput.setAttribute("aria-invalid", "false");
+              phoneInput.classList.remove("is-invalid");
+              phoneInput.classList.add("is-valid");
+              return true;
+            }
+          }
+          phoneInput.addEventListener("input", formatAndValidate);
+          phoneInput.addEventListener("blur", formatAndValidate);
+        }
+        // --- ADDRESS ---
+        if (countrySelect && data.country_code) {
+          countrySelect.value = data.country_code.toUpperCase();
+          countryInput.value = data.country_code.toUpperCase();
+          updateAddressFieldsForCountry(data.country_code.toUpperCase());
+          dynamicAddressFields();
+        }
+      })
+      .catch(() => {
+        // fallback: do nothing, default to US
+      });
+  });
 });
