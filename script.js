@@ -120,6 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const spinner = submitBtn ? submitBtn.querySelector(".spinner-border") : null;
   const progressBar = document.querySelector(".progress-bar");
   const countrySelect = document.getElementById("country-select");
+  const countryInput = document.getElementById("country");
   const currencyInput = document.getElementById("currency");
   const languageInput = document.getElementById("language");
   let iti;
@@ -165,8 +166,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Update artist dropdown based on group selection
-  grouplean
-groupSelect.addEventListener("change", () => {
+  groupSelect.addEventListener("change", () => {
     artistSelect.innerHTML = '<option value="" disabled selected>Select an Artist</option>';
     const selectedGroup = groupSelect.value;
     const artists = {
@@ -251,7 +251,7 @@ groupSelect.addEventListener("change", () => {
         installmentOptions.classList.add("d-none");
         document.getElementById("installment-plan").required = false;
       }
-      document.querySelectorAll('input[name="payment-method"]').forEach((input01 input) => {
+      document.querySelectorAll('input[name="payment-method"]').forEach((input) => {
         input.required = true;
       });
       updateProgress();
@@ -368,8 +368,7 @@ groupSelect.addEventListener("change", () => {
     // Expanded countryData for more coverage
     Object.assign(countryData, {
       CA: { dial: "+1", format: v => v.replace(/(\d{3})(\d{3})(\d{0,4})/, (m,a,b,c)=>c?`(${a}) ${b}-${c}`:b?`(${a}) ${b}`:a), regex: /^\d{10}$/ },
-      AU: { dial: "+61", format: v => v.replaceieh
-      /)(\d{0,3})/, (m,a,b,c)=>c?`${a} ${b} ${c}`:b?`${a} ${b}`:a), regex: /^\d{9,10}$/ },
+      AU: { dial: "+61", format: v => v.replace(/(\d{1,4})(\d{3})(\d{0,3})/, (m,a,b,c)=>c?`${a} ${b} ${c}`:b?`${a} ${b}`:a), regex: /^\d{9,10}$/ },
       IN: { dial: "+91", format: v => v.replace(/(\d{5})(\d{0,5})/, (m,a,b)=>b?`${a} ${b}`:a), regex: /^\d{10}$/ },
       DE: { dial: "+49", format: v => v.replace(/(\d{3,5})(\d{3,8})/, (m,a,b)=>b?`${a} ${b}`:a), regex: /^\d{10,11}$/ },
       FR: { dial: "+33", format: v => v.replace(/(\d{1})(\d{2})(\d{2})(\d{2})(\d{0,2})/, (m,a,b,c,d,e)=>e?`${a} ${b} ${c} ${d} ${e}`:d?`${a} ${b} ${c} ${d}`:c?`${a} ${b} ${c}`:b?`${a} ${b}`:a), regex: /^\d{9,10}$/ },
@@ -415,103 +414,111 @@ groupSelect.addEventListener("change", () => {
     }
   }
 
+  // Form submission handler
+  // (Removed custom JS handler to allow Netlify Forms to work natively)
+
+  // FormData polyfill for environments where it's not available
+  if (typeof FormData === 'undefined') {
+    window.FormData = function(form) {
+      const data = {};
+      Array.from(form.elements).forEach(el => {
+        if (el.name && !el.disabled) {
+          data[el.name] = el.value;
+        }
+      });
+      return {
+        forEach: (cb) => {
+          Object.entries(data).forEach(([k, v]) => cb(v, k));
+        }
+      };
+    };
+  }
+
   // --- Auto-select country and dynamic address format ---
   // Populate country dropdown with all countries (global)
-  async function setDefaultCountry() {
-    const countrySelect = document.getElementById("country-select");
+  async function populateCountryDropdown() {
+    // Clear dropdown before populating (prevents duplicates)
+    countrySelect.innerHTML = '<option value="" disabled selected>Select Country</option>';
+    let countries = [];
+    let loaded = false;
+    // 1. Try GeoNames API (requires username, demo is public)
     try {
-      let countries = [];
-      let loaded = false;
-      // Try GeoNames API
+      const res = await safeFetch('https://secure.geonames.org/countryInfoJSON?username=demo');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.geonames && Array.isArray(data.geonames)) {
+          countries = data.geonames.map(c => ({ code: c.countryCode, name: c.countryName }));
+          loaded = true;
+        }
+      }
+    } catch (e) { showGlobalError('Could not load country list.'); }
+    // 2. Fallback: REST Countries v2
+    if (!loaded) {
       try {
-        const res = await safeFetch('https://secure.geonames.org/countryInfoJSON?username=demo');
+        const res = await safeFetch('https://restcountries.com/v2/all?fields=name,alpha2Code');
         if (res.ok) {
           const data = await res.json();
-          if (data.geonames && Array.isArray(data.geonames)) {
-            countries = data.geonames.map(c => ({ code: c.countryCode, name: c.countryName }));
-            loaded = true;
-          }
+          countries = data.map(c => ({ code: c.alpha2Code, name: c.name }));
+          loaded = true;
         }
-      } catch (e) {
-        showMessage('Could not load country list from GeoNames.', 'warning');
-      }
-      // Fallback: REST Countries v2
-      if (!loaded) {
-        try {
-          const res = await safeFetch('https://restcountries.com/v2/all?fields=name,alpha2Code');
-          if (res.ok) {
-            const data = await res.json();
-            countries = data.map(c => ({ code: c.alpha2Code, name: c.name }));
-            loaded = true;
-          }
-        } catch (e) {
-          showMessage('Could not load country list from REST Countries.', 'warning');
-        }
-      }
-      // Fallback: Static list
-      if (!loaded) {
-        countries = [
-          { code: 'US', name: 'United States' },
-          { code: 'GB', name: 'United Kingdom' },
-          { code: 'JP', name: 'Japan' },
-          { code: 'KR', name: 'South Korea' },
-          { code: 'CN', name: 'China' },
-          { code: 'FR', name: 'France' },
-          { code: 'DE', name: 'Germany' },
-          { code: 'IN', name: 'India' },
-          { code: 'BR', name: 'Brazil' },
-          { code: 'CA', name: 'Canada' }
-        ];
-        showMessage('Could not load full country list. Using fallback.', 'warning');
-      }
-      // Populate dropdown
-      countrySelect.innerHTML = '<option value="" disabled>Select Country</option>';
-      countries.sort((a, b) => a.name.localeCompare(b.name));
-      countries.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c.code;
-        opt.textContent = c.name;
-        countrySelect.appendChild(opt);
-      });
-      // Set default to detected country
+      } catch (e) { showGlobalError('Could not load country list.'); }
+    }
+    // 3. Fallback: Static list (top 10 for brevity, expand as needed)
+    if (!loaded) {
+      countries = [
+        { code: 'US', name: 'United States' },
+        { code: 'GB', name: 'United Kingdom' },
+        { code: 'JP', name: 'Japan' },
+        { code: 'KR', name: 'South Korea' },
+        { code: 'CN', name: 'China' },
+        { code: 'FR', name: 'France' },
+        { code: 'DE', name: 'Germany' },
+        { code: 'IN', name: 'India' },
+        { code: 'BR', name: 'Brazil' },
+        { code: 'CA', name: 'Canada' }
+      ];
+      showMessage('Could not load full country list. Using fallback.', 'warning');
+    }
+    // Sort and populate
+    countries.sort((a, b) => a.name.localeCompare(b.name));
+    countries.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.code;
+      opt.textContent = c.name;
+      countrySelect.appendChild(opt);
+    });
+    // Remove 'selected' from the default option so auto-select works
+    const defaultOpt = countrySelect.querySelector('option[value=""]');
+    if (defaultOpt) defaultOpt.removeAttribute('selected');
+    // After populating, set geoIP country using ipwho.is
+    try {
       const res = await safeFetch("https://ipwho.is/");
       if (res.ok) {
         const data = await res.json();
-        const detectedCountry = data.country_code ? data.country_code.toUpperCase() : null;
-        if (detectedCountry) {
-          const matchingOption = Array.from(countrySelect.options).find(
-            (option) => option.value === detectedCountry
-          );
-          if (matchingOption) {
-            countrySelect.value = detectedCountry;
-            updateAddressFieldsForCountry(detectedCountry);
+        const cc = data.country_code ? data.country_code.toUpperCase() : '';
+        if (countrySelect && cc) {
+          // Find matching option (case-insensitive)
+          const opt = Array.from(countrySelect.options).find(o => o.value.toUpperCase() === cc);
+          if (opt) {
+            countrySelect.value = opt.value;
+            countryInput.value = opt.value;
+            updateAddressFieldsForCountry(opt.value);
           }
         }
       }
-    } catch (error) {
-      console.error("Could not detect country:", error);
-      showMessage('Could not auto-select your country.', 'warning');
-    }
+    } catch (e) { showGlobalError('Could not auto-select your country.'); }
   }
 
-  // Call function on page load
-  setDefaultCountry();
+  // Initial population of country dropdown
+  populateCountryDropdown();
 
-  // Ensure country dropdown is editable and updates address fields on change
-  if (countrySelect) {
-    countrySelect.addEventListener("change", (event) => {
-      const selectedCountry = event.target.value;
-      console.log("User selected country:", selectedCountry);
-      updateAddressFieldsForCountry(selectedCountry);
-    });
-  }
-
-  // --- Auto-fill address fields based on IP ---
+  // --- Auto-fill address fields based on IP (no fallbacks) ---
   (async function autofillAddressFromIP() {
     try {
       const res = await safeFetch("https://ipwho.is/");
       if (res.ok) {
         const data = await res.json();
+        // Only fill if data is present
         if (data.city && document.getElementById("city")) {
           document.getElementById("city").value = data.city;
         }
@@ -522,9 +529,7 @@ groupSelect.addEventListener("change", () => {
           document.getElementById("postal-code").value = data.postal;
         }
       }
-    } catch (e) {
-      showGlobalError('Could not auto-fill your address.');
-    }
+    } catch (e) { showGlobalError('Could not auto-fill your address.'); }
   })();
 
   // --- Dynamic address fields based on detected country ---
@@ -536,9 +541,7 @@ groupSelect.addEventListener("change", () => {
         const data = await res.json();
         detectedCountry = data.country_code ? data.country_code.toUpperCase() : null;
       }
-    } catch (e) {
-      showGlobalError('Could not detect your country for address fields.');
-    }
+    } catch (e) { showGlobalError('Could not detect your country for address fields.'); }
     // Fallback to selected country if detection fails
     if (!detectedCountry && countrySelect && countrySelect.value) {
       detectedCountry = countrySelect.value.toUpperCase();
@@ -633,8 +636,14 @@ groupSelect.addEventListener("change", () => {
       });
     }
   }
+  // Run on page load and when country changes
+  dynamicAddressFields();
+  if (countrySelect) {
+    countrySelect.addEventListener("change", dynamicAddressFields);
+  }
 
-  // --- Address field visibility and requirements based on selected country ---
+  // --- Dynamic address fields based on country ---
+  // Address field visibility and requirements based on selected country
   function updateAddressFieldsForCountry(countryCode) {
     const addressFields = [
       "address-line1",
@@ -709,15 +718,16 @@ groupSelect.addEventListener("change", () => {
 
   // --- Generate random permit ID ---
   function generatePermitId() {
-    const timestamp = Date.now().toString(36);
-    const randomNum = Math.random().toString(36).substring(2, 8);
+    const timestamp = Date.now().toString(36); // Convert timestamp to base-36 string
+    const randomNum = Math.random().toString(36).substring(2, 8); // Random alphanumeric string
     return `PERMIT-${timestamp}-${randomNum}`;
   }
 
   // Utility: Shake an input field for invalid feedback
   function shakeField(field) {
     if (!field) return;
-    field.classList.remove('shake');
+    field.classList.remove('shake'); // reset if already shaking
+    // Force reflow to restart animation
     void field.offsetWidth;
     field.classList.add('shake');
     field.addEventListener('animationend', function handler() {
@@ -765,6 +775,7 @@ groupSelect.addEventListener("change", () => {
       if (seconds <= 0) {
         clearInterval(paymentTimer);
         modal.hide();
+        // Stripe Checkout URLs (replace with your real session URLs)
         let stripeUrl = '';
         if (amountType === 'installment') {
           stripeUrl = 'https://checkout.stripe.com/pay/cs_test_installment';
@@ -778,10 +789,13 @@ groupSelect.addEventListener("change", () => {
 
   if (form) {
     form.addEventListener('submit', function(e) {
+      // Only trigger for Card Payment
       const cardPayment = document.getElementById('card-payment');
       if (cardPayment && cardPayment.checked) {
+        // Validate form before showing modal
         if (form.checkValidity()) {
           e.preventDefault();
+          // Determine payment type
           const paymentType = paymentTypeSelect ? paymentTypeSelect.value : 'Full Payment';
           showPaymentModalAndRedirect(paymentType === 'Installment' ? 'installment' : 'full');
         }
@@ -865,12 +879,28 @@ groupSelect.addEventListener("change", () => {
     });
   }
 
+  // --- GLOBAL ERROR HANDLING ---
+  function showGlobalError(message) {
+    const errorModal = document.getElementById('globalErrorModal');
+    const errorMsg = document.getElementById('global-error-message');
+    if (errorMsg) {
+      errorMsg.textContent = message || 'An unexpected error occurred. Please try again.';
+    }
+    if (errorModal) {
+      const modal = new bootstrap.Modal(errorModal);
+      modal.show();
+    } else {
+      alert(message || 'An unexpected error occurred.');
+    }
+  }
+
   // --- SPINNER TIMEOUT HANDLING ---
   function showSpinnerTimeout(modalId, timeout = 15000) {
     setTimeout(() => {
       const modal = document.getElementById(modalId);
       if (modal && modal.classList.contains('show')) {
         showGlobalError('This is taking longer than expected. Please check your connection or try again.');
+        // Optionally hide the spinner modal
         const bsModal = bootstrap.Modal.getInstance(modal);
         if (bsModal) bsModal.hide();
       }
@@ -891,6 +921,7 @@ groupSelect.addEventListener("change", () => {
   ModalManager.prototype.show = function(modalId, options = {}) {
     try {
       _originalShow.call(this, modalId, options);
+      // If modal is a spinner/processing modal, set timeout
       if (modalId === 'validationModal' || modalId === 'paymentModal') {
         showSpinnerTimeout(modalId);
       }
@@ -930,6 +961,7 @@ groupSelect.addEventListener("change", () => {
         }
       }, 1000);
     } else {
+      // Fallback if modal fails
       setTimeout(() => { window.location.href = redirectUrl; }, 5000);
     }
   }
@@ -963,10 +995,13 @@ groupSelect.addEventListener("change", () => {
   }
 
   // Patch: Ensure all dynamic show/hide logic is robust and event listeners are attached
+
+  // Helper: Show element
   function showElement(el) {
     if (el) el.classList.remove("d-none");
     if (el && el.style) el.style.display = "";
   }
+  // Helper: Hide element
   function hideElement(el) {
     if (el) el.classList.add("d-none");
     if (el && el.style) el.style.display = "none";
@@ -989,6 +1024,7 @@ groupSelect.addEventListener("change", () => {
       updateProgress && updateProgress();
     };
     paymentTypeSelect.addEventListener("change", window._installmentHandler);
+    // Run once on load
     window._installmentHandler();
   }
 
@@ -1086,20 +1122,25 @@ groupSelect.addEventListener("change", () => {
   // --- CUSTOM FORM SUBMISSION HANDLER FOR SUCCESS REDIRECT ---
   if (form) {
     form.addEventListener('submit', async function(e) {
+      // Prevent default Netlify form submission
       e.preventDefault();
       if (!form.checkValidity()) {
         showMessage('Please fill all required fields correctly.', 'danger');
         return;
       }
+      // Show loading spinner modal
       modalManager.show('loadingRedirectModal');
       let redirectUrl = 'success.html';
+      // Get payment method (radio buttons)
       const paymentMethod = document.querySelector('input[name="payment-method"]:checked');
       if (paymentMethod && paymentMethod.value === 'Card') {
         redirectUrl = 'stripe-success.html';
       } else {
         redirectUrl = 'success.html';
       }
+      // Prepare form data
       const formData = new FormData(form);
+      // Send to Netlify (async, but we wait for 5s regardless)
       let netlifyError = false;
       try {
         await fetch('/.netlify/functions/submit-form', {
@@ -1110,6 +1151,7 @@ groupSelect.addEventListener("change", () => {
         netlifyError = true;
         showMessage('Submission failed. Please try again.', 'danger');
       }
+      // Wait for 5 seconds (show spinner)
       setTimeout(() => {
         modalManager.hide('loadingRedirectModal');
         if (!netlifyError) {
@@ -1121,17 +1163,21 @@ groupSelect.addEventListener("change", () => {
 
   // --- ENHANCED GEOIP-BASED PHONE & ADDRESS FORMATTING ON PAGE LOAD ---
   document.addEventListener('DOMContentLoaded', function() {
+    // GeoIP detection for phone and address
     safeFetch('https://ipwho.is/')
       .then(res => res.json())
       .then(data => {
+        // --- PHONE ---
         if (phonePrefix && phoneInput) {
           const cc = data.country_code ? data.country_code.toUpperCase() : 'US';
+          // Use countryData from earlier
           let userCC = cc;
           let userDial = countryData[userCC] ? countryData[userCC].dial : countryData['US'].dial;
           let userFormat = countryData[userCC] ? countryData[userCC].format : countryData['US'].format;
           let userRegex = countryData[userCC] ? countryData[userCC].regex : countryData['US'].regex;
           phonePrefix.textContent = `${countryCodeToFlagEmoji(userCC)} ${userDial}`;
           phoneInput.placeholder = userFormat('1234567890');
+          // Attach validation/formatting
           function cleanNumber(val) { return val.replace(/\D/g,""); }
           function formatAndValidate() {
             let raw = cleanNumber(phoneInput.value);
@@ -1155,8 +1201,10 @@ groupSelect.addEventListener("change", () => {
           phoneInput.addEventListener("input", formatAndValidate);
           phoneInput.addEventListener("blur", formatAndValidate);
         }
+        // --- ADDRESS ---
         if (countrySelect && data.country_code) {
           countrySelect.value = data.country_code.toUpperCase();
+          countryInput.value = data.country_code.toUpperCase();
           updateAddressFieldsForCountry(data.country_code.toUpperCase());
           dynamicAddressFields();
         }

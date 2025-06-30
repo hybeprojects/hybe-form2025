@@ -1,4 +1,3 @@
-// ESLint v9+ flat config
 /** @type {import('eslint').Linter.FlatConfig[]} */
 export default [
   {
