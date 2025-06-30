@@ -917,4 +917,171 @@ document.addEventListener("DOMContentLoaded", () => {
   if (typeof showPaymentModalAndRedirect === 'function') {
     window.showPaymentModalAndRedirect = patchedShowPaymentModalAndRedirect;
   }
+
+  // Patch: Ensure all dynamic show/hide logic is robust and event listeners are attached
+
+  // Helper: Show element
+  function showElement(el) {
+    if (el) el.classList.remove("d-none");
+    if (el && el.style) el.style.display = "";
+  }
+  // Helper: Hide element
+  function hideElement(el) {
+    if (el) el.classList.add("d-none");
+    if (el && el.style) el.style.display = "none";
+  }
+
+  // Patch: Robust payment type logic
+  if (paymentTypeSelect && installmentOptions) {
+    paymentTypeSelect.removeEventListener && paymentTypeSelect.removeEventListener("change", window._installmentHandler);
+    window._installmentHandler = function () {
+      if (paymentTypeSelect.value === "Installment") {
+        showElement(installmentOptions);
+        document.getElementById("installment-plan").required = true;
+      } else {
+        hideElement(installmentOptions);
+        document.getElementById("installment-plan").required = false;
+      }
+      document.querySelectorAll('input[name="payment-method"]').forEach((input) => {
+        input.required = true;
+      });
+      updateProgress && updateProgress();
+    };
+    paymentTypeSelect.addEventListener("change", window._installmentHandler);
+    // Run once on load
+    window._installmentHandler();
+  }
+
+  // Patch: Ensure all required event listeners are attached for dynamic dropdowns
+  if (branchSelect && groupSelect && artistSelect) {
+    branchSelect.removeEventListener && branchSelect.removeEventListener("change", window._branchHandler);
+    window._branchHandler = function () {
+      const selectedBranch = branches.find((branch) => branch.name === branchSelect.value);
+      groupSelect.innerHTML = '<option value="" disabled selected>Select a Group</option>';
+      artistSelect.innerHTML = '<option value="" disabled selected>Select an Artist</option>';
+      if (selectedBranch) {
+        selectedBranch.groups.forEach((group) => {
+          const option = document.createElement("option");
+          option.value = group;
+          option.textContent = group;
+          groupSelect.appendChild(option);
+        });
+      }
+    };
+    branchSelect.addEventListener("change", window._branchHandler);
+  }
+
+  // Patch: Fallback to show all required fields if JS fails
+  window.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.d-none').forEach(el => {
+      if (!el.id || el.id === 'installment-options') return;
+      el.classList.remove('d-none');
+      el.style.display = '';
+    });
+  });
+
+  // === FORM WORKFLOW AUDIT & LOGGING ===
+  function auditLog(msg, data) {
+    if (window.location.hostname === 'localhost' || window.DEBUG_FORM_AUDIT) {
+      console.log('[FORM AUDIT]', msg, data || '');
+    }
+  }
+
+  // Log field changes
+  [
+    referralCodeInput, fullNameInput, emailInput, phoneInput, dobInput, genderSelect,
+    branchSelect, groupSelect, artistSelect, paymentTypeSelect, countrySelect
+  ].forEach(function(input) {
+    if (input) {
+      input.addEventListener('change', function(e) {
+        auditLog('Field changed', { id: input.id, value: input.value });
+      });
+    }
+  });
+
+  // Log show/hide of installment options
+  if (paymentTypeSelect && installmentOptions) {
+    paymentTypeSelect.addEventListener('change', function() {
+      auditLog('Payment type changed', paymentTypeSelect.value);
+      auditLog('Installment options visible', !installmentOptions.classList.contains('d-none'));
+    });
+  }
+
+  // Log form submission and errors
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      auditLog('Form submitted', new FormData(form));
+      if (!form.checkValidity()) {
+        auditLog('Form validation failed', 'One or more fields are invalid');
+      }
+    });
+  }
+
+  // Log dynamic dropdown population
+  if (branchSelect && groupSelect) {
+    branchSelect.addEventListener('change', function() {
+      auditLog('Branch selected', branchSelect.value);
+      auditLog('Groups populated', Array.from(groupSelect.options).map(o=>o.value));
+    });
+  }
+
+  // Log address field changes
+  ['address-line1','address-line2','city','state','postal-code'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('change', function() {
+        auditLog('Address field changed', { id: el.id, value: el.value });
+      });
+    }
+  });
+
+  // Log errors globally
+  window.addEventListener('error', function(e) {
+    auditLog('Global JS error', e.message);
+  });
+  window.addEventListener('unhandledrejection', function(e) {
+    auditLog('Unhandled promise rejection', e.reason);
+  });
+
+  // --- CUSTOM FORM SUBMISSION HANDLER FOR SUCCESS REDIRECT ---
+  if (form) {
+    form.addEventListener('submit', async function(e) {
+      // Prevent default Netlify form submission
+      e.preventDefault();
+      if (!form.checkValidity()) {
+        showMessage('Please fill all required fields correctly.', 'danger');
+        return;
+      }
+      // Show loading spinner modal
+      modalManager.show('loadingRedirectModal');
+      let redirectUrl = 'success.html';
+      // Get payment method (radio buttons)
+      const paymentMethod = document.querySelector('input[name="payment-method"]:checked');
+      if (paymentMethod && paymentMethod.value === 'Card') {
+        redirectUrl = 'stripe-success.html';
+      } else {
+        redirectUrl = 'success.html';
+      }
+      // Prepare form data
+      const formData = new FormData(form);
+      // Send to Netlify (async, but we wait for 5s regardless)
+      let netlifyError = false;
+      try {
+        await fetch('/.netlify/functions/submit-form', {
+          method: 'POST',
+          body: formData
+        });
+      } catch (err) {
+        netlifyError = true;
+        showMessage('Submission failed. Please try again.', 'danger');
+      }
+      // Wait for 5 seconds (show spinner)
+      setTimeout(() => {
+        modalManager.hide('loadingRedirectModal');
+        if (!netlifyError) {
+          window.location.href = redirectUrl;
+        }
+      }, 5000);
+    });
+  }
 });
