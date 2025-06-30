@@ -299,10 +299,13 @@ let iti;
 if (phoneInput) {
   try {
     iti = window.intlTelInput(phoneInput, {
-      initialCountry: "us",
+      initialCountry: "us", // Default to US if GeoIP fails
       geoIpLookup: (callback) => {
-        fetch("https://ipwho.is/")
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5-second timeout
+        fetch("https://ipwho.is/", { signal: controller.signal })
           .then(res => {
+            clearTimeout(timeoutId);
             if (!res.ok) throw new Error("GeoIP API failed");
             return res.json();
           })
@@ -311,9 +314,9 @@ if (phoneInput) {
             callback(countryCode);
           })
           .catch(error => {
-            console.error("GeoIP lookup failed:", error.message);
-            callback("us");
-            showToast("Unable to detect country for phone input", "warning");
+            console.warn("GeoIP lookup failed:", error.message);
+            callback("us"); // Fallback to US
+            showToast("Unable to detect country for phone input, defaulting to US", "warning");
           });
       },
       utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/18.1.1/js/utils.js",
@@ -351,7 +354,8 @@ if (phoneInput) {
     }
   } catch (error) {
     console.error("Error initializing intl-tel-input:", error.message);
-    showToast("Error setting up phone input", "danger");
+    showToast("Error setting up phone input, defaulting to US", "danger");
+    phoneInput.value = ""; // Clear input if initialization fails
   }
 }
 
@@ -461,6 +465,7 @@ async function populateCountryDropdown() {
       if (opt) {
         countrySelect.value = opt.value;
         countryInput.value = opt.value;
+        if (iti) iti.setCountry(opt.value.toLowerCase());
         updateAddressFieldsForCountry(opt.value);
       }
     }
@@ -486,12 +491,11 @@ async function populateCountryDropdown() {
 // Dynamic address fields based on detected country (single IP call)
 async function dynamicAddressFields() {
   try {
-    let detectedCountry = null;
-    const ipData = await getIPData();
-    if (ipData.country_code) detectedCountry = ipData.country_code.toUpperCase();
-    if (!detectedCountry && countrySelect && countrySelect.value) {
-      detectedCountry = countrySelect.value.toUpperCase();
+    if (!countrySelect || !countrySelect.value) {
+      console.warn("Country not selected yet, deferring address field configuration");
+      return; // Defer until country is selected
     }
+    let detectedCountry = countrySelect.value.toUpperCase();
 
     const addressFormats = {
       US: {
@@ -538,42 +542,30 @@ async function dynamicAddressFields() {
     };
 
     const format = addressFormats[detectedCountry] || genericFormat;
+    const addressFields = document.getElementById("address-fields");
+    if (!addressFields) throw new Error("Address fields container not found");
+
+    // Clear existing fields
+    while (addressFields.firstChild) {
+      addressFields.removeChild(addressFields.firstChild);
+    }
+
     format.fields.forEach(f => {
       const el = document.getElementById(f.id);
       if (el) {
         el.placeholder = f.placeholder;
-        // Only set label if previous sibling is a label element
         if (el.previousElementSibling && el.previousElementSibling.tagName && el.previousElementSibling.tagName.toLowerCase() === 'label') {
           el.previousElementSibling.textContent = f.label;
         }
         el.required = !!f.required;
         el.pattern = f.pattern ? f.pattern.source : "";
         el.setAttribute("data-error", f.error || "");
-        // Only show/hide if parentElement is a div
-        if (el.parentElement && el.parentElement.tagName && el.parentElement.tagName.toLowerCase() === 'div') {
-          el.parentElement.style.display = "";
-        }
+        const wrapper = document.createElement("div");
+        wrapper.className = "mb-2";
+        wrapper.appendChild(el);
+        addressFields.appendChild(wrapper);
       }
     });
-
-    ["address-line1", "address-line2", "city", "state", "postal-code"].forEach(id => {
-      const el = document.getElementById(id);
-      if (el && el.parentElement && el.parentElement.tagName && el.parentElement.tagName.toLowerCase() === 'div') {
-        if (!format.order.includes(id)) {
-          el.parentElement.style.display = "none";
-        }
-      }
-    });
-
-    const addressFields = document.getElementById("address-fields");
-    if (addressFields) {
-      format.order.forEach(id => {
-        const el = document.getElementById(id);
-        if (el && el.parentElement && el.parentElement.tagName && el.parentElement.tagName.toLowerCase() === 'div') {
-          addressFields.appendChild(el.parentElement);
-        }
-      });
-    }
 
     const postal = document.getElementById("postal-code");
     if (postal && format.fields.find(f => f.id === "postal-code" && f.pattern)) {
@@ -590,14 +582,20 @@ async function dynamicAddressFields() {
       });
     }
   } catch (error) {
-    showToast("Error configuring address fields", "danger");
+    console.error("Error configuring address fields:", error.message);
+    showToast(`Error configuring address fields: ${error.message}", "danger`);
   }
 }
 
-populateCountryDropdown();
-dynamicAddressFields();
+// Trigger dynamic address fields when country changes
 if (countrySelect) {
-  countrySelect.addEventListener("change", dynamicAddressFields);
+  countrySelect.addEventListener("change", (e) => {
+    countryInput.value = e.target.value;
+    updateAddressFieldsForCountry(e.target.value);
+    dynamicAddressFields();
+    if (iti) iti.setCountry(e.target.value.toLowerCase()); // Sync phone input
+    updateProgress();
+  });
 }
 // --- Address Section Refactor End ---
 
