@@ -8,7 +8,7 @@ class ModalManager {
   initialize(modalId) {
     const element = document.getElementById(modalId);
     if (!element) {
-      console.error(`Modal ${modalId} not found`);
+      showGlobalError(`Modal ${modalId} not found`);
       return null;
     }
     try {
@@ -25,7 +25,7 @@ class ModalManager {
 
       return modal;
     } catch (error) {
-      console.error(`Failed to initialize modal "${modalId}": ${error.message}`);
+      showGlobalError(`Failed to initialize modal "${modalId}": ${error.message}`);
       return null;
     }
   }
@@ -51,7 +51,7 @@ class ModalManager {
   setupCountdown(modalId, { duration, elementId, onComplete }) {
     const countdownElement = document.getElementById(elementId);
     if (!countdownElement) {
-      console.error(`Countdown element "${elementId}" not found`);
+      showGlobalError(`Countdown element "${elementId}" not found`);
       return;
     }
 
@@ -69,7 +69,7 @@ class ModalManager {
           try {
             onComplete();
           } catch (error) {
-            console.error(`Error in onComplete callback: ${error.message}`);
+            showGlobalError(`Error in onComplete callback: ${error.message}`);
           }
         }
       }
@@ -292,28 +292,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Add input event listeners for progress updates
-  [
-    referralCodeInput,
-    fullNameInput,
-    emailInput,
-    phoneInput,
-    document.getElementById("address-line1"),
-    document.getElementById("address-line2"),
-    document.getElementById("city"),
-    document.getElementById("state"),
-    document.getElementById("postal-code"),
-    countrySelect,
-    dobInput,
-    genderSelect,
-    branchSelect,
-    groupSelect,
-    artistSelect,
-    paymentTypeSelect,
-  ].forEach((input) => {
-    if (input) {
-      input.addEventListener("input", updateProgress);
-    }
-  });
+  const inputs = [
+  "referral-code", "full-name", "email", "phone", "address-line1",
+  "address-line2", "city", "state", "postal-code", "country-select",
+  "dob", "gender", "branch", "group", "artist", "payment-type"
+];
+
+inputs.forEach((id) => {
+  const input = document.getElementById(id);
+  if (input) input.addEventListener("input", updateProgress);
+});
 
   document.querySelectorAll('input[name="contact-method"]').forEach((input) => {
     input.addEventListener("change", updateProgress);
@@ -337,7 +325,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     // Helper to get emoji flag from country code
     function countryCodeToFlagEmoji(cc) {
-      if (!cc) return "🌐";
+      if (!cc) return "ð";
       return cc
         .toUpperCase()
         .replace(/./g, char => String.fromCodePoint(127397 + char.charCodeAt()));
@@ -715,19 +703,19 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (isIN) {
       document.getElementById("state").setAttribute("placeholder", "State (e.g., Maharashtra)");
     } else if (isBR) {
-      document.getElementById("state").setAttribute("placeholder", "Estado (e.g., São Paulo)");
+      document.getElementById("state").setAttribute("placeholder", "Estado (e.g., SÃ£o Paulo)");
     } else if (isFR) {
-      document.getElementById("state").setAttribute("placeholder", "Région (e.g., Île-de-France)");
+      document.getElementById("state").setAttribute("placeholder", "RÃ©gion (e.g., Ãle-de-France)");
     } else if (isDE) {
       document.getElementById("state").setAttribute("placeholder", "Bundesland (e.g., Bayern)");
     } else if (isJP) {
-      document.getElementById("state").setAttribute("placeholder", "都道府県 (e.g., 東京都)");
+      document.getElementById("state").setAttribute("placeholder", "é½éåºç (e.g., æ±äº¬é½)");
     } else if (isKR) {
-      document.getElementById("state").setAttribute("placeholder", "시/도 (e.g., 서울특별시)");
+      document.getElementById("state").setAttribute("placeholder", "ì/ë (e.g., ìì¸í¹ë³ì)");
     } else if (isCN) {
-      document.getElementById("state").setAttribute("placeholder", "省/直辖市 (e.g., 北京市)");
+      document.getElementById("state").setAttribute("placeholder", "ç/ç´è¾å¸ (e.g., åäº¬å¸)");
     } else if (isRU) {
-      document.getElementById("state").setAttribute("placeholder", "Регион (e.g., Москва)");
+      document.getElementById("state").setAttribute("placeholder", "Ð ÐµÐ³Ð¸Ð¾Ð½ (e.g., ÐÐ¾ÑÐºÐ²Ð°)");
     } else if (isZA) {
       document.getElementById("state").setAttribute("placeholder", "Province (e.g., Gauteng)");
     } else if (isNG) {
@@ -1091,7 +1079,7 @@ document.addEventListener("DOMContentLoaded", () => {
   ].forEach(function(input) {
     if (input) {
       input.addEventListener('change', function(e) {
-        auditLog('Field changed', { id: input.id, value: input.value });
+        auditLog('Field changed', { id: sanitizeInput(input.id), value: sanitizeInput(input.value) });
       });
     }
   });
@@ -1127,7 +1115,7 @@ document.addEventListener("DOMContentLoaded", () => {
     var el = document.getElementById(id);
     if (el) {
       el.addEventListener('change', function() {
-        auditLog('Address field changed', { id: el.id, value: el.value });
+        auditLog('Address field changed', { id: sanitizeInput(el.id), value: sanitizeInput(el.value) });
       });
     }
   });
@@ -1197,12 +1185,11 @@ document.addEventListener("DOMContentLoaded", () => {
       // Only run for Netlify forms (has data-netlify attribute)
       if (form.hasAttribute('data-netlify')) {
         // Show spinner modal for 5 seconds, then allow native submit
-        e.preventDefault();
         const bsModal = showValidationSpinnerModal();
         setTimeout(() => {
           bsModal.hide();
           // Remove this event listener so submit proceeds natively
-          form.removeEventListener('submit', arguments.callee, false);
+          
           form.submit();
         }, 5000);
       }
@@ -1236,3 +1223,44 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+
+async function detectGeoIP() {
+  const endpoints = [
+    { url: "https://ipwho.is/", cc: "country_code", name: "country" },
+    { url: "https://ipapi.co/json/", cc: "country_code", name: "country_name" },
+    { url: "https://freeipapi.com/api/json", cc: "countryCode", name: "countryName" }
+  ];
+  for (const ep of endpoints) {
+    try {
+      const res = await safeFetch(ep.url);
+      const data = await res.json();
+      const cc = data[ep.cc]?.toUpperCase();
+      const name = data[ep.name];
+      if (cc) return { cc, name };
+    } catch (_) {}
+  }
+  return { cc: "", name: "" };
+}
+
+function setIfExists(id, value) {
+  const el = document.getElementById(id);
+  if (el && value) el.value = value;
+}
+
+function attachChangeLogger(inputs) {
+  inputs.forEach(input => {
+    if (input) {
+      input.addEventListener('change', () =>
+        auditLog('Field changed', { id: sanitizeInput(input.id), value: sanitizeInput(input.value) })
+      );
+    }
+  });
+}
+
+
+function sanitizeInput(value) {
+  const temp = document.createElement('div');
+  temp.textContent = value;
+  return temp.innerHTML;
+}
