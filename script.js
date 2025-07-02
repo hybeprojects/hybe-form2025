@@ -347,23 +347,42 @@ document.addEventListener("DOMContentLoaded", () => {
     let userDial = countryData[userCC].dial;
     let userFormat = countryData[userCC].format;
     let userRegex = countryData[userCC].regex;
-    // GeoIP lookup (using ipwho.is for reliability)
+    // GeoIP lookup with multiple fallbacks
+    function setCountryVars(cc) {
+      if (cc && countryData[cc]) {
+        userCC = cc;
+        userDial = countryData[userCC].dial;
+        userFormat = countryData[userCC].format;
+        userRegex = countryData[userCC].regex;
+      }
+      phonePrefix.textContent = `${countryCodeToFlagEmoji(userCC)} ${userDial}`;
+    }
+    // Try ipwho.is, then ipapi.co, then freeipapi.com
     safeFetch("https://ipwho.is/")
       .then(res => res.json())
       .then(data => {
-        console.log('GeoIP response:', data); // Debug: see what country_code is returned
         const cc = data.country_code ? data.country_code.toUpperCase() : '';
-        if (cc && countryData[cc]) {
-          userCC = cc;
-          userDial = countryData[userCC].dial;
-          userFormat = countryData[userCC].format;
-          userRegex = countryData[userCC].regex;
-        }
-        phonePrefix.textContent = `${countryCodeToFlagEmoji(userCC)} ${userDial}`;
+        setCountryVars(cc);
       })
       .catch(() => {
-        phonePrefix.textContent = `${countryCodeToFlagEmoji(userCC)} ${userDial}`;
-        showGlobalError('Could not detect your country for phone prefix.');
+        safeFetch("https://ipapi.co/json/")
+          .then(res => res.json())
+          .then(data => {
+            const cc = data.country_code ? data.country_code.toUpperCase() : '';
+            setCountryVars(cc);
+          })
+          .catch(() => {
+            safeFetch("https://freeipapi.com/api/json")
+              .then(res => res.json())
+              .then(data => {
+                const cc = data.countryCode ? data.countryCode.toUpperCase() : '';
+                setCountryVars(cc);
+              })
+              .catch(() => {
+                setCountryVars(userCC); // fallback to default
+                showGlobalError('Could not detect your country for phone prefix.');
+              });
+          });
       });
     // Expanded countryData for more coverage
     Object.assign(countryData, {
@@ -490,6 +509,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Remove 'selected' from the default option so auto-select works
     const defaultOpt = countrySelect.querySelector('option[value=""]');
     if (defaultOpt) defaultOpt.removeAttribute('selected');
+    // Ensure country dropdown is visible
+    countrySelect.style.display = "";
     // After populating, set geoIP country using ipwho.is
     try {
       const res = await safeFetch("https://ipwho.is/");
