@@ -499,23 +499,34 @@ inputs.forEach((id) => {
     if (defaultOpt) defaultOpt.removeAttribute('selected');
     // Ensure country dropdown is visible
     countrySelect.style.display = "";
-    // After populating, set geoIP country using ipwho.is
-    try {
-      const res = await safeFetch("https://ipwho.is/");
-      if (res.ok) {
-        const data = await res.json();
-        const cc = data.country_code ? data.country_code.toUpperCase() : '';
-        if (countrySelect && cc) {
-          // Find matching option (case-insensitive)
-          const opt = Array.from(countrySelect.options).find(o => o.value.toUpperCase() === cc);
-          if (opt) {
-            countrySelect.value = opt.value;
-            countryInput.value = opt.value;
-            updateAddressFieldsForCountry(opt.value);
+    // After populating, set geoIP country using ipwho.is with retry and toast on fail
+    let attempts = 0;
+    let countrySet = false;
+    while (attempts < 2 && !countrySet) {
+      try {
+        const res = await safeFetch("https://ipwho.is/");
+        if (res.ok) {
+          const data = await res.json();
+          const cc = data.country_code ? data.country_code.toUpperCase() : '';
+          if (countrySelect && cc) {
+            // Find matching option (case-insensitive)
+            const opt = Array.from(countrySelect.options).find(o => o.value.toUpperCase() === cc);
+            if (opt) {
+              countrySelect.value = opt.value;
+              countryInput.value = opt.value;
+              updateAddressFieldsForCountry(opt.value);
+              countrySet = true;
+            }
           }
         }
+      } catch (e) {
+        // Retry once, then show toast if still fails
+        if (attempts === 1 && !countrySet) {
+          showToast('Could not auto-select your country. You can select it manually.', 'warning');
+        }
       }
-    } catch (e) { showGlobalError('Could not auto-select your country.'); }
+      attempts++;
+    }
   }
 
   // Initial population of country dropdown
@@ -810,6 +821,38 @@ inputs.forEach((id) => {
         }
       }
     }, false);
+  }
+
+  // --- TOAST NOTIFICATION SYSTEM FOR NON-CRITICAL ERRORS ---
+  function showToast(message, type = 'warning', timeout = 4000) {
+    let toast = document.getElementById('globalToast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'globalToast';
+      toast.style.position = 'fixed';
+      toast.style.bottom = '32px';
+      toast.style.right = '32px';
+      toast.style.zIndex = '9999';
+      toast.style.minWidth = '240px';
+      toast.style.maxWidth = '360px';
+      toast.style.background = type === 'warning' ? '#fff3cd' : '#f8d7da';
+      toast.style.color = '#856404';
+      toast.style.border = '1px solid #ffeeba';
+      toast.style.borderRadius = '8px';
+      toast.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
+      toast.style.padding = '16px 20px';
+      toast.style.fontSize = '1rem';
+      toast.style.display = 'none';
+      toast.style.transition = 'opacity 0.3s';
+      document.body.appendChild(toast);
+    }
+    toast.innerHTML = `<span style='font-weight:bold;'>${type === 'warning' ? '⚠️' : '❌'} </span>${message}`;
+    toast.style.display = 'block';
+    toast.style.opacity = '1';
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      setTimeout(() => { toast.style.display = 'none'; }, 350);
+    }, timeout);
   }
 
   // --- MODERN ERROR HANDLING & ENHANCED REDIRECT UI/UX ---
@@ -1222,8 +1265,251 @@ inputs.forEach((id) => {
       }
     });
   }
-});
 
+  // --- INLINE FIELD VALIDATION & CUSTOM MESSAGES ---
+const validationRules = {
+  'referral-code': {
+    required: true,
+    message: 'Referral code is required.'
+  },
+  'full-name': {
+    required: true,
+    message: 'Please enter your full name.'
+  },
+  'email': {
+    required: true,
+    pattern: /^[^@\s]+@[^@\s]+\.[^@\s]+$/,
+    message: 'Please enter a valid email address.'
+  },
+  'phone': {
+    required: true,
+    pattern: /^\+?\d{7,15}$/,
+    message: 'Please enter a valid phone number.'
+  },
+  'address-line1': {
+    required: true,
+    message: 'Street address is required.'
+  },
+  'city': {
+    required: true,
+    message: 'City is required.'
+  },
+  'state': {
+    required: true,
+    message: 'State/Region is required.'
+  },
+  'postal-code': {
+    required: true,
+    message: 'Postal code is required.'
+  },
+  'country-select': {
+    required: true,
+    message: 'Please select your country.'
+  },
+  'dob': {
+    required: true,
+    message: 'Date of birth is required.'
+  },
+  'gender': {
+    required: true,
+    message: 'Please select your gender.'
+  },
+  'branch': {
+    required: true,
+    message: 'Please select a branch.'
+  },
+  'group': {
+    required: true,
+    message: 'Please select a group.'
+  },
+  'artist': {
+    required: true,
+    message: 'Please select an artist.'
+  },
+  'payment-type': {
+    required: true,
+    message: 'Please select a payment type.'
+  },
+  'contact-method': {
+    required: true,
+    message: 'Please select a contact method.'
+  },
+  'subscription-agreement': {
+    required: true,
+    message: 'You must agree to complete your subscription.'
+  }
+};
+
+function showFieldError(field, message) {
+  let feedback = field.parentElement.querySelector('.invalid-feedback');
+  if (!feedback) {
+    feedback = document.createElement('div');
+    feedback.className = 'invalid-feedback';
+    field.parentElement.appendChild(feedback);
+  }
+  feedback.textContent = message;
+  field.classList.add('is-invalid');
+  field.setAttribute('aria-invalid', 'true');
+}
+
+function clearFieldError(field) {
+  let feedback = field.parentElement.querySelector('.invalid-feedback');
+  if (feedback) feedback.textContent = '';
+  field.classList.remove('is-invalid');
+  field.setAttribute('aria-invalid', 'false');
+}
+
+function validateField(field) {
+  const rule = validationRules[field.name || field.id];
+  if (!rule) return true;
+  if (rule.required && !field.value) {
+    showFieldError(field, rule.message);
+    return false;
+  }
+  if (rule.pattern && field.value && !rule.pattern.test(field.value)) {
+    showFieldError(field, rule.message);
+    return false;
+  }
+  clearFieldError(field);
+  return true;
+}
+
+// Attach inline validation
+if (form) {
+  form.querySelectorAll('input, select, textarea').forEach(field => {
+    field.addEventListener('input', () => validateField(field));
+    field.addEventListener('blur', () => validateField(field));
+  });
+}
+
+// --- SUBMIT BUTTON DISABLE & SUCCESS FEEDBACK ---
+if (form && submitBtn && spinner && btnText) {
+  form.addEventListener('submit', async function(e) {
+    let valid = true;
+    form.querySelectorAll('input, select, textarea').forEach(field => {
+      if (!validateField(field)) valid = false;
+    });
+    if (!valid) {
+      e.preventDefault();
+      showModernError('Please correct the highlighted errors and try again.');
+      return;
+    }
+    submitBtn.disabled = true;
+    spinner.classList.remove('d-none');
+    btnText.textContent = 'Submitting...';
+    e.preventDefault();
+    const formData = new FormData(form);
+    try {
+      const res = await fetch('/.netlify/functions/submit-form', {
+        method: 'POST',
+        body: formData
+      });
+      if (!res.ok) throw new Error('Network error');
+      // Success feedback
+      showToast('Subscription submitted! Redirecting...', 'success', 3000);
+      setTimeout(() => {
+        window.location.href = 'success.html';
+      }, 2000);
+    } catch (err) {
+      // Retry logic
+      let retry = confirm('Submission failed. Would you like to retry?\n' + (err.message || ''));
+      if (retry) {
+        submitBtn.disabled = false;
+        spinner.classList.add('d-none');
+        btnText.textContent = 'Submit Subscription';
+        return;
+      } else {
+        showModernError('Submission failed. Please try again later.', err.message);
+      }
+    }
+    submitBtn.disabled = false;
+    spinner.classList.add('d-none');
+    btnText.textContent = 'Submit Subscription';
+  });
+}
+
+// === REAL-TIME SUBMIT BUTTON ENABLE/DISABLE LOGIC ===
+  function isFormValidRealtime() {
+    // List all required fields by their IDs or selectors
+    const requiredFields = [
+      fullNameInput,
+      emailInput,
+      phoneInput,
+      dobInput,
+      genderSelect,
+      branchSelect,
+      groupSelect,
+      artistSelect,
+      paymentTypeSelect,
+      document.getElementById("address-line1"),
+      document.getElementById("city"),
+      document.getElementById("state"),
+      document.getElementById("postal-code"),
+      countrySelect,
+      // Add more if needed
+    ];
+    // Check all required fields for value and validity
+    for (const field of requiredFields) {
+      if (!field) continue;
+      if (field.required !== false && (field.value === undefined || field.value === null || field.value === "")) {
+        return false;
+      }
+      if (typeof field.checkValidity === "function" && !field.checkValidity()) {
+        return false;
+      }
+    }
+    // Check contact-method radio
+    if (!document.querySelector('input[name="contact-method"]:checked')) {
+      return false;
+    }
+    // Check payment-method radio if visible
+    const paymentMethodInputs = document.querySelectorAll('input[name="payment-method"]');
+    let paymentMethodRequired = false;
+    paymentMethodInputs.forEach(input => {
+      if (!input.closest('.d-none')) paymentMethodRequired = true;
+    });
+    if (paymentMethodRequired && !document.querySelector('input[name="payment-method"]:checked')) {
+      return false;
+    }
+    // If Installment is selected, check installment-plan
+    if (paymentTypeSelect && paymentTypeSelect.value === "Installment") {
+      const installmentPlan = document.getElementById("installment-plan");
+      if (installmentPlan && (!installmentPlan.value || !installmentPlan.checkValidity())) {
+        return false;
+      }
+    }
+    // All checks passed
+    return true;
+  }
+
+  function updateSubmitButtonState() {
+    if (!submitBtn) return;
+    submitBtn.disabled = !isFormValidRealtime();
+  }
+
+  // Attach real-time validation listeners
+  const realtimeFields = [
+    fullNameInput, emailInput, phoneInput, dobInput, genderSelect, branchSelect, groupSelect, artistSelect, paymentTypeSelect,
+    document.getElementById("address-line1"), document.getElementById("city"), document.getElementById("state"), document.getElementById("postal-code"), countrySelect
+  ];
+  realtimeFields.forEach(field => {
+    if (field) field.addEventListener("input", updateSubmitButtonState);
+    if (field) field.addEventListener("change", updateSubmitButtonState);
+  });
+  document.querySelectorAll('input[name="contact-method"]').forEach(input => {
+    input.addEventListener("change", updateSubmitButtonState);
+  });
+  document.querySelectorAll('input[name="payment-method"]').forEach(input => {
+    input.addEventListener("change", updateSubmitButtonState);
+  });
+  const installmentPlan = document.getElementById("installment-plan");
+  if (installmentPlan) {
+    installmentPlan.addEventListener("input", updateSubmitButtonState);
+    installmentPlan.addEventListener("change", updateSubmitButtonState);
+  }
+  // Initial state
+  updateSubmitButtonState();
+});
 
 async function detectGeoIP() {
   const endpoints = [
