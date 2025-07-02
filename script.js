@@ -1081,7 +1081,7 @@ inputs.forEach((id) => {
   ].forEach(function(input) {
     if (input) {
       input.addEventListener('change', function(e) {
-        auditLog('Field changed', { id: input.id, value: input.value });
+        auditLog('Field changed', { id: sanitizeInput(input.id), value: sanitizeInput(input.value) });
       });
     }
   });
@@ -1117,7 +1117,7 @@ inputs.forEach((id) => {
     var el = document.getElementById(id);
     if (el) {
       el.addEventListener('change', function() {
-        auditLog('Address field changed', { id: el.id, value: el.value });
+        auditLog('Address field changed', { id: sanitizeInput(el.id), value: sanitizeInput(el.value) });
       });
     }
   });
@@ -1254,8 +1254,15 @@ function attachChangeLogger(inputs) {
   inputs.forEach(input => {
     if (input) {
       input.addEventListener('change', () =>
-        auditLog('Field changed', { id: input.id, value: input.value })
+        auditLog('Field changed', { id: sanitizeInput(input.id), value: sanitizeInput(input.value) })
       );
     }
   });
+}
+
+
+function sanitizeInput(value) {
+  const temp = document.createElement('div');
+  temp.textContent = value;
+  return temp.innerHTML;
 }
