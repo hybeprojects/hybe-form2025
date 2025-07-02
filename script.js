@@ -454,12 +454,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- Auto-select country and dynamic address format ---
-  // Populate country dropdown with all countries (global)
   async function populateCountryDropdown() {
-    // Clear dropdown before populating (prevents duplicates)
     countrySelect.innerHTML = '<option value="" disabled selected>Select Country</option>';
     let countries = [];
     let loaded = false;
+    let geoSuccess = false;
     // 1. Try GeoNames API (requires username, demo is public)
     try {
       const res = await safeFetch('https://secure.geonames.org/countryInfoJSON?username=demo');
@@ -470,7 +469,7 @@ document.addEventListener("DOMContentLoaded", () => {
           loaded = true;
         }
       }
-    } catch (e) { showGlobalError('Could not load country list.'); }
+    } catch {}
     // 2. Fallback: REST Countries v2
     if (!loaded) {
       try {
@@ -480,9 +479,9 @@ document.addEventListener("DOMContentLoaded", () => {
           countries = data.map(c => ({ code: c.alpha2Code, name: c.name }));
           loaded = true;
         }
-      } catch (e) { showGlobalError('Could not load country list.'); }
+      } catch {}
     }
-    // 3. Fallback: Static list (top 10 for brevity, expand as needed)
+    // 3. Fallback: Static list
     if (!loaded) {
       countries = [
         { code: 'US', name: 'United States' },
@@ -498,7 +497,6 @@ document.addEventListener("DOMContentLoaded", () => {
       ];
       showMessage('Could not load full country list. Using fallback.', 'warning');
     }
-    // Sort and populate
     countries.sort((a, b) => a.name.localeCompare(b.name));
     countries.forEach(c => {
       const opt = document.createElement('option');
@@ -506,28 +504,66 @@ document.addEventListener("DOMContentLoaded", () => {
       opt.textContent = c.name;
       countrySelect.appendChild(opt);
     });
-    // Remove 'selected' from the default option so auto-select works
     const defaultOpt = countrySelect.querySelector('option[value=""]');
     if (defaultOpt) defaultOpt.removeAttribute('selected');
-    // Ensure country dropdown is visible
     countrySelect.style.display = "";
-    // After populating, set geoIP country using ipwho.is
-    try {
-      const res = await safeFetch("https://ipwho.is/");
-      if (res.ok) {
-        const data = await res.json();
-        const cc = data.country_code ? data.country_code.toUpperCase() : '';
-        if (countrySelect && cc) {
-          // Find matching option (case-insensitive)
-          const opt = Array.from(countrySelect.options).find(o => o.value.toUpperCase() === cc);
-          if (opt) {
-            countrySelect.value = opt.value;
-            countryInput.value = opt.value;
-            updateAddressFieldsForCountry(opt.value);
-          }
+    // After populating, set geoIP country using ipwho.is, with robust fallback and logging
+    let geoSet = false;
+    if (!countrySelect.value) {
+      let cc = '';
+      let cname = '';
+      try {
+        let res = await safeFetch("https://ipwho.is/");
+        if (res.ok) {
+          let data = await res.json();
+          cc = data.country_code ? data.country_code.toUpperCase().trim() : '';
+          cname = data.country ? data.country.trim() : '';
+          console.log('[GeoIP] ipwho.is:', cc, cname);
         }
+      } catch {}
+      if (!cc) {
+        try {
+          let res = await safeFetch("https://ipapi.co/json/");
+          if (res.ok) {
+            let data = await res.json();
+            cc = data.country_code ? data.country_code.toUpperCase().trim() : '';
+            cname = data.country_name ? data.country_name.trim() : '';
+            console.log('[GeoIP] ipapi.co:', cc, cname);
+          }
+        } catch {}
       }
-    } catch (e) { showGlobalError('Could not auto-select your country.'); }
+      if (!cc) {
+        try {
+          let res = await safeFetch("https://freeipapi.com/api/json");
+          if (res.ok) {
+            let data = await res.json();
+            cc = data.countryCode ? data.countryCode.toUpperCase().trim() : '';
+            cname = data.countryName ? data.countryName.trim() : '';
+            console.log('[GeoIP] freeipapi.com:', cc, cname);
+          }
+        } catch {}
+      }
+      // Try to match by code
+      let opt = cc ? Array.from(countrySelect.options).find(o => o.value.toUpperCase().trim() === cc) : null;
+      // If not found, try to match by name
+      if (!opt && cname) {
+        opt = Array.from(countrySelect.options).find(o => o.textContent.trim().toLowerCase() === cname.toLowerCase());
+      }
+      if (opt) {
+        countrySelect.value = opt.value;
+        countryInput.value = opt.value;
+        updateAddressFieldsForCountry(opt.value);
+        geoSet = true;
+        console.log('[GeoIP] Country set to:', opt.value, opt.textContent);
+      } else {
+        console.warn('[GeoIP] No matching country found for', cc, cname);
+      }
+    } else {
+      geoSet = true;
+    }
+    if (!geoSet) {
+      showGlobalError('Could not auto-select your country.', 'Country Detection');
+    }
   }
 
   // Initial population of country dropdown
@@ -842,66 +878,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Override all error popups to use modern modal
   function showGlobalError(message, details) {
-    showModernError(message, details);
-  }
-
-  // Enhanced loading/redirect modal with animation and countdown
-  function showEnhancedLoadingRedirectModal(redirectUrl, message = 'Redirecting, please wait...') {
-    const modal = document.getElementById('loadingRedirectModal');
-    const countdownEl = document.getElementById('redirect-countdown');
-    const label = document.getElementById('loadingRedirectLabel');
-    let seconds = 5;
-    if (countdownEl) countdownEl.textContent = seconds;
-    if (label) label.textContent = message;
-    if (modal) {
-      const bsModal = new bootstrap.Modal(modal, { backdrop: 'static', keyboard: false });
-      bsModal.show();
-      const timer = setInterval(() => {
-        seconds--;
-        if (countdownEl) countdownEl.textContent = seconds;
-        if (seconds <= 0) {
-          clearInterval(timer);
-          bsModal.hide();
-          window.location.href = redirectUrl;
-        }
-      }, 1000);
-    } else {
-      setTimeout(() => { window.location.href = redirectUrl; }, 5000);
-    }
-  }
-
-  // Patch all redirects to use enhanced modal
-  if (form) {
-    form.addEventListener('submit', async function(e) {
-      e.preventDefault();
-      if (!form.checkValidity()) {
-        showModernError('Please fill all required fields correctly.');
-        return;
-      }
-      let redirectUrl = 'success.html';
-      const paymentMethod = document.querySelector('input[name="payment-method"]:checked');
-      if (paymentMethod && paymentMethod.value === 'Card') {
-        redirectUrl = 'stripe-success.html';
-      } else {
-        redirectUrl = 'success.html';
-      }
-      const formData = new FormData(form);
-      let netlifyError = false;
-      try {
-        await fetch('/.netlify/functions/submit-form', {
-          method: 'POST',
-          body: formData
-        });
-      } catch (err) {
-        netlifyError = true;
-        showModernError('Submission failed. Please try again.', err.message);
-      }
-      showEnhancedLoadingRedirectModal(redirectUrl);
-    });
-  }
-
-  // --- GLOBAL ERROR HANDLING ---
-  function showGlobalError(message) {
     const errorModal = document.getElementById('globalErrorModal');
     const errorMsg = document.getElementById('global-error-message');
     if (errorMsg) {
@@ -914,6 +890,32 @@ document.addEventListener("DOMContentLoaded", () => {
       alert(message || 'An unexpected error occurred.');
     }
   }
+
+  // --- GLOBAL ERROR TOAST HANDLING (replaces modal) ---
+  function showGlobalError(message, source = '', details = '') {
+    let toast = document.getElementById('globalErrorToast');
+    let msg = document.getElementById('global-error-message');
+    let src = document.getElementById('global-error-source');
+    let title = document.getElementById('global-error-title');
+    if (!toast || !msg || !title) return alert(message);
+    msg.innerHTML = message || 'An unexpected error occurred. Please try again.';
+    src.textContent = source ? `Source: ${source}` : '';
+    title.innerHTML = `<i class='bi bi-exclamation-triangle-fill me-2'></i>Error`;
+    toast.style.display = '';
+    // Bootstrap 5 toast
+    let bsToast = bootstrap.Toast.getOrCreateInstance(toast, { delay: 7000 });
+    bsToast.show();
+    // Hide after shown
+    toast.addEventListener('hidden.bs.toast', function handler() {
+      toast.style.display = 'none';
+      toast.removeEventListener('hidden.bs.toast', handler);
+    });
+  }
+
+  // Patch all error calls to use new toast
+  window.showGlobalError = showGlobalError;
+
+  // Example usage: showGlobalError('Invalid email address', 'Email Field');
 
   // --- SPINNER TIMEOUT HANDLING ---
   function showSpinnerTimeout(modalId, timeout = 15000) {
@@ -1140,98 +1142,99 @@ document.addEventListener("DOMContentLoaded", () => {
     auditLog('Unhandled promise rejection', e.reason);
   });
 
-  // --- CUSTOM FORM SUBMISSION HANDLER FOR SUCCESS REDIRECT ---
-  if (form) {
-    form.addEventListener('submit', async function(e) {
-      // Prevent default Netlify form submission
-      e.preventDefault();
-      if (!form.checkValidity()) {
-        showMessage('Please fill all required fields correctly.', 'danger');
-        return;
-      }
-      // Show loading spinner modal
-      modalManager.show('loadingRedirectModal');
-      let redirectUrl = 'success.html';
-      // Get payment method (radio buttons)
-      const paymentMethod = document.querySelector('input[name="payment-method"]:checked');
-      if (paymentMethod && paymentMethod.value === 'Card') {
-        redirectUrl = 'stripe-success.html';
-      } else {
-        redirectUrl = 'success.html';
-      }
-      // Prepare form data
-      const formData = new FormData(form);
-      // Send to Netlify (async, but we wait for 5s regardless)
-      let netlifyError = false;
-      try {
-        await fetch('/.netlify/functions/submit-form', {
-          method: 'POST',
-          body: formData
-        });
-      } catch (err) {
-        netlifyError = true;
-        showMessage('Submission failed. Please try again.', 'danger');
-      }
-      // Wait for 5 seconds (show spinner)
-      setTimeout(() => {
-        modalManager.hide('loadingRedirectModal');
-        if (!netlifyError) {
-          window.location.href = redirectUrl;
-        }
-      }, 5000);
-    });
+  // === ENHANCED NETLIFY SUBMISSION WORKFLOW ===
+  // Helper: Show loading spinner modal
+  function showValidationSpinnerModal() {
+    let modal = document.getElementById('validationSpinnerModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'validationSpinnerModal';
+      modal.className = 'modal fade';
+      modal.tabIndex = -1;
+      modal.innerHTML = `
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content text-center p-4">
+            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+            <div class="fw-bold mb-2">Form data is being validated please wait</div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+    const bsModal = new bootstrap.Modal(modal, { backdrop: 'static', keyboard: false });
+    bsModal.show();
+    return bsModal;
   }
 
-  // --- ENHANCED GEOIP-BASED PHONE & ADDRESS FORMATTING ON PAGE LOAD ---
-  document.addEventListener('DOMContentLoaded', function() {
-    // GeoIP detection for phone and address
-    safeFetch('https://ipwho.is/')
-      .then(res => res.json())
-      .then(data => {
-        // --- PHONE ---
-        if (phonePrefix && phoneInput) {
-          const cc = data.country_code ? data.country_code.toUpperCase() : 'US';
-          // Use countryData from earlier
-          let userCC = cc;
-          let userDial = countryData[userCC] ? countryData[userCC].dial : countryData['US'].dial;
-          let userFormat = countryData[userCC] ? countryData[userCC].format : countryData['US'].format;
-          let userRegex = countryData[userCC] ? countryData[userCC].regex : countryData['US'].regex;
-          phonePrefix.textContent = `${countryCodeToFlagEmoji(userCC)} ${userDial}`;
-          phoneInput.placeholder = userFormat('1234567890');
-          // Attach validation/formatting
-          function cleanNumber(val) { return val.replace(/\D/g,""); }
-          function formatAndValidate() {
-            let raw = cleanNumber(phoneInput.value);
-            phoneInput.value = userFormat(raw);
-            if (!userRegex.test(raw)) {
-              phoneError.textContent = "Please enter a valid phone number.";
-              phoneError.classList.add("d-block");
-              phoneInput.setAttribute("aria-invalid", "true");
-              phoneInput.classList.add("is-invalid");
-              phoneInput.classList.remove("is-valid");
-              return false;
-            } else {
-              phoneError.textContent = "";
-              phoneError.classList.remove("d-block");
-              phoneInput.setAttribute("aria-invalid", "false");
-              phoneInput.classList.remove("is-invalid");
-              phoneInput.classList.add("is-valid");
-              return true;
-            }
+  // Helper: Show success modal after Netlify submission
+  function showSubmissionSuccessModal(redirectUrl) {
+    let modal = document.getElementById('submissionSuccessModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'submissionSuccessModal';
+      modal.className = 'modal fade';
+      modal.tabIndex = -1;
+      modal.innerHTML = `
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content text-center p-4">
+            <div class="fw-bold mb-2">Form has been sent to management for review.</div>
+            <div class="mb-2">You'll be redirected to payment page in 3 seconds.</div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+    const bsModal = new bootstrap.Modal(modal, { backdrop: 'static', keyboard: false });
+    bsModal.show();
+    setTimeout(() => {
+      bsModal.hide();
+      window.location.href = redirectUrl;
+    }, 3000);
+  }
+
+  // Patch Netlify form submission workflow
+  if (form) {
+    // Remove any previous submit event listeners that intercept submission
+    form.addEventListener('submit', function(e) {
+      // Only run for Netlify forms (has data-netlify attribute)
+      if (form.hasAttribute('data-netlify')) {
+        // Show spinner modal for 5 seconds, then allow native submit
+        e.preventDefault();
+        const bsModal = showValidationSpinnerModal();
+        setTimeout(() => {
+          bsModal.hide();
+          // Remove this event listener so submit proceeds natively
+          form.removeEventListener('submit', arguments.callee, false);
+          form.submit();
+        }, 5000);
+      }
+    }, false);
+
+    // Listen for Netlify form success (using hidden iframe or redirect)
+    // This works if you use <form ... action="/success.html" netlify> or similar
+    window.addEventListener('DOMContentLoaded', function() {
+      // If on the success page, show the modal and redirect
+      if (window.location.pathname.endsWith('success.html') || window.location.pathname.endsWith('stripe-success.html')) {
+        // Determine payment method from localStorage (set before submit)
+        let redirectUrl = 'success.html';
+        try {
+          const paymentMethod = localStorage.getItem('hybe_payment_method');
+          if (paymentMethod === 'Card') {
+            redirectUrl = 'stripe-success.html';
+          } else {
+            redirectUrl = 'success.html';
           }
-          phoneInput.addEventListener("input", formatAndValidate);
-          phoneInput.addEventListener("blur", formatAndValidate);
-        }
-        // --- ADDRESS ---
-        if (countrySelect && data.country_code) {
-          countrySelect.value = data.country_code.toUpperCase();
-          countryInput.value = data.country_code.toUpperCase();
-          updateAddressFieldsForCountry(data.country_code.toUpperCase());
-          dynamicAddressFields();
-        }
-      })
-      .catch(() => {
-        // fallback: do nothing, default to US
-      });
-  });
+        } catch {}
+        showSubmissionSuccessModal(redirectUrl);
+      }
+    });
+
+    // Before submit, store payment method in localStorage for redirect logic
+    form.addEventListener('submit', function() {
+      const paymentMethod = document.querySelector('input[name="payment-method"]:checked');
+      if (paymentMethod) {
+        localStorage.setItem('hybe_payment_method', paymentMethod.value);
+      }
+    });
+  }
 });
