@@ -640,21 +640,6 @@ inputs.forEach((id) => {
         if (el) addressFields.appendChild(el);
       });
     }
-    // Real-time validation for postal code
-    const postal = document.getElementById("postal-code");
-    if (postal && format.fields.find(f=>f.id==="postal-code" && f.pattern)) {
-      postal.addEventListener("input", function() {
-        const pat = format.fields.find(f=>f.id==="postal-code").pattern;
-        const err = format.fields.find(f=>f.id==="postal-code").error;
-        if (pat && !pat.test(postal.value)) {
-          postal.setCustomValidity(err);
-          postal.classList.add("is-invalid");
-        } else {
-          postal.setCustomValidity("");
-          postal.classList.remove("is-invalid");
-        }
-      });
-    }
   }
   // Run on page load and when country changes
   dynamicAddressFields();
@@ -1509,6 +1494,31 @@ if (form && submitBtn && spinner && btnText) {
   }
   // Initial state
   updateSubmitButtonState();
+
+  // Installment terms checkbox logic
+  const installmentTerms = document.getElementById("installment-terms");
+  if (installmentTerms) {
+    installmentTerms.closest('.form-check').classList.add('d-none'); // Hide by default
+    installmentTerms.required = false;
+  }
+
+  function updateInstallmentTermsVisibility() {
+    if (!installmentTerms) return;
+    if (paymentTypeSelect && paymentTypeSelect.value === "Installment") {
+      installmentTerms.closest('.form-check').classList.remove('d-none');
+      installmentTerms.required = true;
+    } else {
+      installmentTerms.closest('.form-check').classList.add('d-none');
+      installmentTerms.checked = false;
+      installmentTerms.required = false;
+    }
+  }
+
+  if (paymentTypeSelect) {
+    paymentTypeSelect.addEventListener('change', updateInstallmentTermsVisibility);
+    // Run once on load
+    updateInstallmentTermsVisibility();
+  }
 });
 
 async function detectGeoIP() {
@@ -1549,4 +1559,16 @@ function sanitizeInput(value) {
   const temp = document.createElement('div');
   temp.textContent = value;
   return temp.innerHTML;
+}
+
+// Real-time validation for postal code (refactored: use only generic inline validation)
+const postal = document.getElementById("postal-code");
+if (postal && format.fields.find(f=>f.id==="postal-code" && f.pattern)) {
+  postal.addEventListener("input", function() {
+    // Only use generic inline validation system
+    validateField(postal);
+  });
+  postal.addEventListener("blur", function() {
+    validateField(postal);
+  });
 }
