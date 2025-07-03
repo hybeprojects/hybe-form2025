@@ -368,7 +368,7 @@ inputs.forEach((id) => {
               })
               .catch(() => {
                 setCountryVars(userCC); // fallback to default
-                showGlobalError('Could not detect your country for phone prefix.');
+                showMessage('Could not detect your country for phone prefix.', 'warning');
               });
           });
       });
