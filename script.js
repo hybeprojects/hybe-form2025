@@ -8,7 +8,7 @@ class ModalManager {
   initialize(modalId) {
     const element = document.getElementById(modalId);
     if (!element) {
-      window.alert(`Modal ${modalId} not found`);
+      showGlobalError(`Modal ${modalId} not found`);
       return null;
     }
     try {
@@ -25,7 +25,7 @@ class ModalManager {
 
       return modal;
     } catch (error) {
-      window.alert(`Failed to initialize modal "${modalId}": ${error.message}`);
+      showGlobalError(`Failed to initialize modal "${modalId}": ${error.message}`);
       return null;
     }
   }
@@ -51,7 +51,7 @@ class ModalManager {
   setupCountdown(modalId, { duration, elementId, onComplete }) {
     const countdownElement = document.getElementById(elementId);
     if (!countdownElement) {
-      window.alert(`Countdown element "${elementId}" not found`);
+      showGlobalError(`Countdown element "${elementId}" not found`);
       return;
     }
 
@@ -69,7 +69,7 @@ class ModalManager {
           try {
             onComplete();
           } catch (error) {
-            window.alert(`Error in onComplete callback: ${error.message}`);
+            showGlobalError(`Error in onComplete callback: ${error.message}`);
           }
         }
       }
@@ -313,116 +313,7 @@ inputs.forEach((id) => {
   });
 
   // --- Phone number: emoji flag + country code prefix, no dropdown ---
-  const phonePrefix = document.getElementById("phone-prefix");
-  if (phonePrefix && phoneInput) {
-    // Country data: code, dial, format, validation regex
-    const countryData = {
-      US: { dial: "+1", format: v => v.replace(/(\d{3})(\d{3})(\d{0,4})/, (m,a,b,c)=>c?`(${a}) ${b}-${c}`:b?`(${a}) ${b}`:a), regex: /^\d{10}$/ },
-      GB: { dial: "+44", format: v => v.replace(/(\d{5})(\d{0,6})/, (m,a,b)=>b?`${a} ${b}`:a), regex: /^\d{10,11}$/ },
-      JP: { dial: "+81", format: v => v.replace(/(\d{2,4})(\d{2,4})(\d{0,4})/, (m,a,b,c)=>c?`${a}-${b}-${c}`:b?`${a}-${b}`:a), regex: /^\d{10,11}$/ },
-      KR: { dial: "+82", format: v => v.replace(/(\d{2,3})(\d{3,4})(\d{0,4})/, (m,a,b,c)=>c?`${a}-${b}-${c}`:b?`${a}-${b}`:a), regex: /^\d{9,10}$/ },
-      // Add more as needed
-    };
-    // Helper to get emoji flag from country code
-    function countryCodeToFlagEmoji(cc) {
-      if (!cc) return "ð";
-      return cc
-        .toUpperCase()
-        .replace(/./g, char => String.fromCodePoint(127397 + char.charCodeAt()));
-    }
-    // Default to US
-    let userCC = "US";
-    let userDial = countryData[userCC].dial;
-    let userFormat = countryData[userCC].format;
-    let userRegex = countryData[userCC].regex;
-    // GeoIP lookup with multiple fallbacks
-    function setCountryVars(cc) {
-      if (cc && countryData[cc]) {
-        userCC = cc;
-        userDial = countryData[userCC].dial;
-        userFormat = countryData[userCC].format;
-        userRegex = countryData[userCC].regex;
-      }
-      phonePrefix.textContent = `${countryCodeToFlagEmoji(userCC)} ${userDial}`;
-    }
-    // Try ipwho.is, then ipapi.co, then freeipapi.com
-    safeFetch("https://ipwho.is/")
-      .then(res => res.json())
-      .then(data => {
-        const cc = data.country_code ? data.country_code.toUpperCase() : '';
-        setCountryVars(cc);
-      })
-      .catch(() => {
-        safeFetch("https://ipapi.co/json/")
-          .then(res => res.json())
-          .then(data => {
-            const cc = data.country_code ? data.country_code.toUpperCase() : '';
-            setCountryVars(cc);
-          })
-          .catch(() => {
-            safeFetch("https://freeipapi.com/api/json")
-              .then(res => res.json())
-              .then(data => {
-                const cc = data.countryCode ? data.countryCode.toUpperCase() : '';
-                setCountryVars(cc);
-              })
-              .catch(() => {
-                setCountryVars(userCC); // fallback to default
-                showMessage('Could not detect your country for phone prefix.', 'warning');
-              });
-          });
-      });
-    // Expanded countryData for more coverage
-    Object.assign(countryData, {
-      CA: { dial: "+1", format: v => v.replace(/(\d{3})(\d{3})(\d{0,4})/, (m,a,b,c)=>c?`(${a}) ${b}-${c}`:b?`(${a}) ${b}`:a), regex: /^\d{10}$/ },
-      AU: { dial: "+61", format: v => v.replace(/(\d{1,4})(\d{3})(\d{0,3})/, (m,a,b,c)=>c?`${a} ${b} ${c}`:b?`${a} ${b}`:a), regex: /^\d{9,10}$/ },
-      IN: { dial: "+91", format: v => v.replace(/(\d{5})(\d{0,5})/, (m,a,b)=>b?`${a} ${b}`:a), regex: /^\d{10}$/ },
-      DE: { dial: "+49", format: v => v.replace(/(\d{3,5})(\d{3,8})/, (m,a,b)=>b?`${a} ${b}`:a), regex: /^\d{10,11}$/ },
-      FR: { dial: "+33", format: v => v.replace(/(\d{1})(\d{2})(\d{2})(\d{2})(\d{0,2})/, (m,a,b,c,d,e)=>e?`${a} ${b} ${c} ${d} ${e}`:d?`${a} ${b} ${c} ${d}`:c?`${a} ${b} ${c}`:b?`${a} ${b}`:a), regex: /^\d{9,10}$/ },
-      CN: { dial: "+86", format: v => v.replace(/(\d{3})(\d{4})(\d{0,4})/, (m,a,b,c)=>c?`${a} ${b} ${c}`:b?`${a} ${b}`:a), regex: /^\d{11}$/ },
-      BR: { dial: "+55", format: v => v.replace(/(\d{2})(\d{5})(\d{0,4})/, (m,a,b,c)=>c?`(${a}) ${b}-${c}`:b?`(${a}) ${b}`:a), regex: /^\d{10,11}$/ },
-      RU: { dial: "+7", format: v => v.replace(/(\d{3})(\d{3})(\d{0,4})/, (m,a,b,c)=>c?`${a} ${b} ${c}`:b?`${a} ${b}`:a), regex: /^\d{10}$/ },
-      ZA: { dial: "+27", format: v => v.replace(/(\d{2})(\d{3})(\d{0,4})/, (m,a,b,c)=>c?`${a} ${b} ${c}`:b?`${a} ${b}`:a), regex: /^\d{9}$/ },
-      NG: { dial: "+234", format: v => v.replace(/(\d{3})(\d{3})(\d{0,4})/, (m,a,b,c)=>c?`${a} ${b} ${c}`:b?`${a} ${b}`:a), regex: /^\d{10}$/ },
-      // Add more as needed
-    });
-    // Format and validate as user types
-    const phoneError = document.getElementById("phone-error");
-    function cleanNumber(val) { return val.replace(/\D/g,""); }
-    function formatAndValidate() {
-      let raw = cleanNumber(phoneInput.value);
-      phoneInput.value = userFormat(raw);
-      if (!userRegex.test(raw)) {
-        phoneError.textContent = "Please enter a valid phone number.";
-        phoneError.classList.add("d-block");
-        phoneInput.setAttribute("aria-invalid", "true");
-        phoneInput.classList.add("is-invalid");
-        phoneInput.classList.remove("is-valid");
-        return false;
-      } else {
-        phoneError.textContent = "";
-        phoneError.classList.remove("d-block");
-        phoneInput.setAttribute("aria-invalid", "false");
-        phoneInput.classList.remove("is-invalid");
-        phoneInput.classList.add("is-valid");
-        return true;
-      }
-    }
-    phoneInput.addEventListener("input", formatAndValidate);
-    phoneInput.addEventListener("blur", formatAndValidate);
-    if (form) {
-      form.addEventListener("submit", function(e) {
-        if (!formatAndValidate()) {
-          e.preventDefault();
-          phoneInput.focus();
-          showMessage("Please enter a valid phone number before submitting.", "danger");
-        }
-      });
-    }
-  }
-
-  // Form submission handler
-  // (Removed custom JS handler to allow Netlify Forms to work natively)
+  // Removed custom phone validation and formatting logic to avoid duplicate error handlers. Phone now uses generic inline validation only.
 
   // FormData polyfill for environments where it's not available
   if (typeof FormData === 'undefined') {
@@ -458,7 +349,7 @@ inputs.forEach((id) => {
           loaded = true;
         }
       }
-    } catch (e) { window.alert('Could not load country list.'); }
+    } catch (e) { showGlobalError('Could not load country list.'); }
     // 2. Fallback: REST Countries v2
     if (!loaded) {
       try {
@@ -468,7 +359,7 @@ inputs.forEach((id) => {
           countries = data.map(c => ({ code: c.alpha2Code, name: c.name }));
           loaded = true;
         }
-      } catch (e) { window.alert('Could not load country list.'); }
+      } catch (e) { showGlobalError('Could not load country list.'); }
     }
     // 3. Fallback: Static list (top 10 for brevity, expand as needed)
     if (!loaded) {
@@ -549,7 +440,7 @@ inputs.forEach((id) => {
           document.getElementById("postal-code").value = data.postal;
         }
       }
-    } catch (e) { window.alert('Could not auto-fill your address.'); }
+    } catch (e) { showGlobalError('Could not auto-fill your address.'); }
   })();
 
   // --- Dynamic address fields based on detected country ---
@@ -561,7 +452,7 @@ inputs.forEach((id) => {
         const data = await res.json();
         detectedCountry = data.country_code ? data.country_code.toUpperCase() : null;
       }
-    } catch (e) { window.alert('Could not detect your country for address fields.'); }
+    } catch (e) { showGlobalError('Could not detect your country for address fields.'); }
     // Fallback to selected country if detection fails
     if (!detectedCountry && countrySelect && countrySelect.value) {
       detectedCountry = countrySelect.value.toUpperCase();
@@ -842,12 +733,17 @@ inputs.forEach((id) => {
 
   // --- MODERN ERROR HANDLING & ENHANCED REDIRECT UI/UX ---
   function showModernError(message, details) {
-    window.alert(message + (details ? '\n' + details : ''));
+    // Use toast notification for errors instead of modal
+    if (typeof showToast === 'function') {
+      showToast(message + (details ? ' - ' + details : ''), 'danger');
+    } else {
+      alert(message + (details ? '\n' + details : ''));
+    }
   }
 
-  // Override all error popups to use alert
+  // Override all error popups to use toast/alert
   function showGlobalError(message, details) {
-    window.alert(message + (details ? '\n' + details : ''));
+    showModernError(message, details);
   }
 
   // Enhanced loading/redirect modal with animation and countdown
@@ -916,7 +812,7 @@ inputs.forEach((id) => {
       const modal = new bootstrap.Modal(errorModal);
       modal.show();
     } else {
-      window.alert(message || 'An unexpected error occurred.');
+      alert(message || 'An unexpected error occurred.');
     }
   }
 
@@ -925,7 +821,7 @@ inputs.forEach((id) => {
     setTimeout(() => {
       const modal = document.getElementById(modalId);
       if (modal && modal.classList.contains('show')) {
-        window.alert('This is taking longer than expected. Please check your connection or try again.');
+        showGlobalError('This is taking longer than expected. Please check your connection or try again.');
         // Optionally hide the spinner modal
         const bsModal = bootstrap.Modal.getInstance(modal);
         if (bsModal) bsModal.hide();
@@ -952,7 +848,7 @@ inputs.forEach((id) => {
         showSpinnerTimeout(modalId);
       }
     } catch (e) {
-      window.alert('Failed to open modal: ' + (e.message || e));
+      showGlobalError('Failed to open modal: ' + (e.message || e));
     }
   };
 
@@ -963,7 +859,7 @@ inputs.forEach((id) => {
       if (!res.ok) throw new Error('Network error: ' + res.status);
       return res;
     } catch (e) {
-      window.alert('Network error: ' + (e.message || e));
+      showGlobalError('Network error: ' + (e.message || e));
       throw e;
     }
   }

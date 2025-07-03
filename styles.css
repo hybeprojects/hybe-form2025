@@ -467,3 +467,30 @@ footer a[lang='ko'] {
 #country-select.is-invalid {
   border-color: #dc3545;
 }
+
+/* Global toast container */
+.global-toast-container {
+  z-index: 1080;
+  min-width: 320px;
+}
+
+/* Icon and spinner sizes */
+.icon-3rem {
+  font-size: 3rem;
+}
+
+.spinner-3rem {
+  width: 3rem !important;
+  height: 3rem !important;
+}
+
+/* Phone prefix styling */
+.phone-prefix-rounded {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+
+/* Form message spacing */
+.form-message-spacing {
+  margin-top: 1rem !important;
+}
