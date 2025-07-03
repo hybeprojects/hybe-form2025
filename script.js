@@ -1153,7 +1153,8 @@ const validationRules = {
   },
   'phone': {
     required: true,
-    pattern: /^\+?\d{7,15}$/,
+    // Accepts numbers, spaces, dashes, parentheses, and optional leading +
+    pattern: /^\+?[\d\s\-()]{7,20}$/,
     message: 'Please enter a valid phone number.'
   },
   'address-line1': {
