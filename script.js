@@ -375,7 +375,12 @@ inputs.forEach((id) => {
         { code: 'BR', name: 'Brazil' },
         { code: 'CA', name: 'Canada' }
       ];
-      showMessage('Could not load full country list. Using fallback.', 'warning');
+      // Only show toast if country is not set after all attempts
+      setTimeout(() => {
+        if (!countrySelect.value) {
+          showToast('Could not auto-detect your country. Please select it manually from the list.', 'warning');
+        }
+      }, 500); // Delay to allow dropdown to update
     }
     // Sort and populate
     countries.sort((a, b) => a.name.localeCompare(b.name));
@@ -412,12 +417,15 @@ inputs.forEach((id) => {
         }
       } catch (e) {
         // Retry once, then show toast if still fails
-        if (attempts === 1 && !countrySet) {
-          showToast('Could not auto-select your country. You can select it manually.', 'warning');
-        }
       }
       attempts++;
     }
+    // Only show toast if country is not set after all attempts
+    setTimeout(() => {
+      if (!countrySelect.value) {
+        showToast('Could not auto-detect your country. Please select it manually from the list.', 'warning');
+      }
+    }, 500); // Delay to allow dropdown to update
   }
 
   // Initial population of country dropdown
