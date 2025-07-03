@@ -1278,29 +1278,36 @@ if (form && submitBtn && spinner && btnText) {
     btnText.textContent = 'Submitting...';
     e.preventDefault();
     const formData = new FormData(form);
-    try {
-      const res = await fetch('/.netlify/functions/submit-form', {
-        method: 'POST',
-        body: formData
-      });
-      if (!res.ok) throw new Error('Network error');
-      // Success feedback
-      showToast('Subscription submitted! Redirecting...', 'success', 3000);
-      setTimeout(() => {
-        window.location.href = 'success.html';
-      }, 2000);
-    } catch (err) {
-      // Retry logic
-      let retry = confirm('Submission failed. Would you like to retry?\n' + (err.message || ''));
-      if (retry) {
-        submitBtn.disabled = false;
-        spinner.classList.add('d-none');
-        btnText.textContent = 'Submit Subscription';
+    let attempt = 0;
+    const maxRetries = 2;
+    let lastError = null;
+    while (attempt <= maxRetries) {
+      try {
+        const res = await fetch('/.netlify/functions/submit-form', {
+          method: 'POST',
+          body: formData
+        });
+        if (!res.ok) throw new Error('Network error');
+        // Success feedback
+        showToast('Subscription submitted! Redirecting...', 'success', 3000);
+        setTimeout(() => {
+          window.location.href = 'success.html';
+        }, 2000);
         return;
-      } else {
-        showModernError('Submission failed. Please try again later.', err.message);
+      } catch (err) {
+        lastError = err;
+        attempt++;
+        if (attempt > maxRetries) break;
+        // Wait a bit before retrying
+        await new Promise(r => setTimeout(r, 800));
       }
     }
+    // If we reach here, all retries failed
+    showToast(
+      'Submission failed after multiple attempts. Please check your connection or try again later. ' + (lastError && lastError.message ? `Error: ${lastError.message}` : ''),
+      'danger',
+      0 // 0 = persistent until user closes
+    );
     submitBtn.disabled = false;
     spinner.classList.add('d-none');
     btnText.textContent = 'Submit Subscription';
