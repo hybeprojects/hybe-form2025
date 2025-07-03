@@ -1308,8 +1308,7 @@ if (form && submitBtn && spinner && btnText) {
 }
 
 // === REAL-TIME SUBMIT BUTTON ENABLE/DISABLE LOGIC ===
-  function isFormValidRealtime() {
-    // List all required fields by their IDs or selectors
+  function isFormValidRealtime(debug = false) {
     const requiredFields = [
       fullNameInput,
       emailInput,
@@ -1327,67 +1326,69 @@ if (form && submitBtn && spinner && btnText) {
       countrySelect,
       // Add more if needed
     ];
-    // Check all required fields for value and validity
+    let debugList = [];
     for (const field of requiredFields) {
       if (!field) continue;
       if (field.required !== false && (field.value === undefined || field.value === null || field.value === "")) {
-        return false;
+        if (debug) debugList.push(field.name || field.id || field);
+        else return false;
       }
       if (typeof field.checkValidity === "function" && !field.checkValidity()) {
-        return false;
+        if (debug) debugList.push(field.name || field.id || field);
+        else return false;
       }
     }
-    // Check contact-method radio
     if (!document.querySelector('input[name="contact-method"]:checked')) {
-      return false;
+      if (debug) debugList.push("contact-method");
+      else return false;
     }
-    // Check payment-method radio if visible
     const paymentMethodInputs = document.querySelectorAll('input[name="payment-method"]');
     let paymentMethodRequired = false;
     paymentMethodInputs.forEach(input => {
       if (!input.closest('.d-none')) paymentMethodRequired = true;
     });
     if (paymentMethodRequired && !document.querySelector('input[name="payment-method"]:checked')) {
-      return false;
+      if (debug) debugList.push("payment-method");
+      else return false;
     }
-    // If Installment is selected, check installment-plan
     if (paymentTypeSelect && paymentTypeSelect.value === "Installment") {
       const installmentPlan = document.getElementById("installment-plan");
       if (installmentPlan && (!installmentPlan.value || !installmentPlan.checkValidity())) {
-        return false;
+        if (debug) debugList.push("installment-plan");
+        else return false;
       }
     }
-    // All checks passed
+    if (debug) return debugList;
     return true;
+  }
+
+  // Debug message element
+  let debugMsg = document.getElementById('form-debug-msg');
+  if (!debugMsg && submitBtn) {
+    debugMsg = document.createElement('div');
+    debugMsg.id = 'form-debug-msg';
+    debugMsg.style.color = 'red';
+    debugMsg.style.fontSize = '0.95em';
+    debugMsg.style.marginTop = '0.5em';
+    submitBtn.parentNode.insertBefore(debugMsg, submitBtn.nextSibling);
   }
 
   function updateSubmitButtonState() {
     if (!submitBtn) return;
-    submitBtn.disabled = !isFormValidRealtime();
+    const valid = isFormValidRealtime();
+    submitBtn.disabled = !valid;
+    if (!valid) {
+      const missing = isFormValidRealtime(true);
+      if (debugMsg) {
+        debugMsg.textContent =
+          missing.length > 0
+            ? `Cannot submit: missing/invalid → ${missing.join(", ")}`
+            : '';
+      }
+    } else {
+      if (debugMsg) debugMsg.textContent = '';
+    }
   }
-
-  // Attach real-time validation listeners
-  const realtimeFields = [
-    fullNameInput, emailInput, phoneInput, dobInput, genderSelect, branchSelect, groupSelect, artistSelect, paymentTypeSelect,
-    document.getElementById("address-line1"), document.getElementById("city"), document.getElementById("state"), document.getElementById("postal-code"), countrySelect
-  ];
-  realtimeFields.forEach(field => {
-    if (field) field.addEventListener("input", updateSubmitButtonState);
-    if (field) field.addEventListener("change", updateSubmitButtonState);
-  });
-  document.querySelectorAll('input[name="contact-method"]').forEach(input => {
-    input.addEventListener("change", updateSubmitButtonState);
-  });
-  document.querySelectorAll('input[name="payment-method"]').forEach(input => {
-    input.addEventListener("change", updateSubmitButtonState);
-  });
-  const installmentPlan = document.getElementById("installment-plan");
-  if (installmentPlan) {
-    installmentPlan.addEventListener("input", updateSubmitButtonState);
-    installmentPlan.addEventListener("change", updateSubmitButtonState);
-  }
-  // Initial state
-  updateSubmitButtonState();
 
   // Installment terms checkbox logic
   const installmentTerms = document.getElementById("installment-terms");
