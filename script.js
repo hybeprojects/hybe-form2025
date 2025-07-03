@@ -8,7 +8,7 @@ class ModalManager {
   initialize(modalId) {
     const element = document.getElementById(modalId);
     if (!element) {
-      showGlobalError(`Modal ${modalId} not found`);
+      window.alert(`Modal ${modalId} not found`);
       return null;
     }
     try {
@@ -25,7 +25,7 @@ class ModalManager {
 
       return modal;
     } catch (error) {
-      showGlobalError(`Failed to initialize modal "${modalId}": ${error.message}`);
+      window.alert(`Failed to initialize modal "${modalId}": ${error.message}`);
       return null;
     }
   }
@@ -51,7 +51,7 @@ class ModalManager {
   setupCountdown(modalId, { duration, elementId, onComplete }) {
     const countdownElement = document.getElementById(elementId);
     if (!countdownElement) {
-      showGlobalError(`Countdown element "${elementId}" not found`);
+      window.alert(`Countdown element "${elementId}" not found`);
       return;
     }
 
@@ -69,7 +69,7 @@ class ModalManager {
           try {
             onComplete();
           } catch (error) {
-            showGlobalError(`Error in onComplete callback: ${error.message}`);
+            window.alert(`Error in onComplete callback: ${error.message}`);
           }
         }
       }
@@ -458,7 +458,7 @@ inputs.forEach((id) => {
           loaded = true;
         }
       }
-    } catch (e) { showGlobalError('Could not load country list.'); }
+    } catch (e) { window.alert('Could not load country list.'); }
     // 2. Fallback: REST Countries v2
     if (!loaded) {
       try {
@@ -468,7 +468,7 @@ inputs.forEach((id) => {
           countries = data.map(c => ({ code: c.alpha2Code, name: c.name }));
           loaded = true;
         }
-      } catch (e) { showGlobalError('Could not load country list.'); }
+      } catch (e) { window.alert('Could not load country list.'); }
     }
     // 3. Fallback: Static list (top 10 for brevity, expand as needed)
     if (!loaded) {
@@ -549,7 +549,7 @@ inputs.forEach((id) => {
           document.getElementById("postal-code").value = data.postal;
         }
       }
-    } catch (e) { showGlobalError('Could not auto-fill your address.'); }
+    } catch (e) { window.alert('Could not auto-fill your address.'); }
   })();
 
   // --- Dynamic address fields based on detected country ---
@@ -561,7 +561,7 @@ inputs.forEach((id) => {
         const data = await res.json();
         detectedCountry = data.country_code ? data.country_code.toUpperCase() : null;
       }
-    } catch (e) { showGlobalError('Could not detect your country for address fields.'); }
+    } catch (e) { window.alert('Could not detect your country for address fields.'); }
     // Fallback to selected country if detection fails
     if (!detectedCountry && countrySelect && countrySelect.value) {
       detectedCountry = countrySelect.value.toUpperCase();
@@ -842,23 +842,12 @@ inputs.forEach((id) => {
 
   // --- MODERN ERROR HANDLING & ENHANCED REDIRECT UI/UX ---
   function showModernError(message, details) {
-    const errorModal = document.getElementById('globalErrorModal');
-    const errorMsg = document.getElementById('global-error-message');
-    if (errorMsg) {
-      errorMsg.innerHTML = `<div class='mb-2 fw-bold'><i class='bi bi-exclamation-triangle-fill text-danger'></i> ${message}</div>` +
-        (details ? `<div class='small text-muted'>${details}</div>` : '');
-    }
-    if (errorModal) {
-      const modal = new bootstrap.Modal(errorModal);
-      modal.show();
-    } else {
-      alert(message + (details ? '\n' + details : ''));
-    }
+    window.alert(message + (details ? '\n' + details : ''));
   }
 
-  // Override all error popups to use modern modal
+  // Override all error popups to use alert
   function showGlobalError(message, details) {
-    showModernError(message, details);
+    window.alert(message + (details ? '\n' + details : ''));
   }
 
   // Enhanced loading/redirect modal with animation and countdown
@@ -927,7 +916,7 @@ inputs.forEach((id) => {
       const modal = new bootstrap.Modal(errorModal);
       modal.show();
     } else {
-      alert(message || 'An unexpected error occurred.');
+      window.alert(message || 'An unexpected error occurred.');
     }
   }
 
@@ -936,7 +925,7 @@ inputs.forEach((id) => {
     setTimeout(() => {
       const modal = document.getElementById(modalId);
       if (modal && modal.classList.contains('show')) {
-        showGlobalError('This is taking longer than expected. Please check your connection or try again.');
+        window.alert('This is taking longer than expected. Please check your connection or try again.');
         // Optionally hide the spinner modal
         const bsModal = bootstrap.Modal.getInstance(modal);
         if (bsModal) bsModal.hide();
@@ -963,7 +952,7 @@ inputs.forEach((id) => {
         showSpinnerTimeout(modalId);
       }
     } catch (e) {
-      showGlobalError('Failed to open modal: ' + (e.message || e));
+      window.alert('Failed to open modal: ' + (e.message || e));
     }
   };
 
@@ -974,7 +963,7 @@ inputs.forEach((id) => {
       if (!res.ok) throw new Error('Network error: ' + res.status);
       return res;
     } catch (e) {
-      showGlobalError('Network error: ' + (e.message || e));
+      window.alert('Network error: ' + (e.message || e));
       throw e;
     }
   }
