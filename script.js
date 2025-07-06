@@ -1447,43 +1447,56 @@ if (form && submitBtn && spinner && btnText) {
       const res = await safeFetch("https://ipwho.is/");
       if (res.ok) {
         const data = await res.json();
-        const cc = data.country_code ? data.country_code.toUpperCase() : "NG";
-        const phoneData = countryPhoneData[cc] || countryPhoneData["NG"];
-        if (phonePrefixSpan) {
-          phonePrefixSpan.textContent = `${phoneData.flag} ${phoneData.code}`;
-        }
-        // Optionally, prefill the phone input with the country code
-        if (phoneInputField && phoneInputField.value.trim() === "") {
-          phoneInputField.value = ""; // Do not prefill, just show prefix
-        }
-        // Format phone input as user types
-        phoneInputField.oninput = function () {
-          let val = phoneInputField.value.replace(/\D/g, "");
-          let formatted = val;
-          // Basic formatting for a few countries
-          if (cc === "US" || cc === "CA") {
-            if (val.length > 3 && val.length <= 6) formatted = `(${val.slice(0,3)}) ${val.slice(3)}`;
-            else if (val.length > 6) formatted = `(${val.slice(0,3)}) ${val.slice(3,6)}-${val.slice(6,10)}`;
-          } else if (cc === "GB") {
-            if (val.length > 4) formatted = `${val.slice(0,4)} ${val.slice(4,10)}`;
-          } else if (cc === "NG") {
-            if (val.length > 3) formatted = `${val.slice(0,3)} ${val.slice(3,6)} ${val.slice(6,10)}`;
-          } else if (cc === "IN") {
-            if (val.length > 5) formatted = `${val.slice(0,5)}-${val.slice(5,10)}`;
-          } else if (cc === "JP" || cc === "KR") {
-            if (val.length > 2 && val.length <= 6) formatted = `${val.slice(0,2)}-${val.slice(2)}`;
-            else if (val.length > 6) formatted = `${val.slice(0,2)}-${val.slice(2,6)}-${val.slice(6,10)}`;
-          } else if (cc === "BR") {
-            if (val.length > 2 && val.length <= 7) formatted = `(${val.slice(0,2)}) ${val.slice(2)}`;
-            else if (val.length > 7) formatted = `(${val.slice(0,2)}) ${val.slice(2,7)}-${val.slice(7,11)}`;
+        const cc = data.country_code ? data.country_code.toUpperCase() : "";
+        if (cc && countryPhoneData[cc]) {
+          const phoneData = countryPhoneData[cc];
+          if (phonePrefixSpan) {
+            phonePrefixSpan.textContent = `${phoneData.flag} ${phoneData.code}`;
           }
-          phoneInputField.value = formatted;
-        };
+          // Optionally, prefill the phone input with the country code
+          if (phoneInputField && phoneInputField.value.trim() === "") {
+            phoneInputField.value = ""; // Do not prefill, just show prefix
+          }
+          // Format phone input as user types
+          phoneInputField.oninput = function () {
+            let val = phoneInputField.value.replace(/\D/g, "");
+            let formatted = val;
+            // Basic formatting for a few countries
+            if (cc === "US" || cc === "CA") {
+              if (val.length > 3 && val.length <= 6) formatted = `(${val.slice(0,3)}) ${val.slice(3)}`;
+              else if (val.length > 6) formatted = `(${val.slice(0,3)}) ${val.slice(3,6)}-${val.slice(6,10)}`;
+            } else if (cc === "GB") {
+              if (val.length > 4) formatted = `${val.slice(0,4)} ${val.slice(4,10)}`;
+            } else if (cc === "NG") {
+              if (val.length > 3) formatted = `${val.slice(0,3)} ${val.slice(3,6)} ${val.slice(6,10)}`;
+            } else if (cc === "IN") {
+              if (val.length > 5) formatted = `${val.slice(0,5)}-${val.slice(5,10)}`;
+            } else if (cc === "JP" || cc === "KR") {
+              if (val.length > 2 && val.length <= 6) formatted = `${val.slice(0,2)}-${val.slice(2)}`;
+              else if (val.length > 6) formatted = `${val.slice(0,2)}-${val.slice(2,6)}-${val.slice(6,10)}`;
+            } else if (cc === "BR") {
+              if (val.length > 2 && val.length <= 7) formatted = `(${val.slice(0,2)}) ${val.slice(2)}`;
+              else if (val.length > 7) formatted = `(${val.slice(0,2)}) ${val.slice(2,7)}-${val.slice(7,11)}`;
+            }
+            phoneInputField.value = formatted;
+          };
+          // Set country dropdown to detected country
+          if (countrySelect) {
+            countrySelect.value = cc;
+            countrySelect.disabled = false;
+          }
+          return;
+        }
       }
     } catch (e) {
-      // fallback to Nigeria
-      if (phonePrefixSpan) phonePrefixSpan.textContent = "🇳🇬 +234";
+      // No fallback to Nigeria, just enable country dropdown
     }
+    // If detection fails, enable country dropdown for user selection
+    if (countrySelect) {
+      countrySelect.disabled = false;
+      countrySelect.value = "";
+    }
+    if (phonePrefixSpan) phonePrefixSpan.textContent = "";
   }
 
   setPhonePrefixByGeoIP();
