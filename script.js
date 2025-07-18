@@ -1,4 +1,3 @@
-// script.js
 class ModalManager {
   constructor() {
     this.activeModals = new Map();
