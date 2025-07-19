@@ -11,7 +11,7 @@ class ModalManager {
       return null;
     }
     try {
-      "const modal = new bootstrap.Modal(element, { backdrop: 'static', keyboard: false });
+      const modal = new bootstrap.Modal(element, { backdrop: 'static', keyboard: false });
       this.activeModals.set(modalId, modal);
       element.addEventListener('hidden.bs.modal', () => this.cleanup(modalId), { once: true });
       return modal;
