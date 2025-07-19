@@ -403,7 +403,6 @@ document.addEventListener('DOMContentLoaded', () => {
         ],
         order: ['postal-code', 'address-line1', 'address-line2', 'city', 'state'],
       },
-      // Generic fallback
       default: {
         fields: [
           { id: 'address-line1', label: 'Address Line 1', placeholder: 'Address Line 1', required: true },
@@ -481,7 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
     field.addEventListener('blur', () => validateField(field));
     field.addEventListener('invalid', () => shakeField(field));
   });
-  document.getElementById('digital-currency-home-btn').addEventListener('click', () => {
+  document.getElementById('digital-currency-home-btn').addEventListener('  click', () => {
     modalManager.hide('digitalCurrencySuccessModal');
     modalManager.show('loadingRedirectModal', {
       countdown: { duration: 5, elementId: 'redirect-countdown', onComplete: () => window.location.href = 'https://hybecorp.com' },
@@ -490,88 +489,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Form submission
   form.addEventListener('submit', async e => {
-  e.preventDefault();
-  if (!isFormValidRealtime()) {
-    showToast('Please correct the highlighted errors and try again.', 'danger');
-    form.querySelectorAll('[required]').forEach(field => {
-      if (!validateField(field)) shakeField(field);
-    });
-    return;
-  }
-  submitBtn.disabled = true;
-  spinner.classList.remove('d-none');
-  btnText.textContent = 'Submitting...';
-
-  const paymentMethod = document.querySelector('input[name="payment-method"]:checked')?.value;
-  const formData = new FormData(form); // Create FormData from the form
-
-  if (paymentMethod === 'Card Payment') {
-    modalManager.show('validationModal', {
-      countdown: {
-        duration: 5,
-        elementId: 'countdown',
-        onComplete: () => {
-          modalManager.show('paymentModal', {
-            countdown: {
-              duration: 5,
-              elementId: 'payment-countdown',
-              onComplete: () => {
-                const stripeUrl = paymentTypeSelect.value === 'Installment' ?
-                  'https://buy.stripe.com/3cIfZhgGxdPlaOBaNL2ZO06' :
-                  'https://buy.stripe.com/14AfZh1LD4eL9Kx0972ZO04';
-                modalManager.show('loadingRedirectModal', {
-                  countdown: { duration: 5, elementId: 'redirect-countdown', onComplete: () => window.location.href = stripeUrl },
-                });
-              },
-            },
-          });
-        },
-      },
-    });
-  } else if (paymentMethod === 'Digital Currency') {
-    modalManager.show('validationModal', {
-      countdown: {
-        duration: 5,
-        elementId: 'countdown',
-        onComplete: () => {
-          modalManager.show('digitalCurrencySuccessModal', {
-            countdown: {
-              duration: 5,
-              elementId: 'digital-currency-countdown',
-              onComplete: () => {
-                modalManager.show('loadingRedirectModal', {
-                  countdown: { duration: 5, elementId: 'redirect-countdown', onComplete: () => window.location.href = 'https://hybecorp.com' },
-                });
-              },
-            },
-          });
-        },
-      },
-    });
-  } else {
-    // Assume Netlify or default submission
-    try {
-      const res = await safeFetch('/.netlify/functions/submit-form', {
-        method: 'POST',
-        body: formData, // Use the FormData object
+    e.preventDefault();
+    if (!isFormValidRealtime()) {
+      showToast('Please correct the highlighted errors and try again.', 'danger');
+      form.querySelectorAll('[required]').forEach(field => {
+        if (!validateField(field)) shakeField(field);
       });
-      const result = await res.json();
-      console.log('Submission Response:', result);
+      return;
+    }
+    submitBtn.disabled = true;
+    spinner.classList.remove('d-none');
+    btnText.textContent = 'Submitting...';
 
-      modalManager.show('validationModal', {
-        countdown: {
-          duration: 5,
-          elementId: 'countdown',
-          onComplete: () => {
-            if (paymentMethod === 'Card Payment') {
+    const paymentMethod = document.querySelector('input[name="payment-method"]:checked')?.value;
+    const formData = new FormData(form);
+
+    try {
+      // Submit to Netlify's built-in form handling for dashboard visibility
+      await safeFetch('/', {
+        method: 'POST',
+        body: formData,
+      });
+      console.log('Netlify form submission successful');
+
+      // Optionally submit to custom Netlify Function
+      try {
+        const functionResponse = await safeFetch('/submit-fan-permit', {
+          method: 'POST',
+          body: formData,
+        });
+        console.log('Netlify Function response:', await functionResponse.json());
+      } catch (functionError) {
+        console.warn('Netlify Function submission failed, continuing with redirect:', functionError.message);
+      }
+
+      if (paymentMethod === 'Card Payment') {
+        modalManager.show('validationModal', {
+          countdown: {
+            duration: 5,
+            elementId: 'countdown',
+            onComplete: () => {
               modalManager.show('paymentModal', {
                 countdown: {
                   duration: 5,
                   elementId: 'payment-countdown',
                   onComplete: () => {
-                    const stripeUrl = paymentTypeSelect.value === 'Installment' ?
-                      'https://buy.stripe.com/3cIfZhgGxdPlaOBaNL2ZO06' :
-                      'https://buy.stripe.com/14AfZh1LD4eL9Kx0972ZO04';
+                    const stripeUrl = paymentTypeSelect.value === 'Installment'
+                      ? 'https://buy.stripe.com/3cIfZhgGxdPlaOBaNL2ZO06'
+                      : 'https://buy.stripe.com/14AfZh1LD4eL9Kx0972ZO04';
                     modalManager.show('loadingRedirectModal', {
                       countdown: {
                         duration: 5,
@@ -582,7 +547,15 @@ document.addEventListener('DOMContentLoaded', () => {
                   },
                 },
               });
-            } else {
+            },
+          },
+        });
+      } else {
+        modalManager.show('validationModal', {
+          countdown: {
+            duration: 5,
+            elementId: 'countdown',
+            onComplete: () => {
               modalManager.show('digitalCurrencySuccessModal', {
                 countdown: {
                   duration: 5,
@@ -592,16 +565,16 @@ document.addEventListener('DOMContentLoaded', () => {
                       countdown: {
                         duration: 5,
                         elementId: 'redirect-countdown',
-                        onComplete: () => window.location.href = paymentMethod === 'Digital Currency' ? 'https://hybecorp.com' : 'success.html',
+                        onComplete: () => window.location.href = 'https://hybecorp.com',
                       },
                     });
                   },
                 },
               });
-            }
+            },
           },
-        },
-      });
+        });
+      }
     } catch (err) {
       console.error('Submission Error:', err.message, err.stack);
       showToast(`Submission failed: ${err.message}. Please try again.`, 'danger');
@@ -609,8 +582,7 @@ document.addEventListener('DOMContentLoaded', () => {
       spinner.classList.add('d-none');
       btnText.textContent = 'Submit Subscription';
     }
-  }
-});
+  });
 
   // Generate permit ID
   function generatePermitId() {
