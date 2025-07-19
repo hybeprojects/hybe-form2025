@@ -1,4 +1,4 @@
-pclass ModalManager {
+class ModalManager {
   constructor() {
     this.activeModals = new Map();
     this.activeTimers = new Map();
