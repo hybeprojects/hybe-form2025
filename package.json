@@ -12,6 +12,7 @@
     "cors": "^2.8.5",
     "dotenv": "^17.0.0",
     "express": "^5.1.0",
+    "formidable-serverless": "^1.1.1",
     "libphonenumber-js": "^1.12.9",
     "multer": "^2.0.1",
     "react": "^19.1.0",
