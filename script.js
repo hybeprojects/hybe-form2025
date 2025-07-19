@@ -515,8 +515,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 elementId: 'payment-countdown',
                 onComplete: () => {
                   const stripeUrl = paymentTypeSelect.value === 'Installment' ?
-                    'https://checkout.stripe.com/pay/cs_test_installment' :
-                    'https://checkout.stripe.com/pay/cs_test_full';
+            //installmenturl, 1st ( the first url )        
+                    'https://buy.stripe.com/3cIfZhgGxdPlaOBaNL2ZO06"' :
+                    'https://buy.stripe.com/14AfZh1LD4eL9Kx0972ZO04';
                   modalManager.show('loadingRedirectModal', {
                     countdown: { duration: 5, elementId: 'redirect-countdown', onComplete: () => window.location.href = stripeUrl },
                   });
