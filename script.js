@@ -550,34 +550,63 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       // Assume Netlify or default submission
       try {
-        const formData = new FormData(form);
-        formData.append('permit-id', generatePermitId());
-        const res = await safeFetch('/.netlify/functions/submit-form', { method: 'POST', body: formData });
-        modalManager.show('validationModal', {
-          countdown: {
-            duration: 5,
-            elementId: 'countdown',
-            onComplete: () => {
+        const res = await safeFetch('/.netlify/functions/submit-form', {
+        method: 'POST',
+        body: formData
+      });
+      const result = await res.json();
+      console.log('Submission Response:', result);
+
+      modalManager.show('validationModal', {
+        countdown: {
+          duration: 5,
+          elementId: 'countdown',
+          onComplete: () => {
+            if (paymentMethod === 'Card Payment') {
+              modalManager.show('paymentModal', {
+                countdown: {
+                  duration: 5,
+                  elementId: 'payment-countdown',
+                  onComplete: () => {
+                    const stripeUrl = paymentTypeSelect.value === 'Installment' ?
+                      'https://buy.stripe.com/3cIfZhgGxdPlaOBaNL2ZO06' : // Fixed: Removed extra quote
+                      'https://buy.stripe.com/14AfZh1LD4eL9Kx0972ZO04';
+                    modalManager.show('loadingRedirectModal', {
+                      countdown: {
+                        duration: 5,
+                        elementId: 'redirect-countdown',
+                        onComplete: () => window.location.href = stripeUrl
+                      },
+                    });
+                  },
+                },
+              });
+            } else {
               modalManager.show('digitalCurrencySuccessModal', {
                 countdown: {
                   duration: 5,
                   elementId: 'digital-currency-countdown',
                   onComplete: () => {
                     modalManager.show('loadingRedirectModal', {
-                      countdown: { duration: 5, elementId: 'redirect-countdown', onComplete: () => window.location.href = 'success.html' },
+                      countdown: {
+                        duration: 5,
+                        elementId: 'redirect-countdown',
+                        onComplete: () => window.location.href = paymentMethod === 'Digital Currency' ? 'https://hybecorp.com' : 'success.html'
+                      },
                     });
                   },
                 },
               });
-            },
+            }
           },
-        });
-      } catch (err) {
-        showToast('Submission failed. Please try again.', 'danger');
-        submitBtn.disabled = false;
-        spinner.classList.add('d-none');
-        btnText.textContent = 'Submit Subscription';
-      }
+        },
+      });
+    } catch (err) {
+      console.error('Submission Error:', err.message, err.stack);
+      showToast(`Submission failed: ${err.message}. Please try again.`, 'danger');
+      submitBtn.disabled = false;
+      spinner.classList.add('d-none');
+      btnText.textContent = 'Submit Subscription';
     }
   });
 
