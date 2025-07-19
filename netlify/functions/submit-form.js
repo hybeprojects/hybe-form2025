@@ -1,4 +1,3 @@
-// netlify/functions/submit-form.js
 const formidable = require('formidable-serverless');
 
 exports.handler = async function (event) {
