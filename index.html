@@ -307,15 +307,8 @@
                   </p>
                 </div>
 
-                <form
-                  id="subscription-form"
-                  name="subscription-form"
-                  data-netlify="true"
-                  method="POST"
-                  action="/success"
-                  autocomplete="off"
-                  novalidate
-                >
+                <form id="subscription-form" action="/success" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" name="subscription-form">
+  <input type="hidden" name="form-name" value="subscription-form">
                   <input type="hidden" name="country" id="country" />
                   <input type="hidden" name="currency" id="currency" />
                   <input type="hidden" name="language" id="language" />
