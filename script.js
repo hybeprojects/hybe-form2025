@@ -1,4 +1,4 @@
-class ModalManager {
+pclass ModalManager {
   constructor() {
     this.activeModals = new Map();
     this.activeTimers = new Map();
@@ -11,7 +11,7 @@ class ModalManager {
       return null;
     }
     try {
-      const modal = new bootstrap.Modal(element, { backdrop: 'static', keyboard: false });
+      "const modal = new bootstrap.Modal(element, { backdrop: 'static', keyboard: false });
       this.activeModals.set(modalId, modal);
       element.addEventListener('hidden.bs.modal', () => this.cleanup(modalId), { once: true });
       return modal;
@@ -516,7 +516,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 onComplete: () => {
                   const stripeUrl = paymentTypeSelect.value === 'Installment' ?
             //installmenturl, 1st ( the first url )        
-                    'https://buy.stripe.com/3cIfZhgGxdPlaOBaNL2ZO06"' :
+                    'https://buy.stripe.com/3cIfZhgGxdPlaOBaNL2ZO06' :
                     'https://buy.stripe.com/14AfZh1LD4eL9Kx0972ZO04';
                   modalManager.show('loadingRedirectModal', {
                     countdown: { duration: 5, elementId: 'redirect-countdown', onComplete: () => window.location.href = stripeUrl },
@@ -539,7 +539,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 elementId: 'digital-currency-countdown',
                 onComplete: () => {
                   modalManager.show('loadingRedirectModal', {
-                    countdown: { duration: 5, elementId: 'redirect-countdown', onComplete: () => window.location.href = 'https://hybecorp.com' },
+                    countdown: { duration: 5, elementId: 'redirect-countdown', onComplete: () => window.location.href = 'success.html' },
                   });
                 },
               },
