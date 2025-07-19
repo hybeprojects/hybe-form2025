@@ -505,3 +505,40 @@ footer a[lang='ko'] {
   text-align: center;
   word-break: break-word;
 }
+/* Social Icon Styling */
+.social-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem; /* Size of the icons */
+    color: #ffffff; /* White color as per your footer text */
+    background-color: rgba(255, 255, 255, 0.1); /* Subtle background for contrast */
+    border-radius: 50%; /* Circular shape */
+    text-decoration: none; /* Remove underline */
+    transition: all 0.3s ease; /* Smooth hover transition */
+    margin-right: 10px; /* Spacing between icons */
+}
+
+/* Hover effect for social icons */
+.social-icon:hover {
+    background-color: rgba(255, 255, 255, 0.2); /* Slightly brighter background on hover */
+    color: #f0f0f0; /* Slightly lighter white for hover effect */
+    transform: translateY(-2px); /* Subtle lift effect */
+}
+
+/* Ensure icons are not too large on smaller screens */
+@media (max-width: 576px) {
+    .social-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 1.2rem;
+        margin-right: 8px;
+    }
+}
+
+/* Fix for last icon to avoid extra margin */
+.social-icon:last-child {
+    margin-right: 0;
+}
