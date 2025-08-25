@@ -13,6 +13,18 @@
   status = 200
   force = true
 
+[[redirects]]
+  from = "/send-otp"
+  to = "/.netlify/functions/send-otp"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/verify-otp"
+  to = "/.netlify/functions/verify-otp"
+  status = 200
+  force = true
+
 [functions]
   directory = "netlify/functions"
 
