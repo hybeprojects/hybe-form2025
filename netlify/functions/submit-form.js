@@ -31,7 +31,7 @@ exports.handler = async function (event) {
     });
     netlifyFormData.append('form-name', 'subscription-form');
 
-    await fetch('https://official-hybefanpermit.netlify.app//success', {
+    await fetch('https://official-hybefanpermit.netlify.app/success', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: netlifyFormData.toString(),
