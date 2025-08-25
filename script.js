@@ -506,9 +506,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Unique ID generation function
   function generateUniqueID() {
-    const timestamp = Date.now().toString(36);
-    const randomStr = Math.random().toString(36).substr(2, 9);
-    return `HYBE-${timestamp}-${randomStr}`.toUpperCase();
+    // Generate 10 random alphanumeric characters (0-9, A-Z)
+    const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let result = '';
+    for (let i = 0; i < 10; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return `HYB${result}`;
   }
 
   // Enhanced form data preparation for Netlify
@@ -574,7 +578,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Prepare enhanced form data with unique ID
       const { formData, uniqueID, submissionTime } = prepareNetlifyFormData(form);
 
-      console.log('Generated Unique ID:', uniqueID);
+      console.log('Generated Subscription ID:', uniqueID);
       console.log('Submission Time:', submissionTime);
 
       // Submit to Netlify's built-in form handling for dashboard visibility
@@ -585,7 +589,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('Netlify form submission successful with ID:', uniqueID);
 
       // Show success message with unique ID
-      showToast(`Form submitted successfully! Your submission ID: ${uniqueID}`, 'success');
+      showToast(`Form submitted successfully! Your subscription ID: ${uniqueID}`, 'success');
 
       // Submit to custom Netlify Function with unique ID
       try {

@@ -26,7 +26,7 @@ exports.handler = async function(event) {
 
     // Log detailed submission info
     console.log('HYBE Fan-Permit Submission Received:');
-    console.log('Submission ID:', submissionId);
+    console.log('Subscription ID:', submissionId);
     console.log('Timestamp:', timestamp);
     console.log('User Info:', {
       name: data['full-name'],
@@ -44,7 +44,7 @@ exports.handler = async function(event) {
       },
       body: JSON.stringify({
         message: 'Form processed successfully',
-        submissionId: submissionId,
+        subscriptionId: submissionId,
         timestamp: timestamp,
         status: 'received'
       })

@@ -53,25 +53,26 @@
 
 ## Unique ID Generation
 
-Each form submission generates a unique ID in the format:
+Each form submission generates a unique subscription ID in the format:
 ```
-HYBE-[base36-timestamp]-[random-string]
+HYB[10-alphanumeric-characters]
 ```
 
-Example: `HYBE-LX8K7M2N-5R3W9Q2X4`
+Example: `HYBX3K9M7R2A5F`
 
-This ID is used to:
+This subscription ID is used to:
 1. Track submissions in Netlify dashboard
 2. Identify user data uniquely
 3. Reference in customer support
 4. Link payment transactions
+5. Customer subscription management
 
 ## Netlify Form Dashboard
 
 All captured data appears in your Netlify dashboard under:
 - **Site Name** → Forms → subscription-form
 - Each submission shows all field data
-- Searchable by submission-id or email
+- Searchable by subscription-id (HYB format) or email
 - Exportable to CSV/Excel
 
 ## Data Validation
@@ -94,7 +95,7 @@ All captured data appears in your Netlify dashboard under:
 - **Email**: Standard email format validation
 - **Phone**: International format with country prefix
 - **Date**: ISO date format for date of birth
-- **Submission ID**: Unique HYBE prefix format
+- **Subscription ID**: Unique HYB prefix format (13 characters total)
 
 ## Submission Flow
 
