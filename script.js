@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
     JP: { flag: '🇯🇵', code: '+81', format: 'XX-XXXX-XXXX' },
     KR: { flag: '🇰🇷', code: '+82', format: 'XX-XXXX-XXXX' },
     CN: { flag: '🇨🇳', code: '+86', format: 'XXX XXXX XXXX' },
-    FR: { flag: '🇫🇷', code: '+33', format: 'X XX XX XX XX' },
+    FR: { flag: '��🇷', code: '+33', format: 'X XX XX XX XX' },
     DE: { flag: '🇩🇪', code: '+49', format: 'XXXX XXXXXXX' },
     IN: { flag: '🇮🇳', code: '+91', format: 'XXXXX-XXXXX' },
     BR: { flag: '🇧🇷', code: '+55', format: '(XX) XXXXX-XXXX' },
@@ -693,6 +693,280 @@ document.addEventListener('DOMContentLoaded', () => {
   autofillAddressFromIP();
   updateInstallmentOptions();
   updateProgress();
+
+  // Email Verification System
+  let emailVerificationState = {
+    isVerified: false,
+    currentEmail: '',
+    verificationToken: '',
+    otpSent: false,
+    resendTimer: 0
+  };
+
+  const emailInput = document.getElementById('email');
+  const verifyEmailBtn = document.getElementById('verify-email-btn');
+  const emailVerificationModal = new bootstrap.Modal(document.getElementById('emailVerificationModal'));
+  const verificationEmail = document.getElementById('verification-email');
+  const sendOtpBtn = document.getElementById('send-otp-btn');
+  const verifyOtpBtn = document.getElementById('verify-otp-btn');
+  const resendOtpBtn = document.getElementById('resend-otp-btn');
+  const otpInput = document.getElementById('otp-input');
+  const emailUnverified = document.getElementById('email-unverified');
+  const emailVerified = document.getElementById('email-verified');
+  const submitEmailIcon = document.getElementById('submit-email-icon');
+  const submitHelpText = document.getElementById('submit-help-text');
+
+  // Update email verification status UI
+  function updateEmailVerificationUI() {
+    if (emailVerificationState.isVerified) {
+      emailUnverified.classList.add('d-none');
+      emailVerified.classList.remove('d-none');
+      verifyEmailBtn.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> Verified';
+      verifyEmailBtn.classList.remove('btn-outline-primary');
+      verifyEmailBtn.classList.add('btn-outline-success');
+      verifyEmailBtn.disabled = true;
+
+      submitBtn.disabled = false;
+      submitEmailIcon.className = 'bi bi-send me-2';
+      submitBtn.querySelector('.btn-text').innerHTML = '<i class="bi bi-send me-2"></i>Submit Subscription';
+      submitHelpText.innerHTML = '<i class="bi bi-check-circle-fill text-success me-1"></i>Ready to submit your subscription';
+      submitHelpText.className = 'text-success';
+
+      document.getElementById('email-verified').value = 'true';
+      document.getElementById('verification-token').value = emailVerificationState.verificationToken;
+    } else {
+      emailUnverified.classList.remove('d-none');
+      emailVerified.classList.add('d-none');
+      verifyEmailBtn.innerHTML = '<i class="bi bi-envelope-check"></i> Verify';
+      verifyEmailBtn.classList.add('btn-outline-primary');
+      verifyEmailBtn.classList.remove('btn-outline-success');
+      verifyEmailBtn.disabled = false;
+
+      submitBtn.disabled = true;
+      submitEmailIcon.className = 'bi bi-envelope-exclamation me-2';
+      submitBtn.querySelector('.btn-text').innerHTML = '<i class="bi bi-envelope-exclamation me-2"></i>Verify Email to Continue';
+      submitHelpText.innerHTML = '<i class="bi bi-info-circle me-1"></i>Please verify your email address before submitting the form';
+      submitHelpText.className = 'text-muted';
+
+      document.getElementById('email-verified').value = 'false';
+      document.getElementById('verification-token').value = '';
+    }
+  }
+
+  // Check if email needs re-verification
+  function checkEmailChanged() {
+    const currentEmail = emailInput.value.trim();
+    if (currentEmail !== emailVerificationState.currentEmail && emailVerificationState.isVerified) {
+      emailVerificationState.isVerified = false;
+      emailVerificationState.currentEmail = '';
+      emailVerificationState.verificationToken = '';
+      updateEmailVerificationUI();
+      showToast('Email changed. Please verify your new email address.', 'warning');
+    }
+  }
+
+  // Email input change handler
+  emailInput.addEventListener('input', () => {
+    checkEmailChanged();
+    validateField(emailInput);
+    updateProgress();
+  });
+
+  // Verify email button click
+  verifyEmailBtn.addEventListener('click', () => {
+    const email = emailInput.value.trim();
+    if (!email || !validateField(emailInput)) {
+      showToast('Please enter a valid email address first.', 'warning');
+      emailInput.focus();
+      return;
+    }
+
+    verificationEmail.value = email;
+    emailVerificationState.currentEmail = email;
+    showVerificationStep(1);
+    emailVerificationModal.show();
+  });
+
+  // Show verification step
+  function showVerificationStep(step) {
+    document.querySelectorAll('.verification-step').forEach(el => el.classList.add('d-none'));
+    document.getElementById(`verification-step-${step}`).classList.remove('d-none');
+
+    if (step === 2) {
+      document.getElementById('sent-to-email').textContent = emailVerificationState.currentEmail;
+      otpInput.focus();
+      startOtpCountdown();
+    }
+  }
+
+  // Send OTP
+  sendOtpBtn.addEventListener('click', async () => {
+    const email = verificationEmail.value.trim();
+    if (!email) return;
+
+    const btnText = sendOtpBtn.querySelector('.btn-text');
+    const spinner = sendOtpBtn.querySelector('.spinner-border');
+
+    sendOtpBtn.disabled = true;
+    spinner.classList.remove('d-none');
+    btnText.textContent = 'Sending...';
+
+    try {
+      const response = await fetch('/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        emailVerificationState.otpSent = true;
+        showToast('Verification code sent to your email!', 'success');
+        showVerificationStep(2);
+        startResendTimer();
+      } else {
+        throw new Error(data.error || 'Failed to send verification code');
+      }
+    } catch (error) {
+      console.error('OTP send error:', error);
+      showToast(error.message, 'danger');
+    } finally {
+      sendOtpBtn.disabled = false;
+      spinner.classList.add('d-none');
+      btnText.textContent = 'Send Verification Code';
+    }
+  });
+
+  // Verify OTP
+  verifyOtpBtn.addEventListener('click', async () => {
+    const email = emailVerificationState.currentEmail;
+    const otp = otpInput.value.trim();
+
+    if (!otp || otp.length !== 6) {
+      showToast('Please enter a 6-digit verification code.', 'warning');
+      otpInput.focus();
+      return;
+    }
+
+    const btnText = verifyOtpBtn.querySelector('.btn-text');
+    const spinner = verifyOtpBtn.querySelector('.spinner-border');
+
+    verifyOtpBtn.disabled = true;
+    spinner.classList.remove('d-none');
+    btnText.textContent = 'Verifying...';
+
+    try {
+      const response = await fetch('/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, otp: otp })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        emailVerificationState.isVerified = true;
+        emailVerificationState.verificationToken = data.verificationToken;
+        showToast('Email verified successfully!', 'success');
+        showVerificationStep(3);
+        updateEmailVerificationUI();
+
+        // Auto-close modal after 2 seconds
+        setTimeout(() => {
+          emailVerificationModal.hide();
+        }, 2000);
+      } else {
+        throw new Error(data.error || 'Invalid verification code');
+      }
+    } catch (error) {
+      console.error('OTP verification error:', error);
+      showToast(error.message, 'danger');
+      otpInput.classList.add('is-invalid');
+      document.getElementById('otp-error').textContent = error.message;
+    } finally {
+      verifyOtpBtn.disabled = false;
+      spinner.classList.add('d-none');
+      btnText.textContent = 'Verify Code';
+    }
+  });
+
+  // Resend OTP
+  resendOtpBtn.addEventListener('click', () => {
+    if (emailVerificationState.resendTimer > 0) return;
+
+    // Reset OTP input
+    otpInput.value = '';
+    otpInput.classList.remove('is-invalid');
+
+    // Trigger send OTP
+    sendOtpBtn.click();
+  });
+
+  // OTP input formatting
+  otpInput.addEventListener('input', (e) => {
+    let value = e.target.value.replace(/\D/g, ''); // Only digits
+    if (value.length > 6) value = value.slice(0, 6);
+    e.target.value = value;
+
+    // Clear error state
+    e.target.classList.remove('is-invalid');
+    document.getElementById('otp-error').textContent = '';
+
+    // Auto-verify when 6 digits entered
+    if (value.length === 6) {
+      setTimeout(() => verifyOtpBtn.click(), 500);
+    }
+  });
+
+  // OTP countdown timer
+  let otpCountdownInterval;
+  function startOtpCountdown() {
+    let timeLeft = 300; // 5 minutes
+    const countdownEl = document.getElementById('otp-countdown');
+
+    clearInterval(otpCountdownInterval);
+    otpCountdownInterval = setInterval(() => {
+      const minutes = Math.floor(timeLeft / 60);
+      const seconds = timeLeft % 60;
+      countdownEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+      if (timeLeft <= 0) {
+        clearInterval(otpCountdownInterval);
+        countdownEl.textContent = 'Expired';
+        countdownEl.className = 'fw-bold text-danger';
+        showToast('Verification code expired. Please request a new one.', 'warning');
+      }
+      timeLeft--;
+    }, 1000);
+  }
+
+  // Resend timer
+  let resendTimerInterval;
+  function startResendTimer() {
+    emailVerificationState.resendTimer = 60;
+    const resendCountdown = document.getElementById('resend-countdown');
+    const resendTimer = document.getElementById('resend-timer');
+
+    resendOtpBtn.disabled = true;
+    resendCountdown.classList.remove('d-none');
+
+    clearInterval(resendTimerInterval);
+    resendTimerInterval = setInterval(() => {
+      resendTimer.textContent = emailVerificationState.resendTimer;
+      emailVerificationState.resendTimer--;
+
+      if (emailVerificationState.resendTimer < 0) {
+        clearInterval(resendTimerInterval);
+        resendOtpBtn.disabled = false;
+        resendCountdown.classList.add('d-none');
+        emailVerificationState.resendTimer = 0;
+      }
+    }, 1000);
+  }
+
+  // Initialize email verification UI
+  updateEmailVerificationUI();
 
   // Debug logging (optional)
   if (window.location.hostname === 'localhost') {
