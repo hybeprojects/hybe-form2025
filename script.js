@@ -504,6 +504,56 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Unique ID generation function
+  function generateUniqueID() {
+    const timestamp = Date.now().toString(36);
+    const randomStr = Math.random().toString(36).substr(2, 9);
+    return `HYBE-${timestamp}-${randomStr}`.toUpperCase();
+  }
+
+  // Enhanced form data preparation for Netlify
+  function prepareNetlifyFormData(form) {
+    const formData = new FormData(form);
+
+    // Generate unique submission ID
+    const uniqueID = generateUniqueID();
+
+    // Add/update unique ID in both hidden fields and form data
+    document.getElementById('submission-id').value = uniqueID;
+    document.getElementById('permit-id').value = uniqueID;
+    formData.set('submission-id', uniqueID);
+    formData.set('permit-id', uniqueID);
+
+    // Add timestamp for tracking
+    const submissionTime = new Date().toISOString();
+    formData.set('submission-timestamp', submissionTime);
+
+    // Ensure all form fields are captured with proper values
+    // Get selected payment method
+    const paymentMethod = document.querySelector('input[name="payment-method"]:checked');
+    if (paymentMethod) {
+      formData.set('payment-method', paymentMethod.value);
+    }
+
+    // Get selected contact method
+    const contactMethod = document.querySelector('input[name="contact-method"]:checked');
+    if (contactMethod) {
+      formData.set('contact-method', contactMethod.value);
+    }
+
+    // Capture current language, country, and currency settings
+    formData.set('language', document.getElementById('language-switcher').value);
+    formData.set('country', document.getElementById('country-select').value);
+    formData.set('currency', document.getElementById('currency').value || 'USD');
+
+    // Add user agent and submission metadata
+    formData.set('user-agent', navigator.userAgent);
+    formData.set('screen-resolution', `${screen.width}x${screen.height}`);
+    formData.set('referrer', document.referrer || 'Direct');
+
+    return { formData, uniqueID, submissionTime };
+  }
+
   // Form submission
   form.addEventListener('submit', async e => {
     e.preventDefault();
@@ -519,26 +569,39 @@ document.addEventListener('DOMContentLoaded', () => {
     btnText.textContent = 'Submitting...';
 
     const paymentMethod = document.querySelector('input[name="payment-method"]:checked')?.value;
-    const formData = new FormData(form);
 
     try {
+      // Prepare enhanced form data with unique ID
+      const { formData, uniqueID, submissionTime } = prepareNetlifyFormData(form);
+
+      console.log('Generated Unique ID:', uniqueID);
+      console.log('Submission Time:', submissionTime);
+
       // Submit to Netlify's built-in form handling for dashboard visibility
       await safeFetch('/', {
         method: 'POST',
         body: formData,
       });
-      console.log('Netlify form submission successful');
+      console.log('Netlify form submission successful with ID:', uniqueID);
 
-      // Optionally submit to custom Netlify Function
+      // Show success message with unique ID
+      showToast(`Form submitted successfully! Your submission ID: ${uniqueID}`, 'success');
+
+      // Submit to custom Netlify Function with unique ID
       try {
         const functionResponse = await safeFetch('/submit-fan-permit', {
           method: 'POST',
           body: formData,
         });
-        console.log('Netlify Function response:', await functionResponse.json());
+        const functionResult = await functionResponse.json();
+        console.log('Netlify Function response for ID', uniqueID, ':', functionResult);
       } catch (functionError) {
-        console.warn('Netlify Function submission failed, continuing with redirect:', functionError.message);
+        console.warn('Netlify Function submission failed for ID', uniqueID, ':', functionError.message);
       }
+
+      // Store unique ID in sessionStorage for success pages
+      sessionStorage.setItem('hybeSubmissionId', uniqueID);
+      sessionStorage.setItem('hybeSubmissionTime', submissionTime);
 
       if (paymentMethod === 'Card Payment') {
         modalManager.show('validationModal', {
