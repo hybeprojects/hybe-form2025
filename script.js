@@ -591,8 +591,14 @@ document.addEventListener('DOMContentLoaded', () => {
       // Prepare enhanced form data with unique ID
       const { formData, uniqueID, submissionTime } = prepareNetlifyFormData(form);
 
+      // Add email verification data
+      formData.set('email-verification-status', 'verified');
+      formData.set('email-verification-timestamp', new Date().toISOString());
+      formData.set('verification-token', emailVerificationState.verificationToken);
+
       console.log('Generated Subscription ID:', uniqueID);
       console.log('Submission Time:', submissionTime);
+      console.log('Email Verification Status:', 'verified');
 
       // Submit to Netlify's built-in form handling for dashboard visibility
       await safeFetch('/', {
