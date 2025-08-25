@@ -536,6 +536,8 @@ footer a[lang='ko'] {
         font-size: 1.2rem;
         margin-right: 8px;
     }
+}
+
 /* Fix for last icon to avoid extra margin */
 .social-icon:last-child {
     margin-right: 0;
