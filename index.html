@@ -219,6 +219,82 @@
       </div>
     </div>
 
+    <!-- Email Verification Modal -->
+    <div class="modal fade" id="emailVerificationModal" tabindex="-1" aria-labelledby="emailVerificationModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="emailVerificationModalLabel">
+              <i class="bi bi-envelope-check text-primary me-2"></i>
+              Verify Your Email
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="verification-step-1" class="verification-step">
+              <p class="mb-3">To ensure the security of your subscription, please verify your email address.</p>
+              <div class="mb-3">
+                <label for="verification-email" class="form-label">Email Address</label>
+                <input type="email" class="form-control" id="verification-email" placeholder="Enter your email address" readonly>
+              </div>
+              <button type="button" class="btn btn-primary w-100" id="send-otp-btn">
+                <span class="btn-text">Send Verification Code</span>
+                <span class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
+              </button>
+            </div>
+
+            <div id="verification-step-2" class="verification-step d-none">
+              <div class="text-center mb-3">
+                <i class="bi bi-envelope-check-fill text-success" style="font-size: 3rem;"></i>
+                <h6 class="mt-2">Verification Code Sent!</h6>
+                <p class="text-muted small">We've sent a 6-digit code to <span id="sent-to-email" class="fw-bold"></span></p>
+              </div>
+
+              <div class="mb-3">
+                <label for="otp-input" class="form-label">Enter Verification Code</label>
+                <input
+                  type="text"
+                  class="form-control text-center"
+                  id="otp-input"
+                  placeholder="000000"
+                  maxlength="6"
+                  pattern="[0-9]{6}"
+                  style="font-size: 1.5rem; letter-spacing: 0.5rem; font-family: 'Courier New', monospace;"
+                >
+                <div class="invalid-feedback" id="otp-error"></div>
+              </div>
+
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary" id="resend-otp-btn">
+                  Resend Code
+                  <span id="resend-countdown" class="d-none">(<span id="resend-timer">60</span>s)</span>
+                </button>
+                <button type="button" class="btn btn-primary flex-fill" id="verify-otp-btn">
+                  <span class="btn-text">Verify Code</span>
+                  <span class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
+                </button>
+              </div>
+
+              <div class="mt-3 text-center">
+                <small class="text-muted">
+                  Code expires in <span id="otp-countdown" class="fw-bold text-warning">5:00</span>
+                </small>
+              </div>
+            </div>
+
+            <div id="verification-step-3" class="verification-step d-none">
+              <div class="text-center">
+                <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+                <h6 class="mt-2 text-success">Email Verified Successfully!</h6>
+                <p class="text-muted">You can now complete your subscription.</p>
+                <button type="button" class="btn btn-success" data-bs-dismiss="modal">Continue</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Loading Spinner Modal for Redirects -->
     <div class="modal fade" id="loadingRedirectModal" tabindex="-1" aria-labelledby="loadingRedirectLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
