@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
     JP: { flag: '🇯🇵', code: '+81', format: 'XX-XXXX-XXXX' },
     KR: { flag: '🇰🇷', code: '+82', format: 'XX-XXXX-XXXX' },
     CN: { flag: '🇨🇳', code: '+86', format: 'XXX XXXX XXXX' },
-    FR: { flag: '��🇷', code: '+33', format: 'X XX XX XX XX' },
+    FR: { flag: '🇫🇷', code: '+33', format: 'X XX XX XX XX' },
     DE: { flag: '🇩🇪', code: '+49', format: 'XXXX XXXXXXX' },
     IN: { flag: '🇮🇳', code: '+91', format: 'XXXXX-XXXXX' },
     BR: { flag: '🇧🇷', code: '+55', format: '(XX) XXXXX-XXXX' },
@@ -561,6 +561,19 @@ document.addEventListener('DOMContentLoaded', () => {
   // Form submission
   form.addEventListener('submit', async e => {
     e.preventDefault();
+
+    // Check email verification first
+    if (!emailVerificationState.isVerified) {
+      showToast('Please verify your email address before submitting the form.', 'warning');
+      emailInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => {
+        emailInput.focus();
+        shakeField(emailInput);
+      }, 500);
+      return;
+    }
+
+    // Check form validation
     if (!isFormValidRealtime()) {
       showToast('Please correct the highlighted errors and try again.', 'danger');
       form.querySelectorAll('[required]').forEach(field => {
