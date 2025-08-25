@@ -1,13 +1,18 @@
 const { getDatabase } = require('../../lib/database');
 const { getEmailService } = require('../../lib/emailService');
+const {
+  getSecurityHeaders,
+  sanitizeInput,
+  validateEmailDomain,
+  normalizeIP,
+  normalizeUserAgent,
+  logSecurityEvent,
+  SECURITY_CONFIG
+} = require('../../lib/security');
 const crypto = require('crypto');
 
-// Rate limiting configuration
-const RATE_LIMIT = {
-  maxRequests: 3, // Maximum OTP requests per time window
-  timeWindow: 5 * 60 * 1000, // 5 minutes
-  cooldownPeriod: 60 * 1000 // 1 minute between requests
-};
+// Get rate limiting configuration from security module
+const RATE_LIMIT = SECURITY_CONFIG.rateLimiting;
 
 // Security configuration
 const SECURITY = {
@@ -19,16 +24,11 @@ const SECURITY = {
 };
 
 exports.handler = async function(event, context) {
-  // Enhanced CORS headers with security
-  const headers = {
-    'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGINS || '*',
-    'Access-Control-Allow-Headers': 'Content-Type, X-Requested-With',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'X-XSS-Protection': '1; mode=block',
-    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains'
-  };
+  // Get origin for CORS validation
+  const origin = event.headers.origin || event.headers.Origin;
+
+  // Enhanced security headers
+  const headers = getSecurityHeaders(origin);
 
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers, body: '' };
@@ -76,9 +76,10 @@ exports.handler = async function(event, context) {
 
     // Get client information for security logging
     const clientInfo = {
-      ip: event.headers['x-forwarded-for'] || event.headers['x-real-ip'] || 'unknown',
-      userAgent: event.headers['user-agent'] || 'unknown',
-      timestamp: Date.now()
+      ip: normalizeIP(event.headers['x-forwarded-for'] || event.headers['x-real-ip']),
+      userAgent: normalizeUserAgent(event.headers['user-agent']),
+      timestamp: Date.now(),
+      origin: origin
     };
 
     // Initialize database and email service
