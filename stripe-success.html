@@ -89,6 +89,13 @@
         <!-- Merged from stripe-success.html: Payment Success Message -->
         <h1 class="display-4 text-success">🎉 💜 Payment Successful!</h1>
         <p class="lead">Thank you for joining the HYBE Fan-Permit 2025/2026.</p>
+
+        <!-- Submission ID Display -->
+        <div id="submission-info" class="alert alert-success mx-auto mb-4" style="display: none; max-width: 500px;">
+          <strong>Your Submission ID:</strong><br>
+          <span id="submission-id-display" class="font-monospace fw-bold fs-5"></span><br>
+          <small class="text-muted">Keep this ID for your records and customer support</small>
+        </div>
         <!-- Merged from stripe-success.html: Payment Confirmation -->
         <p class="text-muted mb-4 max-w-md mx-auto">
           Your payment has been received. You’ll receive more details via email
@@ -216,5 +223,26 @@
       integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
       crossorigin="anonymous"
     ></script>
+
+    <script>
+      // Display submission ID if available
+      document.addEventListener('DOMContentLoaded', function() {
+        const submissionId = sessionStorage.getItem('hybeSubmissionId');
+        const submissionTime = sessionStorage.getItem('hybeSubmissionTime');
+
+        if (submissionId) {
+          document.getElementById('submission-id-display').textContent = submissionId;
+          document.getElementById('submission-info').style.display = 'block';
+
+          // Log for tracking
+          console.log('Stripe success page loaded for submission:', submissionId);
+          console.log('Submission time:', submissionTime);
+
+          // Clear session storage after displaying
+          sessionStorage.removeItem('hybeSubmissionId');
+          sessionStorage.removeItem('hybeSubmissionTime');
+        }
+      });
+    </script>
   </body>
 </html>
