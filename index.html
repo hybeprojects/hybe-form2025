@@ -1022,14 +1022,25 @@
                     data-aos="fade-up"
                     data-aos-delay="550"
                     id="submit-btn"
+                    disabled
                   >
-                    <span class="btn-text">Submit Subscription</span>
+                    <span class="btn-text">
+                      <i class="bi bi-envelope-exclamation me-2" id="submit-email-icon"></i>
+                      Verify Email to Continue
+                    </span>
                     <span
                       class="spinner-border spinner-border-sm d-none"
                       role="status"
                       aria-hidden="true"
                     ></span>
                   </button>
+
+                  <div class="text-center mt-2">
+                    <small class="text-muted" id="submit-help-text">
+                      <i class="bi bi-info-circle me-1"></i>
+                      Please verify your email address before submitting the form
+                    </small>
+                  </div>
                 </form>
 
                 <p
