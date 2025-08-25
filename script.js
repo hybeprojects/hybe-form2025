@@ -179,6 +179,23 @@ document.addEventListener('DOMContentLoaded', () => {
     'installment-terms': { required: false, message: 'You must agree to the installment terms.' },
   };
 
+  // Security helper functions
+  function setSecureHTML(element, htmlString) {
+    // Only allow safe static HTML, sanitize any dynamic content
+    const temp = document.createElement('div');
+    temp.textContent = htmlString;
+    element.innerHTML = temp.innerHTML;
+  }
+
+  function createSecureOption(value, text, selected = false) {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = text; // Safe text insertion
+    option.disabled = value === '';
+    option.selected = selected;
+    return option;
+  }
+
   // Utility functions
   function showToast(message, type = 'warning', timeout = 4000) {
     const toast = document.getElementById('global-toast');
