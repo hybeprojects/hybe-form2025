@@ -48,32 +48,90 @@ exports.handler = async function(event, context) {
     
     console.log(`Generated OTP for ${email}: ${otp} (expires: ${new Date(otpData.expires)})`);
 
-    // Email sending logic
+    // Email sending logic with official HYBE branding
     const emailContent = {
       to: email,
       subject: 'HYBE Fan-Permit Email Verification',
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
-          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-            <img src="https://logotyp.us/file/hybe.svg" alt="HYBE" style="height: 40px; margin-bottom: 20px;">
-            <h1 style="color: white; margin: 0; font-size: 24px;">Email Verification</h1>
-          </div>
-          <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <h2 style="color: #333; margin-top: 0;">Verify Your Email Address</h2>
-            <p style="color: #666; line-height: 1.6;">To complete your HYBE Fan-Permit subscription, please enter the verification code below:</p>
-            
-            <div style="background: #f8f9fa; border: 2px dashed #667eea; border-radius: 8px; padding: 20px; margin: 30px 0; text-align: center;">
-              <h3 style="color: #667eea; margin: 0; font-size: 32px; letter-spacing: 8px; font-family: 'Courier New', monospace;">${otp}</h3>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>HYBE Email Verification</title>
+        </head>
+        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8f9fa;">
+          <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+
+            <!-- Header with HYBE Branding -->
+            <div style="background: linear-gradient(90deg, #8e44ad 0%, #3498db 100%); padding: 40px 30px; text-align: center;">
+              <img src="http://hybecorp.com/images/common/logo-b.svg" alt="HYBE" style="height: 50px; margin-bottom: 20px; filter: brightness(0) invert(1);">
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.5px;">Fan-Permit Verification</h1>
+              <p style="color: #ffffff; margin: 10px 0 0 0; opacity: 0.9; font-size: 16px;">Secure your exclusive access</p>
             </div>
-            
-            <p style="color: #666; line-height: 1.6;">This code will expire in <strong>5 minutes</strong>.</p>
-            <p style="color: #999; font-size: 14px; margin-top: 30px;">If you didn't request this verification, please ignore this email.</p>
-            
-            <div style="border-top: 1px solid #eee; padding-top: 20px; margin-top: 30px; text-align: center;">
-              <p style="color: #999; font-size: 12px; margin: 0;">© 2025 HYBE Corporation. All rights reserved.</p>
+
+            <!-- Main Content -->
+            <div style="padding: 40px 30px;">
+              <h2 style="color: #2c3e50; margin: 0 0 20px 0; font-size: 24px; font-weight: 600;">Verify Your Email Address</h2>
+
+              <p style="color: #5a6c7d; line-height: 1.6; margin: 0 0 30px 0; font-size: 16px;">
+                Welcome to the HYBE Fan-Permit community! To complete your subscription and gain exclusive access to artist content, events, and merchandise, please verify your email address.
+              </p>
+
+              <!-- OTP Code Section -->
+              <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border: 3px solid #8e44ad; border-radius: 12px; padding: 30px; margin: 30px 0; text-align: center; position: relative;">
+                <div style="background: #8e44ad; color: white; padding: 8px 16px; border-radius: 20px; display: inline-block; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;">
+                  Verification Code
+                </div>
+                <div style="font-family: 'Courier New', Monaco, monospace; font-size: 36px; font-weight: bold; color: #8e44ad; letter-spacing: 8px; margin: 10px 0; text-shadow: 0 2px 4px rgba(142, 68, 173, 0.1);">
+                  ${otp}
+                </div>
+                <p style="color: #6c757d; font-size: 14px; margin: 15px 0 0 0;">
+                  Enter this code in the verification form
+                </p>
+              </div>
+
+              <!-- Important Information -->
+              <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px 20px; margin: 30px 0; border-radius: 0 8px 8px 0;">
+                <p style="color: #856404; margin: 0; font-size: 14px; font-weight: 500;">
+                  ⏰ This verification code will expire in <strong>5 minutes</strong> for your security.
+                </p>
+              </div>
+
+              <p style="color: #6c757d; line-height: 1.6; margin: 30px 0 0 0; font-size: 14px;">
+                If you didn't request this verification, please ignore this email. Your account security is important to us.
+              </p>
             </div>
+
+            <!-- Footer -->
+            <div style="background: #2c3e50; padding: 30px; text-align: center;">
+              <div style="margin-bottom: 20px;">
+                <img src="http://hybecorp.com/images/common/logo-b.svg" alt="HYBE" style="height: 30px; opacity: 0.8; filter: brightness(0) invert(1);">
+              </div>
+
+              <p style="color: #95a5a6; margin: 0 0 15px 0; font-size: 14px;">
+                Connect with HYBE artists and the global fan community
+              </p>
+
+              <div style="margin: 20px 0;">
+                <a href="https://hybecorp.com" style="color: #3498db; text-decoration: none; margin: 0 15px; font-size: 14px;">Website</a>
+                <a href="https://careers.hybecorp.com" style="color: #3498db; text-decoration: none; margin: 0 15px; font-size: 14px;">Careers</a>
+                <a href="https://hybecorp.com/eng/news/news" style="color: #3498db; text-decoration: none; margin: 0 15px; font-size: 14px;">News</a>
+              </div>
+
+              <div style="border-top: 1px solid #34495e; padding-top: 20px; margin-top: 20px;">
+                <p style="color: #7f8c8d; margin: 0; font-size: 12px;">
+                  © 2025 HYBE Corporation. All rights reserved.
+                </p>
+                <p style="color: #7f8c8d; margin: 5px 0 0 0; font-size: 12px;">
+                  This email was sent to ${email} regarding your HYBE Fan-Permit subscription.
+                </p>
+              </div>
+            </div>
+
           </div>
-        </div>
+        </body>
+        </html>
       `
     };
 
