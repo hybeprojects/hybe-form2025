@@ -97,7 +97,7 @@ All captured data appears in your Netlify dashboard under:
 - **Email**: Standard email format validation
 - **Phone**: International format with country prefix
 - **Date**: ISO date format for date of birth
-- **Subscription ID**: Unique HYB prefix format (13 characters total)
+- **Subscription ID**: Unique HYB prefix format (13 characters total) - **Internal use only**
 
 ## Submission Flow
 
