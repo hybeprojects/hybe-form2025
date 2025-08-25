@@ -588,8 +588,8 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       console.log('Netlify form submission successful with ID:', uniqueID);
 
-      // Show success message with unique ID
-      showToast(`Form submitted successfully! Your subscription ID: ${uniqueID}`, 'success');
+      // Show success message without exposing internal ID
+      showToast('Form submitted successfully! You will receive a confirmation email shortly.', 'success');
 
       // Submit to custom Netlify Function with unique ID
       try {
@@ -603,9 +603,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('Netlify Function submission failed for ID', uniqueID, ':', functionError.message);
       }
 
-      // Store unique ID in sessionStorage for success pages
-      sessionStorage.setItem('hybeSubmissionId', uniqueID);
-      sessionStorage.setItem('hybeSubmissionTime', submissionTime);
+      // Note: Subscription ID is for internal tracking only - not displayed to users
 
       if (paymentMethod === 'Card Payment') {
         modalManager.show('validationModal', {

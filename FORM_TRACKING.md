@@ -60,12 +60,14 @@ HYB[10-alphanumeric-characters]
 
 Example: `HYBX3K9M7R2A5F`
 
-This subscription ID is used to:
+This subscription ID is used for **internal purposes only**:
 1. Track submissions in Netlify dashboard
-2. Identify user data uniquely
-3. Reference in customer support
-4. Link payment transactions
-5. Customer subscription management
+2. Identify user data uniquely in admin systems
+3. Internal reference for customer support
+4. Link payment transactions in backend
+5. Internal subscription management
+
+**Note**: This ID is NOT displayed to users - it's for dashboard tracking only.
 
 ## Netlify Form Dashboard
 
@@ -101,12 +103,12 @@ All captured data appears in your Netlify dashboard under:
 
 1. User fills out form
 2. Client-side validation runs
-3. Unique ID generated
+3. Unique ID generated (internal only)
 4. All fields compiled into FormData
-5. Submitted to Netlify Forms (appears in dashboard)
+5. Submitted to Netlify Forms (appears in dashboard with ID)
 6. Optionally submitted to custom function
 7. User redirected based on payment method
-8. Submission ID stored in session for success pages
+8. User sees generic success message (no ID exposed)
 
 ## Debugging Form Submissions
 
