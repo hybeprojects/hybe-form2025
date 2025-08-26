@@ -2,8 +2,9 @@
   "name": "hybe-form-client",
   "version": "1.0.0",
   "description": "HYBE Fan-Permit Frontend",
+  "main": "server.js",
   "scripts": {
-    "start": "serve -s .",
+    "start": "node server.js",
     "build": "vite build",
     "dev": "vite",
     "lint": "eslint ."
@@ -11,10 +12,10 @@
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^17.0.0",
-    "express": "^5.1.0",
+    "express": "^4.19.2",
     "formidable-serverless": "^1.1.1",
     "libphonenumber-js": "^1.12.9",
-    "multer": "^2.0.1",
+    "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.10.1",
     "pg": "^8.16.3",
     "react": "^19.1.0",
@@ -31,7 +32,6 @@
     "serve": "^14.2.4",
     "vite": "^6.3.5"
   },
-  "main": "script.js",
   "keywords": [],
   "author": "",
   "license": "ISC"

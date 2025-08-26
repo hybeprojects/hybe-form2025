@@ -14,6 +14,9 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Serve static files from the root directory
+app.use(express.static(path.join(__dirname, '')));
+
 // Basic rate limiting
 const requestCounts = new Map();
 app.use((req, res, next) => {
@@ -29,11 +32,6 @@ app.use((req, res, next) => {
 
 // For handling multipart/form-data (file uploads)
 const upload = multer();
-
-// Health check
-app.get('/', (req, res) => {
-  res.send('HYBE Form Express Backend is running.');
-});
 
 // Input sanitization helper
 function sanitizeInput(input) {
@@ -129,6 +127,11 @@ app.options('/send-otp', (req, res) => res.sendStatus(200));
 
 app.post('/verify-otp', (req, res) => proxyNetlifyFunction(verifyOtpFn.handler || verifyOtpFn, req, res));
 app.options('/verify-otp', (req, res) => res.sendStatus(200));
+
+// Catch-all to serve index.html for any other request
+app.get('/*', function(req, res) {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // Start server
 app.listen(port, () => {
