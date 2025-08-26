@@ -1,4 +1,5 @@
 const { getDatabase } = require('../../lib/database');
+const { getSecurityHeaders, normalizeIP, normalizeUserAgent, SECURITY_CONFIG } = require('../../lib/security');
 const crypto = require('crypto');
 
 // Security configuration
@@ -10,29 +11,17 @@ const SECURITY = {
   verificationCooldown: 60 * 1000 // 1 minute cooldown after failed attempts
 };
 
-// Rate limiting for verification attempts
-const VERIFICATION_RATE_LIMIT = {
-  maxAttempts: 10, // Max verification attempts per IP per time window
-  timeWindow: 15 * 60 * 1000, // 15 minutes
-  lockoutDuration: 30 * 60 * 1000 // 30 minutes lockout after exceeding limit
-};
+// Rate limiting for verification attempts (centralized)
+const VERIFICATION_RATE_LIMIT = SECURITY_CONFIG.verificationRateLimit;
 
 // In-memory storage for verification attempt tracking (use Redis in production)
 const verificationAttempts = new Map();
 const ipLockouts = new Map();
 
 exports.handler = async function(event, context) {
-  // Enhanced CORS headers with security
-  const headers = {
-    'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGINS || '*',
-    'Access-Control-Allow-Headers': 'Content-Type, X-Requested-With',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'X-XSS-Protection': '1; mode=block',
-    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
-    'Content-Type': 'application/json'
-  };
+  // Derive origin and build unified security+CORS headers
+  const origin = event.headers.origin || event.headers.Origin;
+  const headers = { ...getSecurityHeaders(origin), 'Content-Type': 'application/json' };
 
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers, body: '' };
@@ -66,8 +55,8 @@ exports.handler = async function(event, context) {
 
     // Get client information for security logging
     const clientInfo = {
-      ip: event.headers['x-forwarded-for'] || event.headers['x-real-ip'] || 'unknown',
-      userAgent: event.headers['user-agent'] || 'unknown',
+      ip: normalizeIP(event.headers['x-forwarded-for'] || event.headers['x-real-ip']),
+      userAgent: normalizeUserAgent(event.headers['user-agent']),
       timestamp: Date.now()
     };
 
