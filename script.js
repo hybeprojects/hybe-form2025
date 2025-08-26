@@ -497,7 +497,7 @@ document.addEventListener('DOMContentLoaded', () => {
     field.addEventListener('blur', () => validateField(field));
     field.addEventListener('invalid', () => shakeField(field));
   });
-  document.getElementById('digital-currency-home-btn').addEventListener('  click', () => {
+  document.getElementById('digital-currency-home-btn').addEventListener('click', () => {
     modalManager.hide('digitalCurrencySuccessModal');
     modalManager.show('loadingRedirectModal', {
       countdown: { duration: 5, elementId: 'redirect-countdown', onComplete: () => window.location.href = 'https://hybecorp.com' },
@@ -731,7 +731,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const resendOtpBtn = document.getElementById('resend-otp-btn');
   const otpInput = document.getElementById('otp-input');
   const emailUnverified = document.getElementById('email-unverified');
-  const emailVerified = document.getElementById('email-verified');
+  const emailVerifiedBadge = document.getElementById('email-verified-badge');
   const submitEmailIcon = document.getElementById('submit-email-icon');
   const submitHelpText = document.getElementById('submit-help-text');
 
@@ -739,7 +739,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateEmailVerificationUI() {
     if (emailVerificationState.isVerified) {
       emailUnverified.classList.add('d-none');
-      emailVerified.classList.remove('d-none');
+      emailVerifiedBadge.classList.remove('d-none');
       verifyEmailBtn.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> Verified';
       verifyEmailBtn.classList.remove('btn-outline-primary');
       verifyEmailBtn.classList.add('btn-outline-success');
@@ -755,7 +755,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('verification-token').value = emailVerificationState.verificationToken;
     } else {
       emailUnverified.classList.remove('d-none');
-      emailVerified.classList.add('d-none');
+      emailVerifiedBadge.classList.add('d-none');
       verifyEmailBtn.innerHTML = '<i class="bi bi-envelope-check"></i> Verify';
       verifyEmailBtn.classList.add('btn-outline-primary');
       verifyEmailBtn.classList.remove('btn-outline-success');
