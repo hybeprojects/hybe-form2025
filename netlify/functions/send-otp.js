@@ -146,10 +146,11 @@ exports.handler = async function(event, context) {
       success: true,
       message: 'Verification code sent to your email',
       expiresIn: Math.floor(SECURITY.otpExpiry / 1000),
+      resendAfter: Math.floor(RATE_LIMIT.cooldownPeriod / 1000),
       method: emailResult.method || 'email'
     };
 
-    if (process.env.NODE_ENV !== 'production') {
+    if (process.env.DEBUG_OTP === 'true') {
       responsePayload.debugOtp = otp;
     }
 
