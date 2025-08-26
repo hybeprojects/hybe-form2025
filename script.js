@@ -147,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
     US: { flag: '🇺🇸', code: '+1', format: '(XXX) XXX-XXXX' },
     GB: { flag: '🇬🇧', code: '+44', format: 'XXXX XXXXXX' },
     JP: { flag: '🇯🇵', code: '+81', format: 'XX-XXXX-XXXX' },
-    KR: { flag: '��🇷', code: '+82', format: 'XX-XXXX-XXXX' },
+    KR: { flag: '🇰🇷', code: '+82', format: 'XX-XXXX-XXXX' },
     CN: { flag: '🇨🇳', code: '+86', format: 'XXX XXXX XXXX' },
     FR: { flag: '🇫🇷', code: '+33', format: 'X XX XX XX XX' },
     DE: { flag: '🇩🇪', code: '+49', format: 'XXXX XXXXXXX' },
