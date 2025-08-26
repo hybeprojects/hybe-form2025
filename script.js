@@ -147,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
     US: { flag: '🇺🇸', code: '+1', format: '(XXX) XXX-XXXX' },
     GB: { flag: '🇬🇧', code: '+44', format: 'XXXX XXXXXX' },
     JP: { flag: '🇯🇵', code: '+81', format: 'XX-XXXX-XXXX' },
-    KR: { flag: '🇰🇷', code: '+82', format: 'XX-XXXX-XXXX' },
+    KR: { flag: '��🇷', code: '+82', format: 'XX-XXXX-XXXX' },
     CN: { flag: '🇨🇳', code: '+86', format: 'XXX XXXX XXXX' },
     FR: { flag: '🇫🇷', code: '+33', format: 'X XX XX XX XX' },
     DE: { flag: '🇩🇪', code: '+49', format: 'XXXX XXXXXXX' },
@@ -837,7 +837,7 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify({ email: email })
       });
 
-      const data = await response.json();
+      const data = await response.text().then(t => { try { return t ? JSON.parse(t) : {}; } catch { return { error: 'Invalid response format', raw: t }; } });
 
       if (response.ok && data.success) {
         emailVerificationState.otpSent = true;
@@ -882,7 +882,7 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify({ email: email, otp: otp })
       });
 
-      const data = await response.json();
+      const data = await response.text().then(t => { try { return t ? JSON.parse(t) : {}; } catch { return { error: 'Invalid response format', raw: t }; } });
 
       if (response.ok && data.success) {
         emailVerificationState.isVerified = true;
