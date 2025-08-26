@@ -94,6 +94,42 @@ app.post('/submit-form', upload.none(), (req, res) => {
   }
 });
 
+// Proxy routes for Netlify functions when not running on Netlify
+async function proxyNetlifyFunction(handler, req, res) {
+  try {
+    const event = {
+      httpMethod: req.method,
+      headers: req.headers,
+      body: JSON.stringify(req.body || {})
+    };
+
+    const result = await handler(event, {});
+
+    if (result && result.headers) {
+      Object.entries(result.headers).forEach(([key, value]) => {
+        if (typeof value !== 'undefined') res.setHeader(key, value);
+      });
+    }
+
+    const status = result && result.statusCode ? result.statusCode : 200;
+    const body = result && typeof result.body !== 'undefined' ? result.body : '';
+    res.status(status).send(body);
+  } catch (error) {
+    console.error('Function proxy error:', error);
+    res.status(500).json({ error: 'Service temporarily unavailable. Please try again later.' });
+  }
+}
+
+// Wire Netlify function handlers
+const sendOtpFn = require(path.join(__dirname, 'netlify/functions/send-otp.js'));
+const verifyOtpFn = require(path.join(__dirname, 'netlify/functions/verify-otp.js'));
+
+app.post('/send-otp', (req, res) => proxyNetlifyFunction(sendOtpFn.handler || sendOtpFn, req, res));
+app.options('/send-otp', (req, res) => res.sendStatus(200));
+
+app.post('/verify-otp', (req, res) => proxyNetlifyFunction(verifyOtpFn.handler || verifyOtpFn, req, res));
+app.options('/verify-otp', (req, res) => res.sendStatus(200));
+
 // Start server
 app.listen(port, () => {
   console.log(`Express server listening at http://localhost:${port}`);
