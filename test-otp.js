@@ -44,28 +44,22 @@ async function testEmailOTP() {
 
     // Test 3: Check development mode behavior
     if (sendResult.method === 'console') {
-      console.log('🔧 Development Mode: Check console logs for OTP');
-      console.log('📝 Look for "=== DEVELOPMENT: EMAIL OTP VERIFICATION ===" in server logs');
-      
-      // In development, any 6-digit OTP should work
-      console.log('🔍 Step 3: Testing with valid format OTP in dev mode...');
-      const devOtpResponse = await fetch('/verify-otp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-          email: testEmail, 
-          otp: '987654' // Any 6-digit number should work in dev
-        })
-      });
-
-      const devOtpResult = await devOtpResponse.json();
-      console.log('✅ Dev OTP Response:', devOtpResult);
-
-      if (devOtpResult.success) {
-        console.log('🎉 Email OTP system working correctly in development mode!');
-        console.log('📧 Verification token:', devOtpResult.verificationToken);
+      console.log('🔧 Development Mode');
+      if (sendResult.debugOtp) {
+        console.log('🧪 Using debugOtp from response for verification');
+        const devOtpResponse = await fetch('/verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: testEmail, otp: String(sendResult.debugOtp) })
+        });
+        const devOtpResult = await devOtpResponse.json();
+        console.log('✅ Dev OTP Response:', devOtpResult);
+        if (devOtpResult.success) {
+          console.log('🎉 Email OTP system working correctly in development mode!');
+          console.log('📧 Verification token:', devOtpResult.verificationToken);
+        }
+      } else {
+        console.log('📝 Check server logs for the OTP code and verify manually.');
       }
     }
 
