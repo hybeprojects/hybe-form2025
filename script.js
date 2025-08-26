@@ -220,6 +220,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  async function parseJsonResponse(response) {
+    try {
+      const data = await response.clone().json();
+      return data || {};
+    } catch (_) {
+      try {
+        const text = await response.text();
+        if (!text) return {};
+        return JSON.parse(text);
+      } catch (_) {
+        return {};
+      }
+    }
+  }
+
   function sanitizeInput(value) {
     const temp = document.createElement('div');
     temp.textContent = value;
@@ -836,7 +851,7 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify({ email: email })
       });
 
-      const data = await response.text().then(t => { try { return t ? JSON.parse(t) : {}; } catch { return { error: 'Invalid response format', raw: t }; } });
+      const data = await parseJsonResponse(response);
 
       if (response.ok && data.success) {
         emailVerificationState.otpSent = true;
@@ -891,7 +906,7 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify({ email: email, otp: otp })
       });
 
-      const data = await response.text().then(t => { try { return t ? JSON.parse(t) : {}; } catch { return { error: 'Invalid response format', raw: t }; } });
+      const data = await parseJsonResponse(response);
 
       if (response.ok && data.success) {
         emailVerificationState.isVerified = true;
