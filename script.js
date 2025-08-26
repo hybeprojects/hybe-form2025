@@ -724,7 +724,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const emailInput = document.getElementById('email');
   const verifyEmailBtn = document.getElementById('verify-email-btn');
-  const emailVerificationModal = new bootstrap.Modal(document.getElementById('emailVerificationModal'));
+  const emailVerificationModal = new bootstrap.Modal(document.getElementById('emailVerificationModal'), { backdrop: 'static', keyboard: false });
   const verificationEmail = document.getElementById('verification-email');
   const sendOtpBtn = document.getElementById('send-otp-btn');
   const verifyOtpBtn = document.getElementById('verify-otp-btn');
@@ -814,7 +814,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (step === 2) {
       document.getElementById('sent-to-email').textContent = emailVerificationState.currentEmail;
       otpInput.focus();
-      startOtpCountdown();
     }
   }
 
@@ -843,7 +842,17 @@ document.addEventListener('DOMContentLoaded', () => {
         emailVerificationState.otpSent = true;
         showToast('Verification code sent to your email!', 'success');
         showVerificationStep(2);
-        startResendTimer();
+        const expiresIn = Number(data.expiresIn) || 300;
+        const resendAfter = Number(data.resendAfter) || 60;
+        startOtpCountdown(expiresIn);
+        startResendTimer(resendAfter);
+      } else if (response.status === 429) {
+        const retryAfterHeader = Number(response.headers.get('Retry-After'));
+        const retryAfterMs = Number(data.retryAfter) || (isNaN(retryAfterHeader) ? 60 : retryAfterHeader) * 1000;
+        const retryAfterSeconds = Math.ceil(retryAfterMs / 1000);
+        showToast(`Too many requests. Please wait ${retryAfterSeconds}s before retrying.`, 'warning');
+        showVerificationStep(2);
+        startResendTimer(retryAfterSeconds);
       } else {
         throw new Error(data.error || 'Failed to send verification code');
       }
@@ -896,7 +905,24 @@ document.addEventListener('DOMContentLoaded', () => {
           emailVerificationModal.hide();
         }, 2000);
       } else {
-        throw new Error(data.error || 'Invalid verification code');
+        let message = data.error || 'Invalid verification code';
+        if (typeof data.remainingAttempts === 'number') {
+          message += ` (${data.remainingAttempts} attempts left)`;
+        }
+        if (data.code === 'OTP_EXPIRED') {
+          const countdownEl = document.getElementById('otp-countdown');
+          if (countdownEl) {
+            countdownEl.textContent = 'Expired';
+            countdownEl.className = 'fw-bold text-danger';
+          }
+        }
+        if (data.code === 'TOO_MANY_ATTEMPTS' || data.remainingAttempts === 0) {
+          verifyOtpBtn.disabled = true;
+        }
+        showToast(message, 'danger');
+        otpInput.classList.add('is-invalid');
+        document.getElementById('otp-error').textContent = message;
+        return;
       }
     } catch (error) {
       console.error('OTP verification error:', error);
@@ -940,8 +966,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // OTP countdown timer
   let otpCountdownInterval;
-  function startOtpCountdown() {
-    let timeLeft = 300; // 5 minutes
+  function startOtpCountdown(seconds = 300) {
+    let timeLeft = Number(seconds);
+    if (!Number.isFinite(timeLeft) || timeLeft <= 0) timeLeft = 300;
     const countdownEl = document.getElementById('otp-countdown');
 
     clearInterval(otpCountdownInterval);
@@ -962,8 +989,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Resend timer
   let resendTimerInterval;
-  function startResendTimer() {
-    emailVerificationState.resendTimer = 60;
+  function startResendTimer(seconds = 60) {
+    emailVerificationState.resendTimer = Number(seconds) || 60;
     const resendCountdown = document.getElementById('resend-countdown');
     const resendTimer = document.getElementById('resend-timer');
 
@@ -983,6 +1010,29 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }, 1000);
   }
+
+  // Change email link
+  const changeEmailLink = document.getElementById('change-email-link');
+  if (changeEmailLink) {
+    changeEmailLink.addEventListener('click', () => {
+      emailVerificationModal.hide();
+      setTimeout(() => {
+        emailInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        emailInput.focus();
+      }, 300);
+    });
+  }
+
+  // Allow paste of 6-digit code
+  otpInput.addEventListener('paste', (e) => {
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text') || '';
+    const digits = (text.match(/\d/g) || []).join('').slice(0, 6);
+    if (digits) {
+      otpInput.value = digits;
+      otpInput.dispatchEvent(new Event('input'));
+    }
+  });
 
   // Initialize email verification UI
   updateEmailVerificationUI();
