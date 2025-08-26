@@ -28,7 +28,7 @@ exports.handler = async function(event, context) {
   const origin = event.headers.origin || event.headers.Origin;
 
   // Enhanced security headers
-  const headers = getSecurityHeaders(origin);
+  const headers = { ...getSecurityHeaders(origin), 'Content-Type': 'application/json' };
 
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers, body: '' };
