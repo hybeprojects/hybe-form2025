@@ -142,15 +142,21 @@ exports.handler = async function(event, context) {
     console.log(`OTP request processed in ${processingTime}ms for ${normalizedEmail}`);
 
     // Successful response (no sensitive data included)
+    const responsePayload = {
+      success: true,
+      message: 'Verification code sent to your email',
+      expiresIn: Math.floor(SECURITY.otpExpiry / 1000),
+      method: emailResult.method || 'email'
+    };
+
+    if (process.env.NODE_ENV !== 'production') {
+      responsePayload.debugOtp = otp;
+    }
+
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({
-        success: true,
-        message: 'Verification code sent to your email',
-        expiresIn: Math.floor(SECURITY.otpExpiry / 1000), // in seconds
-        method: emailResult.method || 'email'
-      })
+      body: JSON.stringify(responsePayload)
     };
 
   } catch (error) {
