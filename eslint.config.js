@@ -1,23 +1,37 @@
-/** @type {import('eslint').Linter.FlatConfig[]} */
+import globals from 'globals';
+
 export default [
   {
     ignores: ['dist/**', 'node_modules/**'],
   },
+  // Configuration for Node.js files
   {
+    files: ['server.js', 'lib/**/*.js', 'netlify/functions/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2021,
+      sourceType: 'commonjs', // These are CommonJS files
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      'no-unused-vars': 'warn',
+      'no-undef': 'error',
+      'no-console': 'off',
+    },
+  },
+  // Configuration for Browser files
+  {
+    files: ['script.js', 'lottie-spinner.html', 'test-otp.js'],
     languageOptions: {
       ecmaVersion: 2021,
       sourceType: 'module',
       globals: {
-        window: 'readonly',
-        document: 'readonly',
-        console: 'readonly',
+        ...globals.browser,
+        ...globals.jquery, // If you use jQuery
         AOS: 'readonly',
         bootstrap: 'readonly',
         intlTelInput: 'readonly',
-        setInterval: 'readonly',
-        clearInterval: 'readonly',
-        setTimeout: 'readonly',
-        fetch: 'readonly',
       },
     },
     rules: {

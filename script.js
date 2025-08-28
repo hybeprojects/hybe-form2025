@@ -87,6 +87,20 @@ if (typeof document !== 'undefined') {
 
   const modalManager = new ModalManager();
 
+  // Utility functions
+  function showToast(message, type = 'warning', timeout = 4000) {
+    const toast = document.getElementById('global-toast');
+    if (toast) {
+      toast.className = `toast align-items-center text-white bg-${type} border-0`;
+      document.getElementById('global-toast-body').textContent = message;
+      const bsToast = new bootstrap.Toast(toast);
+      bsToast.show();
+      if (timeout > 0) {
+        setTimeout(() => bsToast.hide(), timeout);
+      }
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     // Initialize AOS
     if (typeof AOS !== 'undefined') {
@@ -195,20 +209,6 @@ if (typeof document !== 'undefined') {
       option.disabled = value === '';
       option.selected = selected;
       return option;
-    }
-
-    // Utility functions
-    function showToast(message, type = 'warning', timeout = 4000) {
-      const toast = document.getElementById('global-toast');
-      if (toast) {
-        toast.className = `toast align-items-center text-white bg-${type} border-0`;
-        document.getElementById('global-toast-body').textContent = message;
-        const bsToast = new bootstrap.Toast(toast);
-        bsToast.show();
-        if (timeout > 0) {
-          setTimeout(() => bsToast.hide(), timeout);
-        }
-      }
     }
 
     function safeFetch(url, options = {}) {
