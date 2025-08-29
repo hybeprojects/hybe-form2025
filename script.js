@@ -616,21 +616,28 @@ if (typeof document !== 'undefined') {
         console.log('Submission Time:', submissionTime);
         console.log('Email Verification Status:', 'verified');
 
-        // Submit to Netlify's built-in form handling for dashboard visibility
-        await safeFetch('/', {
-          method: 'POST',
-          body: formData,
-        });
-        console.log('Netlify form submission successful with ID:', uniqueID);
+        // Submit to Netlify's built-in form handling when available; non-blocking in dev/local
+        try {
+          await safeFetch('/', {
+            method: 'POST',
+            body: formData,
+          });
+          console.log('Netlify form submission successful with ID:', uniqueID);
+        } catch (e) {
+          console.warn('Netlify form submission skipped (dev/local):', e.message);
+        }
 
         // Show success message without exposing internal ID
         showToast('Form submitted successfully! You will receive a confirmation email shortly.', 'success');
 
         // Submit to custom Netlify Function with unique ID
         try {
+          const payload = {};
+          for (const [k, v] of formData.entries()) payload[k] = v;
           const functionResponse = await safeFetch('/submit-fan-permit', {
             method: 'POST',
-            body: formData,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
           });
           const functionResult = await functionResponse.json();
           console.log('Netlify Function response for ID', uniqueID, ':', functionResult);
