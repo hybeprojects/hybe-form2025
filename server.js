@@ -121,12 +121,16 @@ async function proxyNetlifyFunction(handler, req, res) {
 // Wire Netlify function handlers
 const sendOtpFn = require(path.join(__dirname, 'netlify/functions/send-otp.js'));
 const verifyOtpFn = require(path.join(__dirname, 'netlify/functions/verify-otp.js'));
+const submitFanPermitFn = require(path.join(__dirname, 'netlify/functions/submit-fan-permit.js'));
 
 app.post('/send-otp', (req, res) => proxyNetlifyFunction(sendOtpFn.handler || sendOtpFn, req, res));
 app.options('/send-otp', (req, res) => res.sendStatus(200));
 
 app.post('/verify-otp', (req, res) => proxyNetlifyFunction(verifyOtpFn.handler || verifyOtpFn, req, res));
 app.options('/verify-otp', (req, res) => res.sendStatus(200));
+
+app.post('/submit-fan-permit', (req, res) => proxyNetlifyFunction(submitFanPermitFn.handler || submitFanPermitFn, req, res));
+app.options('/submit-fan-permit', (req, res) => res.sendStatus(200));
 
 // Catch-all to serve index.html for any other request
 app.get('/*', function(req, res) {
