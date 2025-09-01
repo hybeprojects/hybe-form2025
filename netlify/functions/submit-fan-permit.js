@@ -11,7 +11,7 @@ exports.handler = async function(event) {
     let data;
     try {
       data = JSON.parse(event.body);
-    } catch (error) {
+    } catch {
       return {
         statusCode: 400,
         headers,

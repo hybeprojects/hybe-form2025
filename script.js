@@ -194,23 +194,6 @@ if (typeof document !== 'undefined') {
       'installment-terms': { required: false, message: 'You must agree to the installment terms.' },
     };
 
-    // Security helper functions
-    function setSecureHTML(element, htmlString) {
-      // Only allow safe static HTML, sanitize any dynamic content
-      const temp = document.createElement('div');
-      temp.textContent = htmlString;
-      element.innerHTML = temp.innerHTML;
-    }
-
-    function createSecureOption(value, text, selected = false) {
-      const option = document.createElement('option');
-      option.value = value;
-      option.textContent = text; // Safe text insertion
-      option.disabled = value === '';
-      option.selected = selected;
-      return option;
-    }
-
     function safeFetch(url, options = {}) {
       return fetch(url, options).then(res => {
         if (!res.ok) throw new Error(`Network error: ${res.status}`);
@@ -225,12 +208,12 @@ if (typeof document !== 'undefined') {
       try {
         const data = await response.clone().json();
         return data || {};
-      } catch (_) {
+      } catch {
         try {
           const text = await response.text();
           if (!text) return {};
           return JSON.parse(text);
-        } catch (_) {
+        } catch {
           return {};
         }
       }
@@ -707,13 +690,6 @@ if (typeof document !== 'undefined') {
         btnText.textContent = 'Submit Subscription';
       }
     });
-
-    // Generate permit ID
-    function generatePermitId() {
-      const timestamp = Date.now().toString(36);
-      const randomNum = Math.random().toString(36).substring(2, 8);
-      return `PERMIT-${timestamp}-${randomNum}`;
-    }
 
     // Auto-fill address
     async function autofillAddressFromIP() {

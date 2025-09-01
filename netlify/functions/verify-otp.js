@@ -18,7 +18,7 @@ const VERIFICATION_RATE_LIMIT = SECURITY_CONFIG.verificationRateLimit;
 const verificationAttempts = new Map();
 const ipLockouts = new Map();
 
-exports.handler = async function(event, context) {
+exports.handler = async function(event) {
   // Derive origin and build unified security+CORS headers
   const origin = event.headers.origin || event.headers.Origin;
   const headers = { ...getSecurityHeaders(origin), 'Content-Type': 'application/json' };
@@ -43,7 +43,7 @@ exports.handler = async function(event, context) {
     let requestData;
     try {
       requestData = JSON.parse(event.body);
-    } catch (error) {
+    } catch {
       return {
         statusCode: 400,
         headers,
@@ -322,7 +322,7 @@ function validateVerificationToken(token) {
       email: tokenData.email,
       timestamp: tokenData.timestamp 
     };
-  } catch (error) {
+  } catch {
     return { valid: false, error: 'Invalid token' };
   }
 }
