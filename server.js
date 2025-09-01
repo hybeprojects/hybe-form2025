@@ -14,8 +14,8 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Serve static files from the root directory
-app.use(express.static(path.join(__dirname, '')));
+// Serve static files from the 'dist' directory
+app.use(express.static(path.join(__dirname, 'dist')));
 
 // Basic rate limiting
 const requestCounts = new Map();
@@ -134,7 +134,7 @@ app.options('/submit-fan-permit', (req, res) => res.sendStatus(200));
 
 // Catch-all to serve index.html for any other request
 app.get('/*', function(req, res) {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 // Start server
