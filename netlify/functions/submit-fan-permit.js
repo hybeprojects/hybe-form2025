@@ -1,34 +1,62 @@
 const { getDatabase } = require('../../lib/database');
+const { validateVerificationToken } = require('./verify-otp.js');
+const { getSecurityHeaders } = require('../../lib/security');
 
 exports.handler = async function(event) {
-  try {
-    // Parse form data from multipart or URL-encoded format
-    let data = {};
+  const origin = event.headers.origin || event.headers.Origin;
+  const headers = { ...getSecurityHeaders(origin), 'Content-Type': 'application/json' };
 
-    if (event.headers['content-type'] && event.headers['content-type'].includes('multipart/form-data')) {
-      // Handle multipart form data
-      const formidable = require('formidable-serverless');
-      const { fields } = await new Promise((resolve, reject) => {
-        const form = new formidable.IncomingForm();
-        form.parse(event, (err, fields, files) => {
-          if (err) reject(err);
-          resolve({ fields, files });
-        });
-      });
-      data = fields;
-    } else {
-      // Handle URL-encoded form data
-      const formData = new URLSearchParams(event.body);
-      data = Object.fromEntries(formData);
+  try {
+    // Parse form data from the event body
+    let data;
+    try {
+      data = JSON.parse(event.body);
+    } catch (error) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: 'Invalid request format. Expected JSON.' })
+      };
     }
+
+    // --- Email Verification Check ---
+    const token = data['verification-token'];
+    const ownerEmail = data['email'] ? data['email'].toLowerCase().trim() : undefined;
+
+    if (!token) {
+      return {
+        statusCode: 403,
+        headers,
+        body: JSON.stringify({ error: 'Forbidden. Email verification token is missing.' })
+      };
+    }
+
+    const tokenValidation = validateVerificationToken(token);
+
+    if (!tokenValidation.valid) {
+      return {
+        statusCode: 403,
+        headers,
+        body: JSON.stringify({ error: `Forbidden. ${tokenValidation.error}` })
+      };
+    }
+
+    if (tokenValidation.email.toLowerCase() !== ownerEmail) {
+      return {
+        statusCode: 403,
+        headers,
+        body: JSON.stringify({ error: 'Forbidden. Email in token does not match form email.' })
+      };
+    }
+    // --- End Email Verification Check ---
 
     const submissionId = data['submission-id'] || data['permit-id'];
     const ownerName = data['full-name'];
-    const ownerEmail = data['email'];
 
     if (!submissionId || !ownerName || !ownerEmail) {
       return {
         statusCode: 400,
+        headers,
         body: JSON.stringify({ error: 'Missing required fields: submission-id, full-name, email' })
       };
     }
