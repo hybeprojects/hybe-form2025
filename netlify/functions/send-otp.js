@@ -2,11 +2,8 @@ const { getDatabase } = require('../../lib/database');
 const { getEmailService } = require('../../lib/emailService');
 const {
   getSecurityHeaders,
-  sanitizeInput,
-  validateEmailDomain,
   normalizeIP,
   normalizeUserAgent,
-  logSecurityEvent,
   SECURITY_CONFIG
 } = require('../../lib/security');
 const crypto = require('crypto');
@@ -23,7 +20,7 @@ const SECURITY = {
   otpExpiry: 5 * 60 * 1000 // 5 minutes
 };
 
-exports.handler = async function(event, context) {
+exports.handler = async function(event) {
   // Get origin for CORS validation
   const origin = event.headers.origin || event.headers.Origin;
 
@@ -51,7 +48,7 @@ exports.handler = async function(event, context) {
     let requestData;
     try {
       requestData = JSON.parse(event.body);
-    } catch (error) {
+    } catch {
       return {
         statusCode: 400,
         headers,
@@ -88,7 +85,7 @@ exports.handler = async function(event, context) {
     emailService = getEmailService();
 
     // Check rate limiting
-    const rateLimitCheck = await checkRateLimit(database, normalizedEmail, clientInfo.ip);
+    const rateLimitCheck = await checkRateLimit(database, normalizedEmail);
     if (!rateLimitCheck.allowed) {
       return {
         statusCode: 429,
@@ -226,7 +223,7 @@ function generateSecureOTP(length = 6) {
 }
 
 // Rate limiting implementation
-async function checkRateLimit(database, email, ipAddress) {
+async function checkRateLimit(database, email) {
   try {
     // Check email-based rate limiting
     const emailRateLimit = await database.getRateLimitInfo(email, RATE_LIMIT.timeWindow);
