@@ -5,3 +5,12 @@ node_modules/
 
 # Local Netlify folder
 .netlify
+
+# Environment variables
+.env
+
+# Local database file
+data/otp_database.db
+
+# Log files
+*.log
