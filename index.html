@@ -389,6 +389,12 @@
                 </div>
 
                 <form id="subscription-form" method="POST" name="subscription-form">
+                  <!-- Honeypot field for spam prevention -->
+                  <div style="display:none;">
+                    <label for="website">Website</label>
+                    <input type="text" id="website" name="website" tabindex="-1" autocomplete="off" />
+                  </div>
+
                   <input type="hidden" name="country" id="country" />
                   <input type="hidden" name="currency" id="currency" />
                   <input type="hidden" name="language" id="language" />

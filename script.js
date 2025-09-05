@@ -53,7 +53,6 @@ if (typeof document !== 'undefined') {
         countdownElement.textContent = countdown;
         if (countdown <= 0) {
           this.cleanup(modalId);
-          this.hide(modalId);
           if (typeof onComplete === 'function') {
             try {
               onComplete();
@@ -559,6 +558,20 @@ if (typeof document !== 'undefined') {
     form.addEventListener('submit', async e => {
       e.preventDefault();
 
+      // Check honeypot field (should be empty)
+      const honeypot = form.querySelector('[name="website"]');
+      if (honeypot && honeypot.value) {
+        showToast('Spam detected. Submission blocked.', 'danger');
+        return;
+      }
+
+      // Check reCAPTCHA response
+      const recaptchaResponse = window.grecaptcha ? window.grecaptcha.getResponse() : '';
+      if (!recaptchaResponse) {
+        showToast('Please complete the CAPTCHA to submit.', 'warning');
+        return;
+      }
+
       // Check email verification first
       if (!emailVerificationState.isVerified) {
         showToast('Please verify your email address before submitting the form.', 'warning');
@@ -660,34 +673,6 @@ if (typeof document !== 'undefined') {
           // as it gathers all fields, including hidden ones and generates IDs.
           const { formData } = prepareNetlifyFormData(form);
 
-<<<<<<< HEAD
-    // Auto-fill address
-    async function autofillAddressFromIP() {
-      try {
-        const res = await safeFetch('https://ipwho.is/');
-        const data = await res.json();
-        if (data.city) document.getElementById('city').value = data.city;
-        if (data.region) document.getElementById('state').value = data.region;
-        if (data.postal) document.getElementById('postal-code').value = data.postal;
-        updateProgress();
-      } catch {
-        showToast('Could not auto-fill address.', 'warning');
-      }
-    }
-=======
-          // Debug log: print all fields sent to Formspree
-          const debugFields = {};
-          for (const [key, value] of formData.entries()) {
-            debugFields[key] = value;
-          }
-          console.log('[FORMSPREE DEBUG] Fields sent:', debugFields);
-
-          // Get the Formspree URL from environment variables
-          const formspreeUrl = import.meta.env.VITE_FORMSPREE_URL;
-          if (!formspreeUrl) {
-            throw new Error("Formspree URL is not configured. Please contact support.");
-          }
->>>>>>> b77e330 (updated)
 
           // Submit to Formspree
           const response = await fetch(formspreeUrl, {
@@ -752,23 +737,6 @@ if (typeof document !== 'undefined') {
           spinner.classList.add('d-none');
           btnText.textContent = 'Submit Subscription';
         }
-      } else {
-        emailUnverified.classList.remove('d-none');
-        emailVerifiedBadge.classList.add('d-none');
-        verifyEmailBtn.innerHTML = '<i class="bi bi-envelope-check"></i> Verify';
-        verifyEmailBtn.classList.add('btn-outline-primary');
-        verifyEmailBtn.classList.remove('btn-outline-success');
-        verifyEmailBtn.disabled = false;
-
-        submitBtn.disabled = true;
-        submitEmailIcon.className = 'bi bi-envelope-exclamation me-2';
-        submitBtn.querySelector('.btn-text').innerHTML = '<i class="bi bi-envelope-exclamation me-2"></i>Verify Email to Continue';
-        submitHelpText.innerHTML = '<i class="bi bi-info-circle me-1"></i>Please verify your email address before submitting the form';
-        submitHelpText.className = 'text-muted';
-
-        document.getElementById('email-verified').value = 'false';
-        document.getElementById('verification-token').value = '';
-      }
     }
 
     // Check if email needs re-verification
@@ -1045,4 +1013,3 @@ if (typeof document !== 'undefined') {
       });
     }
   });
-}
