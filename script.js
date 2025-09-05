@@ -735,7 +735,9 @@ if (typeof document !== 'undefined') {
           spinner.classList.add('d-none');
           btnText.textContent = 'Submit Subscription';
         }
+          }
     }
+    )
 
     // Check if email needs re-verification
     function checkEmailChanged() {
@@ -1010,3 +1012,7 @@ if (typeof document !== 'undefined') {
         });
       });
     }
+
+  }
+  )
+}
