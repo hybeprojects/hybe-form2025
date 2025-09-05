@@ -587,101 +587,41 @@ if (typeof document !== 'undefined') {
       const paymentMethod = document.querySelector('input[name="payment-method"]:checked')?.value;
 
       try {
-        // Prepare enhanced form data with unique ID
-        const { formData, uniqueID, submissionTime } = prepareNetlifyFormData(form);
+        // Prepare form data. The prepareNetlifyFormData function is still useful
+        // as it gathers all fields, including hidden ones and generates IDs.
+        const { formData } = prepareNetlifyFormData(form);
 
-        // Add email verification data
-        formData.set('email-verification-status', 'verified');
-        formData.set('email-verification-timestamp', new Date().toISOString());
-        formData.set('verification-token', emailVerificationState.verificationToken);
-
-        console.log('Generated Subscription ID:', uniqueID);
-        console.log('Submission Time:', submissionTime);
-        console.log('Email Verification Status:', 'verified');
-
-        // Submit to Netlify's built-in form handling when available; non-blocking in dev/local
-        try {
-          await safeFetch('/', {
-            method: 'POST',
-            body: formData,
-          });
-          console.log('Netlify form submission successful with ID:', uniqueID);
-        } catch (e) {
-          console.warn('Netlify form submission skipped (dev/local):', e.message);
+        // Get the Formspree URL from environment variables
+        const formspreeUrl = import.meta.env.VITE_FORMSPREE_URL;
+        if (!formspreeUrl) {
+          throw new Error("Formspree URL is not configured. Please contact support.");
         }
 
-        // Show success message without exposing internal ID
-        showToast('Form submitted successfully! You will receive a confirmation email shortly.', 'success');
+        // Submit to Formspree
+        const response = await fetch(formspreeUrl, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
 
-        // Submit to custom Netlify Function with unique ID
-        try {
-          const payload = {};
-          for (const [k, v] of formData.entries()) payload[k] = v;
-          const functionResponse = await safeFetch('/submit-fan-permit', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-          });
-          const functionResult = await functionResponse.json();
-          console.log('Netlify Function response for ID', uniqueID, ':', functionResult);
-        } catch (functionError) {
-          console.warn('Netlify Function submission failed for ID', uniqueID, ':', functionError.message);
+        if (!response.ok) {
+          const data = await response.json();
+          if (Object.hasOwn(data, 'errors')) {
+            throw new Error(data["errors"].map(error => error["message"]).join(", "));
+          } else {
+            throw new Error('An unknown error occurred during submission.');
+          }
         }
 
-        // Note: Subscription ID is for internal tracking only - not displayed to users
+        console.log('Form submitted to Formspree successfully!');
+        showToast('Form submitted successfully! Redirecting...', 'success');
 
-        if (paymentMethod === 'Card Payment') {
-          modalManager.show('validationModal', {
-            countdown: {
-              duration: 5,
-              elementId: 'countdown',
-              onComplete: () => {
-                modalManager.show('paymentModal', {
-                  countdown: {
-                    duration: 5,
-                    elementId: 'payment-countdown',
-                    onComplete: () => {
-                      const stripeUrl = paymentTypeSelect.value === 'Installment'
-                        ? 'https://buy.stripe.com/3cIfZhgGxdPlaOBaNL2ZO06'
-                        : 'https://buy.stripe.com/14AfZh1LD4eL9Kx0972ZO04';
-                      modalManager.show('loadingRedirectModal', {
-                        countdown: {
-                          duration: 5,
-                          elementId: 'redirect-countdown',
-                          onComplete: () => window.location.href = stripeUrl,
-                        },
-                      });
-                    },
-                  },
-                });
-              },
-            },
-          });
-        } else {
-          modalManager.show('validationModal', {
-            countdown: {
-              duration: 5,
-              elementId: 'countdown',
-              onComplete: () => {
-                modalManager.show('digitalCurrencySuccessModal', {
-                  countdown: {
-                    duration: 5,
-                    elementId: 'digital-currency-countdown',
-                    onComplete: () => {
-                      modalManager.show('loadingRedirectModal', {
-                        countdown: {
-                          duration: 5,
-                          elementId: 'redirect-countdown',
-                          onComplete: () => window.location.href = 'https://hybecorp.com',
-                        },
-                      });
-                    },
-                  },
-                });
-              },
-            },
-          });
-        }
+        // Redirect to the success page after a short delay
+        setTimeout(() => {
+          window.location.href = 'success.html';
+        }, 1500);
       } catch (err) {
         console.error('Submission Error:', err.message, err.stack);
         showToast(`Submission failed: ${err.message}. Please try again.`, 'danger');
