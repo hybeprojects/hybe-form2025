@@ -4,7 +4,6 @@
 
 ### Internal Unique Identification (Dashboard Only)
 - **submission-id**: Auto-generated unique ID (format: HYB[10-alphanumeric]) - **Internal tracking only**
-- **permit-id**: Same as submission-id for tracking - **Internal tracking only**
 - **submission-timestamp**: ISO timestamp of submission
 
 ### Personal Information

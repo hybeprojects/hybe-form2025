@@ -50,7 +50,7 @@ exports.handler = async function(event) {
     }
     // --- End Email Verification Check ---
 
-    const submissionId = data['submission-id'] || data['permit-id'];
+    const submissionId = data['submission-id'];
     const ownerName = data['full-name'];
 
     if (!submissionId || !ownerName || !ownerEmail) {
