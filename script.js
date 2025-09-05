@@ -565,12 +565,6 @@ if (typeof document !== 'undefined') {
         return;
       }
 
-      // Check reCAPTCHA response
-      const recaptchaResponse = window.grecaptcha ? window.grecaptcha.getResponse() : '';
-      if (!recaptchaResponse) {
-        showToast('Please complete the CAPTCHA to submit.', 'warning');
-        return;
-      }
 
       // Check email verification first
       if (!emailVerificationState.isVerified) {
