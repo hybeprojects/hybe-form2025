@@ -643,6 +643,10 @@ if (typeof document !== 'undefined') {
         console.log('Form submitted to Formspree successfully!');
         showToast('Form submitted successfully! Redirecting...', 'success');
 
+        // Store form data in sessionStorage for the success page
+        const dataToStore = Object.fromEntries(formData.entries());
+        sessionStorage.setItem('submissionData', JSON.stringify(dataToStore));
+
         // Redirect to the success page after a short delay
         setTimeout(() => {
           window.location.href = 'success.html';
