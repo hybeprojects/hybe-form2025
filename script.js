@@ -3,6 +3,7 @@ if (typeof document !== 'undefined') {
     constructor() {
       this.activeModals = new Map();
       this.activeTimers = new Map();
+    }
 
     initialize(modalId) {
       const element = document.getElementById(modalId);
