@@ -56,10 +56,10 @@ app.post('/submit-form', upload.none(), (req, res) => {
     }
 
     // Basic validation
-    if (!sanitizedData.firstName || !sanitizedData.lastName || !sanitizedData.email) {
+    if (!sanitizedData["full-name"] || !sanitizedData.email) {
       return res.status(400).json({
         success: false,
-        message: 'Missing required fields: firstName, lastName, email'
+        message: 'Missing required fields: full-name, email'
       });
     }
 

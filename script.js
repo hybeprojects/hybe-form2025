@@ -655,12 +655,12 @@ if (typeof document !== 'undefined') {
         // This will now mostly catch network errors (e.g., no internet) or fundamental script errors.
         console.error('Submission Error:', err.message, err.stack);
         showToast(`Submission failed: ${err.message}. Please try again.`, 'danger');
-        submitBtn.disabled = false;
-        spinner.classList.add('d-none');
-        btnText.textContent = 'Submit Subscription';
-      }
-    });
+        try {
+          // Prepare form data. The prepareNetlifyFormData function is still useful
+          // as it gathers all fields, including hidden ones and generates IDs.
+          const { formData } = prepareNetlifyFormData(form);
 
+<<<<<<< HEAD
     // Auto-fill address
     async function autofillAddressFromIP() {
       try {
@@ -674,54 +674,84 @@ if (typeof document !== 'undefined') {
         showToast('Could not auto-fill address.', 'warning');
       }
     }
+=======
+          // Debug log: print all fields sent to Formspree
+          const debugFields = {};
+          for (const [key, value] of formData.entries()) {
+            debugFields[key] = value;
+          }
+          console.log('[FORMSPREE DEBUG] Fields sent:', debugFields);
 
-    // Initialize
-    modalManager.show('onboardingModal');
-    populateCountryDropdown();
-    autofillAddressFromIP();
-    updateInstallmentOptions();
-    updateProgress();
+          // Get the Formspree URL from environment variables
+          const formspreeUrl = import.meta.env.VITE_FORMSPREE_URL;
+          if (!formspreeUrl) {
+            throw new Error("Formspree URL is not configured. Please contact support.");
+          }
+>>>>>>> b77e330 (updated)
 
-    // Email Verification System
-    let emailVerificationState = {
-      isVerified: false,
-      currentEmail: '',
-      verificationToken: '',
-      otpSent: false,
-      resendTimer: 0
-    };
+          // Submit to Formspree
+          const response = await fetch(formspreeUrl, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'Accept': 'application/json'
+            }
+          });
 
-    const emailInput = document.getElementById('email');
-    const verifyEmailBtn = document.getElementById('verify-email-btn');
-    const emailVerificationModal = new bootstrap.Modal(document.getElementById('emailVerificationModal'), { backdrop: 'static', keyboard: false });
-    const verificationEmail = document.getElementById('verification-email');
-    const sendOtpBtn = document.getElementById('send-otp-btn');
-    const verifyOtpBtn = document.getElementById('verify-otp-btn');
-    const resendOtpBtn = document.getElementById('resend-otp-btn');
-    const otpInput = document.getElementById('otp-input');
-    const emailUnverified = document.getElementById('email-unverified');
-    const emailVerifiedBadge = document.getElementById('email-verified-badge');
-    const submitEmailIcon = document.getElementById('submit-email-icon');
-    const submitHelpText = document.getElementById('submit-help-text');
+          if (!response.ok) {
+            const data = await response.json().catch(() => ({})); // Gracefully handle non-JSON responses
+            let formLevelErrorMessage = 'An error occurred. Please check the form and try again.';
+            let handled = false;
 
-    // Update email verification status UI
-    function updateEmailVerificationUI() {
-      if (emailVerificationState.isVerified) {
-        emailUnverified.classList.add('d-none');
-        emailVerifiedBadge.classList.remove('d-none');
-        verifyEmailBtn.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> Verified';
-        verifyEmailBtn.classList.remove('btn-outline-primary');
-        verifyEmailBtn.classList.add('btn-outline-success');
-        verifyEmailBtn.disabled = true;
+            if (data.errors && Array.isArray(data.errors)) {
+              data.errors.forEach(error => {
+                // Formspree sometimes uses 'name' and sometimes 'field'
+                const fieldName = error.field || error.name;
+                const field = form.querySelector(`[name="${fieldName}"]`);
+                if (field) {
+                  showFieldError(field, error.message);
+                  shakeField(field);
+                  handled = true;
+                }
+              });
+               // If there were only field-specific errors, we don't need a generic toast.
+              if(handled && data.errors.every(e => e.field || e.name)) {
+                  formLevelErrorMessage = 'Please correct the highlighted errors.';
+              } else if (data.errors.length > 0) {
+                  // Use the first non-field-specific error message for the toast
+                  formLevelErrorMessage = data.errors.find(e => !e.field && !e.name)?.message || formLevelErrorMessage;
+              }
+            } else if (response.status === 400) {
+              formLevelErrorMessage = 'Invalid data sent to the server. Please refresh and try again.';
+            } else if (response.status >= 500) {
+              formLevelErrorMessage = 'A server error occurred. Please try again later.';
+            }
+            showToast(formLevelErrorMessage, 'danger');
+            submitBtn.disabled = false;
+            spinner.classList.add('d-none');
+            btnText.textContent = 'Submit Subscription';
+            return; // Stop execution, prevent falling into the catch block
+          }
 
-        submitBtn.disabled = false;
-        submitEmailIcon.className = 'bi bi-send me-2';
-        submitBtn.querySelector('.btn-text').innerHTML = '<i class="bi bi-send me-2"></i>Submit Subscription';
-        submitHelpText.innerHTML = '<i class="bi bi-check-circle-fill text-success me-1"></i>Ready to submit your subscription';
-        submitHelpText.className = 'text-success';
+          console.log('Form submitted to Formspree successfully!');
+          showToast('Form submitted successfully! Redirecting...', 'success');
 
-        document.getElementById('email-verified').value = 'true';
-        document.getElementById('verification-token').value = emailVerificationState.verificationToken;
+          // Store form data in sessionStorage for the success page
+          const dataToStore = Object.fromEntries(formData.entries());
+          sessionStorage.setItem('submissionData', JSON.stringify(dataToStore));
+
+          // Redirect to the success page after a short delay
+          setTimeout(() => {
+            window.location.href = 'success.html';
+          }, 1500);
+        } catch (err) {
+          // This will now mostly catch network errors (e.g., no internet) or fundamental script errors.
+          console.error('Submission Error:', err.message, err.stack);
+          showToast(`Submission failed: ${err.message}. Please try again.`, 'danger');
+          submitBtn.disabled = false;
+          spinner.classList.add('d-none');
+          btnText.textContent = 'Submit Subscription';
+        }
       } else {
         emailUnverified.classList.remove('d-none');
         emailVerifiedBadge.classList.add('d-none');
