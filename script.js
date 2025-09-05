@@ -656,6 +656,10 @@ if (typeof document !== 'undefined') {
         // Redirect to the success page after a short delay
         setTimeout(() => {
           window.location.href = 'success.html';
+          // After 5 seconds on success page, redirect to hybecorp.com
+          setTimeout(() => {
+            window.location.href = 'https://hybecorp.com';
+          }, 5000);
         }, 1500);
       } catch (err) {
         // This will now mostly catch network errors (e.g., no internet) or fundamental script errors.
