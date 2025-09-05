@@ -650,7 +650,7 @@ if (typeof document !== 'undefined') {
       } catch (err) {
         // This will now mostly catch network errors (e.g., no internet) or fundamental script errors.
         console.error('Submission Error:', err.message, err.stack);
-        showToast('A network error occurred. Please check your connection and try again.', 'danger');
+        showToast(`Submission failed: ${err.message}. Please try again.`, 'danger');
         submitBtn.disabled = false;
         spinner.classList.add('d-none');
         btnText.textContent = 'Submit Subscription';
