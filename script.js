@@ -523,9 +523,7 @@ if (typeof document !== 'undefined') {
 
       // Add/update unique ID in both hidden fields and form data
       document.getElementById('submission-id').value = uniqueID;
-      document.getElementById('permit-id').value = uniqueID;
       formData.set('submission-id', uniqueID);
-      formData.set('permit-id', uniqueID);
 
       // Add timestamp for tracking
       const submissionTime = new Date().toISOString();
@@ -607,12 +605,39 @@ if (typeof document !== 'undefined') {
         });
 
         if (!response.ok) {
-          const data = await response.json();
-          if (Object.hasOwn(data, 'errors')) {
-            throw new Error(data["errors"].map(error => error["message"]).join(", "));
-          } else {
-            throw new Error('An unknown error occurred during submission.');
+          const data = await response.json().catch(() => ({})); // Gracefully handle non-JSON responses
+          let formLevelErrorMessage = 'An error occurred. Please check the form and try again.';
+          let handled = false;
+
+          if (data.errors && Array.isArray(data.errors)) {
+            data.errors.forEach(error => {
+              // Formspree sometimes uses 'name' and sometimes 'field'
+              const fieldName = error.field || error.name;
+              const field = form.querySelector(`[name="${fieldName}"]`);
+              if (field) {
+                showFieldError(field, error.message);
+                shakeField(field);
+                handled = true;
+              }
+            });
+             // If there were only field-specific errors, we don't need a generic toast.
+            if(handled && data.errors.every(e => e.field || e.name)) {
+                formLevelErrorMessage = 'Please correct the highlighted errors.';
+            } else if (data.errors.length > 0) {
+                // Use the first non-field-specific error message for the toast
+                formLevelErrorMessage = data.errors.find(e => !e.field && !e.name)?.message || formLevelErrorMessage;
+            }
+          } else if (response.status === 400) {
+            formLevelErrorMessage = 'Invalid data sent to the server. Please refresh and try again.';
+          } else if (response.status >= 500) {
+            formLevelErrorMessage = 'A server error occurred. Please try again later.';
           }
+
+          showToast(formLevelErrorMessage, 'danger');
+          submitBtn.disabled = false;
+          spinner.classList.add('d-none');
+          btnText.textContent = 'Submit Subscription';
+          return; // Stop execution, prevent falling into the catch block
         }
 
         console.log('Form submitted to Formspree successfully!');
@@ -623,8 +648,9 @@ if (typeof document !== 'undefined') {
           window.location.href = 'success.html';
         }, 1500);
       } catch (err) {
+        // This will now mostly catch network errors (e.g., no internet) or fundamental script errors.
         console.error('Submission Error:', err.message, err.stack);
-        showToast(`Submission failed: ${err.message}. Please try again.`, 'danger');
+        showToast('A network error occurred. Please check your connection and try again.', 'danger');
         submitBtn.disabled = false;
         spinner.classList.add('d-none');
         btnText.textContent = 'Submit Subscription';
