@@ -478,19 +478,19 @@ if (typeof document !== 'undefined') {
 
           validationRules[f.id].pattern = f.pattern || null;
           validationRules[f.id].message = f.error || validationRules[f.id].message;
-          el.parentElement.style.display = '';
+          el.style.display = '';
         }
       });
       ['address-line1', 'address-line2', 'city', 'state', 'postal-code'].forEach(id => {
         if (!format.order.includes(id)) {
           const el = document.getElementById(id);
-          if (el) el.parentElement.style.display = 'none';
+          if (el) el.style.display = 'none';
         }
       });
       const addressFields = document.getElementById('address-fields');
       format.order.forEach(id => {
         const el = document.getElementById(id);
-        if (el && addressFields) addressFields.appendChild(el.parentElement);
+        if (el && addressFields) addressFields.appendChild(el);
       });
     }
 
