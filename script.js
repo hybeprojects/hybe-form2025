@@ -1042,19 +1042,67 @@ if (typeof document !== 'undefined') {
       const forceShow = params.get('showOnboarding') === 'true' || params.get('onboarding') === '1' || params.get('forceOnboarding') === '1';
       const onboardingShown = localStorage.getItem('onboardingShown') === 'true';
 
+      console.debug('[Onboarding] forceShow=%s, onboardingShown=%s, url=%s', forceShow, onboardingShown, window.location.href);
+
       if (!onboardingShown || forceShow) {
         const onboardingModalInstance = modalManager.initialize('onboardingModal');
         if (onboardingModalInstance) {
-          onboardingModalInstance.show();
-          try { localStorage.setItem('onboardingShown', 'true'); } catch (err) { /* ignore */ }
+          try {
+            onboardingModalInstance.show();
+            try { localStorage.setItem('onboardingShown', 'true'); } catch (err) { /* ignore */ }
+            console.debug('[Onboarding] Shown via bootstrap modalManager');
+          } catch (err) {
+            console.warn('[Onboarding] bootstrap show failed:', err);
+            // Fallback: manual DOM-based modal show
+            manualShowModal('onboardingModal');
+          }
         } else {
-          console.warn('Onboarding modal element not found or failed to initialize');
+          console.warn('[Onboarding] Modal instance not available; attempting manual show');
+          manualShowModal('onboardingModal');
         }
       }
     } catch (e) {
-      // If localStorage or URL parsing is unavailable, show modal once per page load
-      const onboardingModalInstance = modalManager.initialize('onboardingModal');
-      if (onboardingModalInstance) onboardingModalInstance.show();
+      console.warn('[Onboarding] Error while attempting to show onboarding modal:', e);
+      // If localStorage or URL parsing is unavailable, show modal once per page load via manual fallback
+      manualShowModal('onboardingModal');
+    }
+
+    // Manual fallback to show a Bootstrap-like modal using DOM manipulation
+    function manualShowModal(modalId) {
+      try {
+        const el = document.getElementById(modalId);
+        if (!el) {
+          console.warn('[Onboarding] manualShowModal: element not found', modalId);
+          return;
+        }
+
+        // Avoid double-backdrop
+        if (!document.querySelector('.modal-backdrop')) {
+          const backdrop = document.createElement('div');
+          backdrop.className = 'modal-backdrop fade show';
+          document.body.appendChild(backdrop);
+        }
+
+        el.classList.add('show');
+        el.style.display = 'block';
+        el.setAttribute('aria-modal', 'true');
+        el.setAttribute('role', 'dialog');
+        el.removeAttribute('aria-hidden');
+
+        // Prevent body scroll
+        document.body.classList.add('modal-open');
+
+        // Focus the modal for accessibility
+        setTimeout(() => {
+          const focusEl = el.querySelector('[autofocus]') || el.querySelector('button, [tabindex]');
+          if (focusEl) focusEl.focus();
+        }, 50);
+
+        try { localStorage.setItem('onboardingShown', 'true'); } catch (err) { /* ignore */ }
+        console.debug('[Onboarding] Shown via manual fallback');
+      } catch (err) {
+        console.error('[Onboarding] manualShowModal error:', err);
+      }
     }
 
     // Debug logging (optional)
