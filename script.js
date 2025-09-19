@@ -577,6 +577,12 @@ if (typeof document !== 'undefined') {
       formData.set('country', document.getElementById('country-select').value);
       formData.set('currency', document.getElementById('currency').value || 'USD');
 
+      // Include mailing address consent checkbox as a normalized boolean string
+      try {
+        const mailingCheckbox = document.getElementById('use-as-mailing-address');
+        formData.set('use-as-mailing-address', mailingCheckbox && mailingCheckbox.checked ? 'true' : 'false');
+      } catch (e) { /* ignore */ }
+
       // Add user agent and submission metadata
       formData.set('user-agent', navigator.userAgent);
       formData.set('screen-resolution', `${screen.width}x${screen.height}`);
