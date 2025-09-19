@@ -528,10 +528,9 @@ if (typeof document !== 'undefined') {
       field.addEventListener('invalid', () => shakeField(field));
     });
     document.getElementById('digital-currency-home-btn').addEventListener('click', () => {
-      modalManager.hide('digitalCurrencySuccessModal');
-      modalManager.show('loadingRedirectModal', {
-        countdown: { duration: 5, elementId: 'redirect-countdown', onComplete: () => window.location.href = 'https://hybecorp.com' },
-      });
+      try { modalManager.hide('digitalCurrencySuccessModal'); } catch (e) {}
+      // Direct redirect to HYBECORP
+      window.location.href = 'https://hybecorp.com';
     });
 
     // Unique ID generation function
