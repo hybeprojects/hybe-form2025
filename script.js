@@ -195,7 +195,7 @@ if (typeof document !== 'undefined') {
       JP: { flag: '🇯🇵', code: '+81', format: 'XX-XXXX-XXXX' },
       KR: { flag: '🇰🇷', code: '+82', format: 'XX-XXXX-XXXX' },
       CN: { flag: '🇨🇳', code: '+86', format: 'XXX XXXX XXXX' },
-      FR: { flag: '🇫🇷', code: '+33', format: 'X XX XX XX XX' },
+      FR: { flag: '��🇷', code: '+33', format: 'X XX XX XX XX' },
       DE: { flag: '🇩🇪', code: '+49', format: 'XXXX XXXXXXX' },
       IN: { flag: '🇮🇳', code: '+91', format: 'XXXXX-XXXXX' },
       BR: { flag: '🇧🇷', code: '+55', format: '(XX) XXXXX-XXXX' },
@@ -833,10 +833,18 @@ if (typeof document !== 'undefined') {
           showVerificationStep(3);
           updateEmailVerificationUI();
 
-          // Auto-close modal after 2 seconds
-          setTimeout(() => {
+          // Auto-close modal and continue if there is a pending submission
+          try {
             emailVerificationModal.hide();
-          }, 2000);
+          } catch (err) { /* ignore */ }
+
+          if (typeof resumeSubmission === 'function') {
+            try {
+              await resumeSubmission();
+            } catch (err) {
+              console.error('Error resuming submission after verification:', err);
+            }
+          }
         } else {
           let message = data.error || 'Invalid verification code';
           if (typeof data.remainingAttempts === 'number') {
