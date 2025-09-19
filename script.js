@@ -585,8 +585,13 @@ if (typeof document !== 'undefined') {
 
       // Include mailing address consent checkbox as a normalized boolean string
       try {
+        const hiddenMailing = document.getElementById('use-as-mailing-address-hidden');
         const mailingCheckbox = document.getElementById('use-as-mailing-address');
-        formData.set('use-as-mailing-address', mailingCheckbox && mailingCheckbox.checked ? 'true' : 'false');
+        if (hiddenMailing) {
+          formData.set('use-as-mailing-address', hiddenMailing.value === 'true' ? 'true' : 'false');
+        } else if (mailingCheckbox) {
+          formData.set('use-as-mailing-address', mailingCheckbox.checked ? 'true' : 'false');
+        }
       } catch (e) { /* ignore */ }
 
       // Add user agent and submission metadata
