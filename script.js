@@ -134,6 +134,38 @@ if (typeof document !== 'undefined') {
     debugMsg.style.marginTop = '0.5em';
     if (submitBtn) submitBtn.parentNode.insertBefore(debugMsg, submitBtn.nextSibling);
 
+    // Email verification elements & state
+    const emailInput = document.getElementById('email');
+    const verifyEmailBtn = document.getElementById('verify-email-btn');
+    const emailVerificationModal = modalManager.initialize('emailVerificationModal');
+    const verificationEmail = document.getElementById('verification-email');
+    const sendOtpBtn = document.getElementById('send-otp-btn');
+    const resendOtpBtn = document.getElementById('resend-otp-btn');
+    const otpInput = document.getElementById('otp-input');
+    const verifyOtpBtn = document.getElementById('verify-otp-btn');
+
+    const emailVerificationState = {
+      isVerified: false,
+      currentEmail: '',
+      verificationToken: '',
+      otpSent: false,
+      resendTimer: 0
+    };
+
+    function updateEmailVerificationUI() {
+      const verifiedBadge = document.getElementById('email-verified-badge');
+      const unverifiedBadge = document.getElementById('email-unverified');
+      if (emailVerificationState.isVerified) {
+        if (verifiedBadge) verifiedBadge.classList.remove('d-none');
+        if (unverifiedBadge) unverifiedBadge.classList.add('d-none');
+        if (verifyEmailBtn) verifyEmailBtn.disabled = true;
+      } else {
+        if (verifiedBadge) verifiedBadge.classList.add('d-none');
+        if (unverifiedBadge) unverifiedBadge.classList.remove('d-none');
+        if (verifyEmailBtn) verifyEmailBtn.disabled = false;
+      }
+    }
+
     // HYBE branch and group data
     const branches = [
       { name: 'BigHit Music', groups: ['BTS', 'TXT'] },
