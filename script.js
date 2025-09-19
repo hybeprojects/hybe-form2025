@@ -470,7 +470,13 @@ if (typeof document !== 'undefined') {
           if (label && label.classList.contains('form-label')) label.textContent = f.label;
           el.required = f.required;
           el.pattern = f.pattern ? f.pattern.source : '';
-          validationRules[f.id].pattern = f.pattern;
+
+          // Ensure there's a validation rule object for this field before assigning
+          if (!validationRules[f.id]) {
+            validationRules[f.id] = { required: !!f.required, message: f.error || '' };
+          }
+
+          validationRules[f.id].pattern = f.pattern || null;
           validationRules[f.id].message = f.error || validationRules[f.id].message;
           el.parentElement.style.display = '';
         }
