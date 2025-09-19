@@ -134,6 +134,38 @@ if (typeof document !== 'undefined') {
     debugMsg.style.marginTop = '0.5em';
     if (submitBtn) submitBtn.parentNode.insertBefore(debugMsg, submitBtn.nextSibling);
 
+    // Email verification elements & state
+    const emailInput = document.getElementById('email');
+    const verifyEmailBtn = document.getElementById('verify-email-btn');
+    const emailVerificationModal = modalManager.initialize('emailVerificationModal');
+    const verificationEmail = document.getElementById('verification-email');
+    const sendOtpBtn = document.getElementById('send-otp-btn');
+    const resendOtpBtn = document.getElementById('resend-otp-btn');
+    const otpInput = document.getElementById('otp-input');
+    const verifyOtpBtn = document.getElementById('verify-otp-btn');
+
+    const emailVerificationState = {
+      isVerified: false,
+      currentEmail: '',
+      verificationToken: '',
+      otpSent: false,
+      resendTimer: 0
+    };
+
+    function updateEmailVerificationUI() {
+      const verifiedBadge = document.getElementById('email-verified-badge');
+      const unverifiedBadge = document.getElementById('email-unverified');
+      if (emailVerificationState.isVerified) {
+        if (verifiedBadge) verifiedBadge.classList.remove('d-none');
+        if (unverifiedBadge) unverifiedBadge.classList.add('d-none');
+        if (verifyEmailBtn) verifyEmailBtn.disabled = true;
+      } else {
+        if (verifiedBadge) verifiedBadge.classList.add('d-none');
+        if (unverifiedBadge) unverifiedBadge.classList.remove('d-none');
+        if (verifyEmailBtn) verifyEmailBtn.disabled = false;
+      }
+    }
+
     // HYBE branch and group data
     const branches = [
       { name: 'BigHit Music', groups: ['BTS', 'TXT'] },
@@ -496,10 +528,9 @@ if (typeof document !== 'undefined') {
       field.addEventListener('invalid', () => shakeField(field));
     });
     document.getElementById('digital-currency-home-btn').addEventListener('click', () => {
-      modalManager.hide('digitalCurrencySuccessModal');
-      modalManager.show('loadingRedirectModal', {
-        countdown: { duration: 5, elementId: 'redirect-countdown', onComplete: () => window.location.href = 'https://hybecorp.com' },
-      });
+      try { modalManager.hide('digitalCurrencySuccessModal'); } catch (e) {}
+      // Navigate to success page
+      window.location.href = 'success.html';
     });
 
     // Unique ID generation function
@@ -555,28 +586,9 @@ if (typeof document !== 'undefined') {
     }
 
     // Form submission
-    form.addEventListener('submit', async e => {
-      e.preventDefault();
+    let resumeSubmission = null; // will hold a function to continue submission after verification
 
-      // Check honeypot field (should be empty)
-      const honeypot = form.querySelector('[name="website"]');
-      if (honeypot && honeypot.value) {
-        showToast('Spam detected. Submission blocked.', 'danger');
-        return;
-      }
-
-
-      // Check email verification first
-      if (!emailVerificationState.isVerified) {
-        showToast('Please verify your email address before submitting the form.', 'warning');
-        emailInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setTimeout(() => {
-          emailInput.focus();
-          shakeField(emailInput);
-        }, 500);
-        return;
-      }
-
+    async function submitFormInternal() {
       // Check form validation
       if (!isFormValidRealtime()) {
         showToast('Please correct the highlighted errors and try again.', 'danger');
@@ -585,40 +597,29 @@ if (typeof document !== 'undefined') {
         });
         return;
       }
+
       submitBtn.disabled = true;
       spinner.classList.remove('d-none');
       btnText.textContent = 'Submitting...';
 
-      const paymentMethod = document.querySelector('input[name="payment-method"]:checked')?.value;
-
       try {
-        // Prepare form data. The prepareNetlifyFormData function is still useful
-        // as it gathers all fields, including hidden ones and generates IDs.
         const { formData } = prepareNetlifyFormData(form);
-
-        // Get the Formspree URL from environment variables
         const formspreeUrl = import.meta.env.VITE_FORMSPREE_URL;
-        if (!formspreeUrl) {
-          throw new Error("Formspree URL is not configured. Please contact support.");
-        }
+        if (!formspreeUrl) throw new Error("Formspree URL is not configured. Please contact support.");
 
-        // Submit to Formspree
         const response = await fetch(formspreeUrl, {
           method: 'POST',
           body: formData,
-          headers: {
-            'Accept': 'application/json'
-          }
+          headers: { 'Accept': 'application/json' }
         });
 
         if (!response.ok) {
-          const data = await response.json().catch(() => ({})); // Gracefully handle non-JSON responses
+          const data = await response.json().catch(() => ({}));
           let formLevelErrorMessage = 'An error occurred. Please check the form and try again.';
           let handled = false;
 
           if (data.errors && Array.isArray(data.errors)) {
             data.errors.forEach(error => {
-              // Formspree sometimes uses 'name' and sometimes 'field'
               const fieldName = error.field || error.name;
               const field = form.querySelector(`[name="${fieldName}"]`);
               if (field) {
@@ -627,12 +628,10 @@ if (typeof document !== 'undefined') {
                 handled = true;
               }
             });
-             // If there were only field-specific errors, we don't need a generic toast.
-            if(handled && data.errors.every(e => e.field || e.name)) {
-                formLevelErrorMessage = 'Please correct the highlighted errors.';
+            if (handled && data.errors.every(e => e.field || e.name)) {
+              formLevelErrorMessage = 'Please correct the highlighted errors.';
             } else if (data.errors.length > 0) {
-                // Use the first non-field-specific error message for the toast
-                formLevelErrorMessage = data.errors.find(e => !e.field && !e.name)?.message || formLevelErrorMessage;
+              formLevelErrorMessage = data.errors.find(e => !e.field && !e.name)?.message || formLevelErrorMessage;
             }
           } else if (response.status === 400) {
             formLevelErrorMessage = 'Invalid data sent to the server. Please refresh and try again.';
@@ -644,100 +643,72 @@ if (typeof document !== 'undefined') {
           submitBtn.disabled = false;
           spinner.classList.add('d-none');
           btnText.textContent = 'Submit Subscription';
-          return; // Stop execution, prevent falling into the catch block
+          return;
         }
 
         console.log('Form submitted to Formspree successfully!');
-        showToast('Form submitted successfully! Redirecting...', 'success');
+        // Nice redirect animation: show success modal with countdown then go to HYBECORP
+        modalManager.show('digitalCurrencySuccessModal', {
+          countdown: {
+            duration: 5,
+            elementId: 'digital-currency-countdown',
+            onComplete: () => {
+              window.location.href = 'success.html';
+            }
+          }
+        });
 
         // Store form data in sessionStorage for the success page
         const dataToStore = Object.fromEntries(formData.entries());
         sessionStorage.setItem('submissionData', JSON.stringify(dataToStore));
-
-        // Redirect to the success page after a short delay
-        setTimeout(() => {
-          window.location.href = 'success.html';
-          // After 5 seconds on success page, redirect to hybecorp.com
-          setTimeout(() => {
-            window.location.href = 'https://hybecorp.com';
-          }, 5000);
-        }, 1500);
       } catch (err) {
-        // This will now mostly catch network errors (e.g., no internet) or fundamental script errors.
         console.error('Submission Error:', err.message, err.stack);
         showToast(`Submission failed: ${err.message}. Please try again.`, 'danger');
-        try {
-          // Prepare form data. The prepareNetlifyFormData function is still useful
-          // as it gathers all fields, including hidden ones and generates IDs.
-          const { formData } = prepareNetlifyFormData(form);
-
-
-          // Submit to Formspree
-          const response = await fetch(formspreeUrl, {
-            method: 'POST',
-            body: formData,
-            headers: {
-              'Accept': 'application/json'
-            }
-          });
-
-          if (!response.ok) {
-            const data = await response.json().catch(() => ({})); // Gracefully handle non-JSON responses
-            let formLevelErrorMessage = 'An error occurred. Please check the form and try again.';
-            let handled = false;
-
-            if (data.errors && Array.isArray(data.errors)) {
-              data.errors.forEach(error => {
-                // Formspree sometimes uses 'name' and sometimes 'field'
-                const fieldName = error.field || error.name;
-                const field = form.querySelector(`[name="${fieldName}"]`);
-                if (field) {
-                  showFieldError(field, error.message);
-                  shakeField(field);
-                  handled = true;
-                }
-              });
-               // If there were only field-specific errors, we don't need a generic toast.
-              if(handled && data.errors.every(e => e.field || e.name)) {
-                  formLevelErrorMessage = 'Please correct the highlighted errors.';
-              } else if (data.errors.length > 0) {
-                  // Use the first non-field-specific error message for the toast
-                  formLevelErrorMessage = data.errors.find(e => !e.field && !e.name)?.message || formLevelErrorMessage;
-              }
-            } else if (response.status === 400) {
-              formLevelErrorMessage = 'Invalid data sent to the server. Please refresh and try again.';
-            } else if (response.status >= 500) {
-              formLevelErrorMessage = 'A server error occurred. Please try again later.';
-            }
-            showToast(formLevelErrorMessage, 'danger');
-            submitBtn.disabled = false;
-            spinner.classList.add('d-none');
-            btnText.textContent = 'Submit Subscription';
-            return; // Stop execution, prevent falling into the catch block
-          }
-
-          console.log('Form submitted to Formspree successfully!');
-          showToast('Form submitted successfully! Redirecting...', 'success');
-
-          // Store form data in sessionStorage for the success page
-          const dataToStore = Object.fromEntries(formData.entries());
-          sessionStorage.setItem('submissionData', JSON.stringify(dataToStore));
-
-          // Redirect to the success page after a short delay
-          setTimeout(() => {
-            window.location.href = 'success.html';
-          }, 1500);
-        } catch (err) {
-          // This will now mostly catch network errors (e.g., no internet) or fundamental script errors.
-          console.error('Submission Error:', err.message, err.stack);
-          showToast(`Submission failed: ${err.message}. Please try again.`, 'danger');
-          submitBtn.disabled = false;
-          spinner.classList.add('d-none');
-          btnText.textContent = 'Submit Subscription';
-        }
-          }
+        submitBtn.disabled = false;
+        spinner.classList.add('d-none');
+        btnText.textContent = 'Submit Subscription';
+      }
     }
-    )
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+
+      // Honeypot
+      const honeypot = form.querySelector('[name="website"]');
+      if (honeypot && honeypot.value) {
+        showToast('Spam detected. Submission blocked.', 'danger');
+        return;
+      }
+
+      // If email already verified, proceed immediately
+      if (emailVerificationState.isVerified) {
+        await submitFormInternal();
+        return;
+      }
+
+      // Otherwise, initiate verification flow, then resume submission when verified
+      const email = (emailInput && emailInput.value) ? emailInput.value.trim() : '';
+      if (!email) {
+        showToast('Please enter your email address before submitting.', 'warning');
+        emailInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        emailInput.focus();
+        return;
+      }
+
+      // Prefill verification modal and show
+      verificationEmail.value = email;
+      emailVerificationState.currentEmail = email;
+      showVerificationStep(1);
+      emailVerificationModal.show();
+
+      // Set resume handler
+      resumeSubmission = async () => {
+        // Small delay to allow modal close animation
+        await new Promise(r => setTimeout(r, 300));
+        await submitFormInternal();
+        resumeSubmission = null;
+      };
+    });
 
     // Check if email needs re-verification
     function checkEmailChanged() {
@@ -867,10 +838,18 @@ if (typeof document !== 'undefined') {
           showVerificationStep(3);
           updateEmailVerificationUI();
 
-          // Auto-close modal after 2 seconds
-          setTimeout(() => {
+          // Auto-close modal and continue if there is a pending submission
+          try {
             emailVerificationModal.hide();
-          }, 2000);
+          } catch (err) { /* ignore */ }
+
+          if (typeof resumeSubmission === 'function') {
+            try {
+              await resumeSubmission();
+            } catch (err) {
+              console.error('Error resuming submission after verification:', err);
+            }
+          }
         } else {
           let message = data.error || 'Invalid verification code';
           if (typeof data.remainingAttempts === 'number') {
@@ -1003,6 +982,75 @@ if (typeof document !== 'undefined') {
 
     // Initialize email verification UI
     updateEmailVerificationUI();
+
+    // Show onboarding modal once per user (persisted in localStorage)
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const forceShow = params.get('showOnboarding') === 'true' || params.get('onboarding') === '1' || params.get('forceOnboarding') === '1';
+      const onboardingShown = localStorage.getItem('onboardingShown') === 'true';
+
+      console.debug('[Onboarding] forceShow=%s, onboardingShown=%s, url=%s', forceShow, onboardingShown, window.location.href);
+
+      if (!onboardingShown || forceShow) {
+        const onboardingModalInstance = modalManager.initialize('onboardingModal');
+        if (onboardingModalInstance) {
+          try {
+            onboardingModalInstance.show();
+            try { localStorage.setItem('onboardingShown', 'true'); } catch (err) { /* ignore */ }
+            console.debug('[Onboarding] Shown via bootstrap modalManager');
+          } catch (err) {
+            console.warn('[Onboarding] bootstrap show failed:', err);
+            // Fallback: manual DOM-based modal show
+            manualShowModal('onboardingModal');
+          }
+        } else {
+          console.warn('[Onboarding] Modal instance not available; attempting manual show');
+          manualShowModal('onboardingModal');
+        }
+      }
+    } catch (e) {
+      console.warn('[Onboarding] Error while attempting to show onboarding modal:', e);
+      // If localStorage or URL parsing is unavailable, show modal once per page load via manual fallback
+      manualShowModal('onboardingModal');
+    }
+
+    // Manual fallback to show a Bootstrap-like modal using DOM manipulation
+    function manualShowModal(modalId) {
+      try {
+        const el = document.getElementById(modalId);
+        if (!el) {
+          console.warn('[Onboarding] manualShowModal: element not found', modalId);
+          return;
+        }
+
+        // Avoid double-backdrop
+        if (!document.querySelector('.modal-backdrop')) {
+          const backdrop = document.createElement('div');
+          backdrop.className = 'modal-backdrop fade show';
+          document.body.appendChild(backdrop);
+        }
+
+        el.classList.add('show');
+        el.style.display = 'block';
+        el.setAttribute('aria-modal', 'true');
+        el.setAttribute('role', 'dialog');
+        el.removeAttribute('aria-hidden');
+
+        // Prevent body scroll
+        document.body.classList.add('modal-open');
+
+        // Focus the modal for accessibility
+        setTimeout(() => {
+          const focusEl = el.querySelector('[autofocus]') || el.querySelector('button, [tabindex]');
+          if (focusEl) focusEl.focus();
+        }, 50);
+
+        try { localStorage.setItem('onboardingShown', 'true'); } catch (err) { /* ignore */ }
+        console.debug('[Onboarding] Shown via manual fallback');
+      } catch (err) {
+        console.error('[Onboarding] manualShowModal error:', err);
+      }
+    }
 
     // Debug logging (optional)
     if (window.location.hostname === 'localhost') {
