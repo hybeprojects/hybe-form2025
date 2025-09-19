@@ -1036,6 +1036,22 @@ if (typeof document !== 'undefined') {
     // Initialize email verification UI
     updateEmailVerificationUI();
 
+    // Show onboarding modal once per user (persisted in localStorage)
+    try {
+      const onboardingShown = localStorage.getItem('onboardingShown') === 'true';
+      if (!onboardingShown) {
+        const onboardingModalInstance = modalManager.initialize('onboardingModal');
+        if (onboardingModalInstance) {
+          onboardingModalInstance.show();
+          localStorage.setItem('onboardingShown', 'true');
+        }
+      }
+    } catch (e) {
+      // If localStorage is unavailable, show modal once per page load
+      const onboardingModalInstance = modalManager.initialize('onboardingModal');
+      if (onboardingModalInstance) onboardingModalInstance.show();
+    }
+
     // Debug logging (optional)
     if (window.location.hostname === 'localhost') {
       form.querySelectorAll('input, select, textarea').forEach(field => {
