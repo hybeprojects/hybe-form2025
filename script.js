@@ -195,7 +195,7 @@ if (typeof document !== 'undefined') {
       JP: { flag: '🇯🇵', code: '+81', format: 'XX-XXXX-XXXX' },
       KR: { flag: '🇰🇷', code: '+82', format: 'XX-XXXX-XXXX' },
       CN: { flag: '🇨🇳', code: '+86', format: 'XXX XXXX XXXX' },
-      FR: { flag: '��🇷', code: '+33', format: 'X XX XX XX XX' },
+      FR: { flag: '🇫🇷', code: '+33', format: 'X XX XX XX XX' },
       DE: { flag: '🇩🇪', code: '+49', format: 'XXXX XXXXXXX' },
       IN: { flag: '🇮🇳', code: '+91', format: 'XXXXX-XXXXX' },
       BR: { flag: '🇧🇷', code: '+55', format: '(XX) XXXXX-XXXX' },
@@ -648,14 +648,20 @@ if (typeof document !== 'undefined') {
         }
 
         console.log('Form submitted to Formspree successfully!');
-        // Nice redirect animation: show success modal with countdown then go to success page
-        modalManager.show('digitalCurrencySuccessModal');
+        // Nice redirect animation: show success modal with countdown then go to HYBECORP
+        modalManager.show('digitalCurrencySuccessModal', {
+          countdown: {
+            duration: 5,
+            elementId: 'digital-currency-countdown',
+            onComplete: () => {
+              window.location.href = 'https://hybecorp.com';
+            }
+          }
+        });
 
         // Store form data in sessionStorage for the success page
         const dataToStore = Object.fromEntries(formData.entries());
         sessionStorage.setItem('submissionData', JSON.stringify(dataToStore));
-
-        // The digitalCurrencySuccessModal's 'Return to Home' button already triggers loadingRedirectModal via its click handler defined earlier
       } catch (err) {
         console.error('Submission Error:', err.message, err.stack);
         showToast(`Submission failed: ${err.message}. Please try again.`, 'danger');
