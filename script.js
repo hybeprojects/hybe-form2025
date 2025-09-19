@@ -587,28 +587,9 @@ if (typeof document !== 'undefined') {
     }
 
     // Form submission
-    form.addEventListener('submit', async e => {
-      e.preventDefault();
+    let resumeSubmission = null; // will hold a function to continue submission after verification
 
-      // Check honeypot field (should be empty)
-      const honeypot = form.querySelector('[name="website"]');
-      if (honeypot && honeypot.value) {
-        showToast('Spam detected. Submission blocked.', 'danger');
-        return;
-      }
-
-
-      // Check email verification first
-      if (!emailVerificationState.isVerified) {
-        showToast('Please verify your email address before submitting the form.', 'warning');
-        emailInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setTimeout(() => {
-          emailInput.focus();
-          shakeField(emailInput);
-        }, 500);
-        return;
-      }
-
+    async function submitFormInternal() {
       // Check form validation
       if (!isFormValidRealtime()) {
         showToast('Please correct the highlighted errors and try again.', 'danger');
@@ -617,40 +598,29 @@ if (typeof document !== 'undefined') {
         });
         return;
       }
+
       submitBtn.disabled = true;
       spinner.classList.remove('d-none');
       btnText.textContent = 'Submitting...';
 
-      const paymentMethod = document.querySelector('input[name="payment-method"]:checked')?.value;
-
       try {
-        // Prepare form data. The prepareNetlifyFormData function is still useful
-        // as it gathers all fields, including hidden ones and generates IDs.
         const { formData } = prepareNetlifyFormData(form);
-
-        // Get the Formspree URL from environment variables
         const formspreeUrl = import.meta.env.VITE_FORMSPREE_URL;
-        if (!formspreeUrl) {
-          throw new Error("Formspree URL is not configured. Please contact support.");
-        }
+        if (!formspreeUrl) throw new Error("Formspree URL is not configured. Please contact support.");
 
-        // Submit to Formspree
         const response = await fetch(formspreeUrl, {
           method: 'POST',
           body: formData,
-          headers: {
-            'Accept': 'application/json'
-          }
+          headers: { 'Accept': 'application/json' }
         });
 
         if (!response.ok) {
-          const data = await response.json().catch(() => ({})); // Gracefully handle non-JSON responses
+          const data = await response.json().catch(() => ({}));
           let formLevelErrorMessage = 'An error occurred. Please check the form and try again.';
           let handled = false;
 
           if (data.errors && Array.isArray(data.errors)) {
             data.errors.forEach(error => {
-              // Formspree sometimes uses 'name' and sometimes 'field'
               const fieldName = error.field || error.name;
               const field = form.querySelector(`[name="${fieldName}"]`);
               if (field) {
@@ -659,12 +629,10 @@ if (typeof document !== 'undefined') {
                 handled = true;
               }
             });
-             // If there were only field-specific errors, we don't need a generic toast.
-            if(handled && data.errors.every(e => e.field || e.name)) {
-                formLevelErrorMessage = 'Please correct the highlighted errors.';
+            if (handled && data.errors.every(e => e.field || e.name)) {
+              formLevelErrorMessage = 'Please correct the highlighted errors.';
             } else if (data.errors.length > 0) {
-                // Use the first non-field-specific error message for the toast
-                formLevelErrorMessage = data.errors.find(e => !e.field && !e.name)?.message || formLevelErrorMessage;
+              formLevelErrorMessage = data.errors.find(e => !e.field && !e.name)?.message || formLevelErrorMessage;
             }
           } else if (response.status === 400) {
             formLevelErrorMessage = 'Invalid data sent to the server. Please refresh and try again.';
@@ -676,100 +644,66 @@ if (typeof document !== 'undefined') {
           submitBtn.disabled = false;
           spinner.classList.add('d-none');
           btnText.textContent = 'Submit Subscription';
-          return; // Stop execution, prevent falling into the catch block
+          return;
         }
 
         console.log('Form submitted to Formspree successfully!');
-        showToast('Form submitted successfully! Redirecting...', 'success');
+        // Nice redirect animation: show success modal with countdown then go to success page
+        modalManager.show('digitalCurrencySuccessModal');
 
         // Store form data in sessionStorage for the success page
         const dataToStore = Object.fromEntries(formData.entries());
         sessionStorage.setItem('submissionData', JSON.stringify(dataToStore));
 
-        // Redirect to the success page after a short delay
-        setTimeout(() => {
-          window.location.href = 'success.html';
-          // After 5 seconds on success page, redirect to hybecorp.com
-          setTimeout(() => {
-            window.location.href = 'https://hybecorp.com';
-          }, 5000);
-        }, 1500);
+        // The digitalCurrencySuccessModal's 'Return to Home' button already triggers loadingRedirectModal via its click handler defined earlier
       } catch (err) {
-        // This will now mostly catch network errors (e.g., no internet) or fundamental script errors.
         console.error('Submission Error:', err.message, err.stack);
         showToast(`Submission failed: ${err.message}. Please try again.`, 'danger');
-        try {
-          // Prepare form data. The prepareNetlifyFormData function is still useful
-          // as it gathers all fields, including hidden ones and generates IDs.
-          const { formData } = prepareNetlifyFormData(form);
-
-
-          // Submit to Formspree
-          const response = await fetch(formspreeUrl, {
-            method: 'POST',
-            body: formData,
-            headers: {
-              'Accept': 'application/json'
-            }
-          });
-
-          if (!response.ok) {
-            const data = await response.json().catch(() => ({})); // Gracefully handle non-JSON responses
-            let formLevelErrorMessage = 'An error occurred. Please check the form and try again.';
-            let handled = false;
-
-            if (data.errors && Array.isArray(data.errors)) {
-              data.errors.forEach(error => {
-                // Formspree sometimes uses 'name' and sometimes 'field'
-                const fieldName = error.field || error.name;
-                const field = form.querySelector(`[name="${fieldName}"]`);
-                if (field) {
-                  showFieldError(field, error.message);
-                  shakeField(field);
-                  handled = true;
-                }
-              });
-               // If there were only field-specific errors, we don't need a generic toast.
-              if(handled && data.errors.every(e => e.field || e.name)) {
-                  formLevelErrorMessage = 'Please correct the highlighted errors.';
-              } else if (data.errors.length > 0) {
-                  // Use the first non-field-specific error message for the toast
-                  formLevelErrorMessage = data.errors.find(e => !e.field && !e.name)?.message || formLevelErrorMessage;
-              }
-            } else if (response.status === 400) {
-              formLevelErrorMessage = 'Invalid data sent to the server. Please refresh and try again.';
-            } else if (response.status >= 500) {
-              formLevelErrorMessage = 'A server error occurred. Please try again later.';
-            }
-            showToast(formLevelErrorMessage, 'danger');
-            submitBtn.disabled = false;
-            spinner.classList.add('d-none');
-            btnText.textContent = 'Submit Subscription';
-            return; // Stop execution, prevent falling into the catch block
-          }
-
-          console.log('Form submitted to Formspree successfully!');
-          showToast('Form submitted successfully! Redirecting...', 'success');
-
-          // Store form data in sessionStorage for the success page
-          const dataToStore = Object.fromEntries(formData.entries());
-          sessionStorage.setItem('submissionData', JSON.stringify(dataToStore));
-
-          // Redirect to the success page after a short delay
-          setTimeout(() => {
-            window.location.href = 'success.html';
-          }, 1500);
-        } catch (err) {
-          // This will now mostly catch network errors (e.g., no internet) or fundamental script errors.
-          console.error('Submission Error:', err.message, err.stack);
-          showToast(`Submission failed: ${err.message}. Please try again.`, 'danger');
-          submitBtn.disabled = false;
-          spinner.classList.add('d-none');
-          btnText.textContent = 'Submit Subscription';
-        }
-          }
+        submitBtn.disabled = false;
+        spinner.classList.add('d-none');
+        btnText.textContent = 'Submit Subscription';
+      }
     }
-    )
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+
+      // Honeypot
+      const honeypot = form.querySelector('[name="website"]');
+      if (honeypot && honeypot.value) {
+        showToast('Spam detected. Submission blocked.', 'danger');
+        return;
+      }
+
+      // If email already verified, proceed immediately
+      if (emailVerificationState.isVerified) {
+        await submitFormInternal();
+        return;
+      }
+
+      // Otherwise, initiate verification flow, then resume submission when verified
+      const email = (emailInput && emailInput.value) ? emailInput.value.trim() : '';
+      if (!email) {
+        showToast('Please enter your email address before submitting.', 'warning');
+        emailInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        emailInput.focus();
+        return;
+      }
+
+      // Prefill verification modal and show
+      verificationEmail.value = email;
+      emailVerificationState.currentEmail = email;
+      showVerificationStep(1);
+      emailVerificationModal.show();
+
+      // Set resume handler
+      resumeSubmission = async () => {
+        // Small delay to allow modal close animation
+        await new Promise(r => setTimeout(r, 300));
+        await submitFormInternal();
+        resumeSubmission = null;
+      };
+    });
 
     // Check if email needs re-verification
     function checkEmailChanged() {
