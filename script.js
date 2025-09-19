@@ -1038,16 +1038,21 @@ if (typeof document !== 'undefined') {
 
     // Show onboarding modal once per user (persisted in localStorage)
     try {
+      const params = new URLSearchParams(window.location.search);
+      const forceShow = params.get('showOnboarding') === 'true' || params.get('onboarding') === '1' || params.get('forceOnboarding') === '1';
       const onboardingShown = localStorage.getItem('onboardingShown') === 'true';
-      if (!onboardingShown) {
+
+      if (!onboardingShown || forceShow) {
         const onboardingModalInstance = modalManager.initialize('onboardingModal');
         if (onboardingModalInstance) {
           onboardingModalInstance.show();
-          localStorage.setItem('onboardingShown', 'true');
+          try { localStorage.setItem('onboardingShown', 'true'); } catch (err) { /* ignore */ }
+        } else {
+          console.warn('Onboarding modal element not found or failed to initialize');
         }
       }
     } catch (e) {
-      // If localStorage is unavailable, show modal once per page load
+      // If localStorage or URL parsing is unavailable, show modal once per page load
       const onboardingModalInstance = modalManager.initialize('onboardingModal');
       if (onboardingModalInstance) onboardingModalInstance.show();
     }
