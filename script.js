@@ -902,13 +902,6 @@ if (typeof document !== 'undefined') {
       }
     });
 
-    // Submit when user presses Enter in the OTP field
-    otpInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        if (otpInput.value.trim().length === 6) verifyOtp(false);
-      }
-    });
 
     // OTP countdown timer
     let otpCountdownInterval;
