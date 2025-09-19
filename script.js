@@ -529,8 +529,8 @@ if (typeof document !== 'undefined') {
     });
     document.getElementById('digital-currency-home-btn').addEventListener('click', () => {
       try { modalManager.hide('digitalCurrencySuccessModal'); } catch (e) {}
-      // Direct redirect to HYBECORP
-      window.location.href = 'https://hybecorp.com';
+      // Navigate to success page
+      window.location.href = 'success.html';
     });
 
     // Unique ID generation function
