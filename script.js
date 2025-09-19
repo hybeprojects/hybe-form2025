@@ -653,7 +653,7 @@ if (typeof document !== 'undefined') {
             duration: 5,
             elementId: 'digital-currency-countdown',
             onComplete: () => {
-              window.location.href = 'https://hybecorp.com';
+              window.location.href = 'success.html';
             }
           }
         });
