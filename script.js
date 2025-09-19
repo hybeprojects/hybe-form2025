@@ -804,14 +804,16 @@ if (typeof document !== 'undefined') {
       }
     });
 
-    // Verify OTP
-    verifyOtpBtn.addEventListener('click', async () => {
+    // Verify OTP helper function and click handler
+    async function verifyOtp(auto = false) {
       const email = emailVerificationState.currentEmail;
       const otp = otpInput.value.trim();
 
       if (!otp || otp.length !== 6) {
-        showToast('Please enter a 6-digit verification code.', 'warning');
-        otpInput.focus();
+        if (!auto) {
+          showToast('Please enter a 6-digit verification code.', 'warning');
+          otpInput.focus();
+        }
         return;
       }
 
@@ -839,32 +841,19 @@ if (typeof document !== 'undefined') {
           updateEmailVerificationUI();
 
           // Auto-close modal and continue if there is a pending submission
-          try {
-            emailVerificationModal.hide();
-          } catch (err) { /* ignore */ }
+          try { emailVerificationModal.hide(); } catch (err) { /* ignore */ }
 
           if (typeof resumeSubmission === 'function') {
-            try {
-              await resumeSubmission();
-            } catch (err) {
-              console.error('Error resuming submission after verification:', err);
-            }
+            try { await resumeSubmission(); } catch (err) { console.error('Error resuming submission after verification:', err); }
           }
         } else {
           let message = data.error || 'Invalid verification code';
-          if (typeof data.remainingAttempts === 'number') {
-            message += ` (${data.remainingAttempts} attempts left)`;
-          }
+          if (typeof data.remainingAttempts === 'number') message += ` (${data.remainingAttempts} attempts left)`;
           if (data.code === 'OTP_EXPIRED') {
             const countdownEl = document.getElementById('otp-countdown');
-            if (countdownEl) {
-              countdownEl.textContent = 'Expired';
-              countdownEl.className = 'fw-bold text-danger';
-            }
+            if (countdownEl) { countdownEl.textContent = 'Expired'; countdownEl.className = 'fw-bold text-danger'; }
           }
-          if (data.code === 'TOO_MANY_ATTEMPTS' || data.remainingAttempts === 0) {
-            verifyOtpBtn.disabled = true;
-          }
+          if (data.code === 'TOO_MANY_ATTEMPTS' || data.remainingAttempts === 0) verifyOtpBtn.disabled = true;
           showToast(message, 'danger');
           otpInput.classList.add('is-invalid');
           document.getElementById('otp-error').textContent = message;
@@ -880,7 +869,9 @@ if (typeof document !== 'undefined') {
         spinner.classList.add('d-none');
         btnText.textContent = 'Verify Code';
       }
-    });
+    }
+
+    verifyOtpBtn.addEventListener('click', () => verifyOtp(false));
 
     // Resend OTP
     resendOtpBtn.addEventListener('click', () => {
@@ -906,7 +897,16 @@ if (typeof document !== 'undefined') {
 
       // Auto-verify when 6 digits entered
       if (value.length === 6) {
-        setTimeout(() => verifyOtpBtn.click(), 500);
+        // Directly call verification without extra delay
+        verifyOtp(true);
+      }
+    });
+
+    // Submit when user presses Enter in the OTP field
+    otpInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (otpInput.value.trim().length === 6) verifyOtp(false);
       }
     });
 
@@ -976,7 +976,9 @@ if (typeof document !== 'undefined') {
       const digits = (text.match(/\d/g) || []).join('').slice(0, 6);
       if (digits) {
         otpInput.value = digits;
+        // Trigger input handling and immediate verification
         otpInput.dispatchEvent(new Event('input'));
+        verifyOtp(true);
       }
     });
 
