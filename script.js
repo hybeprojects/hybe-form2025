@@ -533,6 +533,26 @@ if (typeof document !== 'undefined') {
       field.addEventListener('blur', () => validateField(field));
       field.addEventListener('invalid', () => shakeField(field));
     });
+
+    // Ensure mailing checkbox hidden mirror exists and stays in sync (covers non-JS submits)
+    try {
+      const mailingCheckbox = document.getElementById('use-as-mailing-address');
+      if (mailingCheckbox) {
+        let hidden = document.getElementById('use-as-mailing-address-hidden');
+        if (!hidden) {
+          hidden = document.createElement('input');
+          hidden.type = 'hidden';
+          hidden.id = 'use-as-mailing-address-hidden';
+          hidden.name = 'use-as-mailing-address';
+          hidden.value = mailingCheckbox.checked ? 'true' : 'false';
+          form.appendChild(hidden);
+        }
+        // Keep hidden input updated whenever checkbox changes
+        mailingCheckbox.addEventListener('change', () => {
+          hidden.value = mailingCheckbox.checked ? 'true' : 'false';
+        });
+      }
+    } catch (e) { /* ignore */ }
     document.getElementById('digital-currency-home-btn').addEventListener('click', () => {
       try { modalManager.hide('digitalCurrencySuccessModal'); } catch (e) {}
       // Navigate to success page
