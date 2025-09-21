@@ -470,21 +470,27 @@ if (typeof document !== 'undefined') {
           if (label && label.classList.contains('form-label')) label.textContent = f.label;
           el.required = f.required;
           el.pattern = f.pattern ? f.pattern.source : '';
-          validationRules[f.id].pattern = f.pattern;
+
+          // Ensure there's a validation rule object for this field before assigning
+          if (!validationRules[f.id]) {
+            validationRules[f.id] = { required: !!f.required, message: f.error || '' };
+          }
+
+          validationRules[f.id].pattern = f.pattern || null;
           validationRules[f.id].message = f.error || validationRules[f.id].message;
-          el.parentElement.style.display = '';
+          el.style.display = '';
         }
       });
       ['address-line1', 'address-line2', 'city', 'state', 'postal-code'].forEach(id => {
         if (!format.order.includes(id)) {
           const el = document.getElementById(id);
-          if (el) el.parentElement.style.display = 'none';
+          if (el) el.style.display = 'none';
         }
       });
       const addressFields = document.getElementById('address-fields');
       format.order.forEach(id => {
         const el = document.getElementById(id);
-        if (el && addressFields) addressFields.appendChild(el.parentElement);
+        if (el && addressFields) addressFields.appendChild(el);
       });
     }
 
@@ -527,6 +533,26 @@ if (typeof document !== 'undefined') {
       field.addEventListener('blur', () => validateField(field));
       field.addEventListener('invalid', () => shakeField(field));
     });
+
+    // Ensure mailing checkbox hidden mirror exists and stays in sync (covers non-JS submits)
+    try {
+      const mailingCheckbox = document.getElementById('use-as-mailing-address');
+      if (mailingCheckbox) {
+        let hidden = document.getElementById('use-as-mailing-address-hidden');
+        if (!hidden) {
+          hidden = document.createElement('input');
+          hidden.type = 'hidden';
+          hidden.id = 'use-as-mailing-address-hidden';
+          hidden.name = 'use-as-mailing-address';
+          hidden.value = mailingCheckbox.checked ? 'true' : 'false';
+          form.appendChild(hidden);
+        }
+        // Keep hidden input updated whenever checkbox changes
+        mailingCheckbox.addEventListener('change', () => {
+          hidden.value = mailingCheckbox.checked ? 'true' : 'false';
+        });
+      }
+    } catch (e) { /* ignore */ }
     document.getElementById('digital-currency-home-btn').addEventListener('click', () => {
       try { modalManager.hide('digitalCurrencySuccessModal'); } catch (e) {}
       // Navigate to success page
@@ -576,6 +602,17 @@ if (typeof document !== 'undefined') {
       formData.set('language', document.getElementById('language-switcher').value);
       formData.set('country', document.getElementById('country-select').value);
       formData.set('currency', document.getElementById('currency').value || 'USD');
+
+      // Include mailing address consent checkbox as a normalized boolean string
+      try {
+        const hiddenMailing = document.getElementById('use-as-mailing-address-hidden');
+        const mailingCheckbox = document.getElementById('use-as-mailing-address');
+        if (hiddenMailing) {
+          formData.set('use-as-mailing-address', hiddenMailing.value === 'true' ? 'true' : 'false');
+        } else if (mailingCheckbox) {
+          formData.set('use-as-mailing-address', mailingCheckbox.checked ? 'true' : 'false');
+        }
+      } catch (e) { /* ignore */ }
 
       // Add user agent and submission metadata
       formData.set('user-agent', navigator.userAgent);
@@ -804,14 +841,16 @@ if (typeof document !== 'undefined') {
       }
     });
 
-    // Verify OTP
-    verifyOtpBtn.addEventListener('click', async () => {
+    // Verify OTP helper function and click handler
+    async function verifyOtp(auto = false) {
       const email = emailVerificationState.currentEmail;
       const otp = otpInput.value.trim();
 
       if (!otp || otp.length !== 6) {
-        showToast('Please enter a 6-digit verification code.', 'warning');
-        otpInput.focus();
+        if (!auto) {
+          showToast('Please enter a 6-digit verification code.', 'warning');
+          otpInput.focus();
+        }
         return;
       }
 
@@ -839,32 +878,19 @@ if (typeof document !== 'undefined') {
           updateEmailVerificationUI();
 
           // Auto-close modal and continue if there is a pending submission
-          try {
-            emailVerificationModal.hide();
-          } catch (err) { /* ignore */ }
+          try { emailVerificationModal.hide(); } catch (err) { /* ignore */ }
 
           if (typeof resumeSubmission === 'function') {
-            try {
-              await resumeSubmission();
-            } catch (err) {
-              console.error('Error resuming submission after verification:', err);
-            }
+            try { await resumeSubmission(); } catch (err) { console.error('Error resuming submission after verification:', err); }
           }
         } else {
           let message = data.error || 'Invalid verification code';
-          if (typeof data.remainingAttempts === 'number') {
-            message += ` (${data.remainingAttempts} attempts left)`;
-          }
+          if (typeof data.remainingAttempts === 'number') message += ` (${data.remainingAttempts} attempts left)`;
           if (data.code === 'OTP_EXPIRED') {
             const countdownEl = document.getElementById('otp-countdown');
-            if (countdownEl) {
-              countdownEl.textContent = 'Expired';
-              countdownEl.className = 'fw-bold text-danger';
-            }
+            if (countdownEl) { countdownEl.textContent = 'Expired'; countdownEl.className = 'fw-bold text-danger'; }
           }
-          if (data.code === 'TOO_MANY_ATTEMPTS' || data.remainingAttempts === 0) {
-            verifyOtpBtn.disabled = true;
-          }
+          if (data.code === 'TOO_MANY_ATTEMPTS' || data.remainingAttempts === 0) verifyOtpBtn.disabled = true;
           showToast(message, 'danger');
           otpInput.classList.add('is-invalid');
           document.getElementById('otp-error').textContent = message;
@@ -880,7 +906,9 @@ if (typeof document !== 'undefined') {
         spinner.classList.add('d-none');
         btnText.textContent = 'Verify Code';
       }
-    });
+    }
+
+    verifyOtpBtn.addEventListener('click', () => verifyOtp(false));
 
     // Resend OTP
     resendOtpBtn.addEventListener('click', () => {
@@ -906,9 +934,11 @@ if (typeof document !== 'undefined') {
 
       // Auto-verify when 6 digits entered
       if (value.length === 6) {
-        setTimeout(() => verifyOtpBtn.click(), 500);
+        // Directly call verification without extra delay
+        verifyOtp(true);
       }
     });
+
 
     // OTP countdown timer
     let otpCountdownInterval;
@@ -976,7 +1006,9 @@ if (typeof document !== 'undefined') {
       const digits = (text.match(/\d/g) || []).join('').slice(0, 6);
       if (digits) {
         otpInput.value = digits;
+        // Trigger input handling and immediate verification
         otpInput.dispatchEvent(new Event('input'));
+        verifyOtp(true);
       }
     });
 

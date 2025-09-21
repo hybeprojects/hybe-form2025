@@ -94,6 +94,13 @@ body {
   box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
 }
 
+/* Ensure the mailing address checkbox is always visible */
+.mailing-checkbox {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
 .form-check-input.is-invalid {
   border-color: #dc3545;
 }
