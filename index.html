@@ -459,16 +459,6 @@
                   >
                     <label for="email" class="form-label">
                       Email <span class="text-danger">*</span>
-                      <span id="email-verification-status" class="ms-2">
-                        <span class="badge bg-warning text-dark" id="email-unverified">
-                          <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                          Verification Required
-                        </span>
-                        <span class="badge bg-success d-none" id="email-verified-badge">
-                          <i class="bi bi-check-circle-fill me-1"></i>
-                          Verified
-                        </span>
-                      </span>
                     </label>
                     <div class="input-group">
                       <input
@@ -481,16 +471,6 @@
                         aria-describedby="email-error"
                         pattern="^[^@\s]+@[^@\s]+\.[^@\s]+$"
                       />
-                      <button
-                        type="button"
-                        class="btn btn-outline-primary"
-                        id="verify-email-btn"
-                        data-bs-toggle="tooltip"
-                        data-bs-title="Click to verify your email address"
-                      >
-                        <i class="bi bi-envelope-check"></i>
-                        Verify
-                      </button>
                     </div>
                     <div id="email-error" class="invalid-feedback" aria-live="polite"></div>
                     <i
@@ -498,10 +478,6 @@
                       data-bs-toggle="tooltip"
                       data-bs-title="Use a valid, non-temporary email"
                     ></i>
-                    <p class="text-muted small">
-                      <i class="bi bi-shield-check text-primary me-1"></i>
-                      Email verification is required before you can submit your subscription.
-                    </p>
                   </div>
 
                   <!-- Phone Number -->
