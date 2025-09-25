@@ -739,9 +739,16 @@ if (typeof document !== 'undefined') {
 
       // Automatically send OTP as part of submit flow
       try {
-        // Small delay to ensure modal is visible
+        // Small delay to ensure modal is visible and prevent double auto-sends
         setTimeout(() => {
-          if (sendOtpBtn) sendOtpBtn.click();
+          try {
+            if (!emailVerificationState.otpSent && !emailVerificationState.autoSent && sendOtpBtn && !sendOtpBtn.disabled && (!emailVerificationState.resendTimer || emailVerificationState.resendTimer === 0)) {
+              emailVerificationState.autoSent = true;
+              sendOtpBtn.click();
+            } else {
+              console.debug('Auto-send skipped: conditions not met');
+            }
+          } catch (err) { console.error('Auto-send inner error', err); }
         }, 250);
       } catch (e) { console.error('Auto-send OTP failed', e); }
 
@@ -790,6 +797,13 @@ if (typeof document !== 'undefined') {
       const email = verificationEmail.value.trim();
       if (!email) return;
 
+      // Prevent double-sending: if already sent, currently sending, or resend timer active, ignore
+      if (emailVerificationState.otpSent || emailVerificationState.sending || (emailVerificationState.resendTimer && emailVerificationState.resendTimer > 0)) {
+        console.debug('Send OTP ignored: already sent or sending or resend timer active');
+        return;
+      }
+
+      emailVerificationState.sending = true;
       const btnText = sendOtpBtn.querySelector('.btn-text');
       const spinner = sendOtpBtn.querySelector('.spinner-border');
 
@@ -810,6 +824,8 @@ if (typeof document !== 'undefined') {
           emailVerificationState.otpSent = true;
           showToast('Verification code sent to your email!', 'success');
           showVerificationStep(2);
+          // Ensure OTP input is focused after UI is visible
+          setTimeout(() => { try { otpInput.focus(); } catch (e) {} }, 100);
           const expiresIn = Number(data.expiresIn) || 300;
           const resendAfter = Number(data.resendAfter) || 60;
           startOtpCountdown(expiresIn);
@@ -828,7 +844,11 @@ if (typeof document !== 'undefined') {
         console.error('OTP send error:', error);
         showToast(error.message, 'danger');
       } finally {
-        sendOtpBtn.disabled = false;
+        emailVerificationState.sending = false;
+        // Keep button disabled until resend timer allows re-send
+        if (!emailVerificationState.resendTimer || emailVerificationState.resendTimer <= 0) {
+          sendOtpBtn.disabled = false;
+        }
         spinner.classList.add('d-none');
         btnText.textContent = 'Send Verification Code';
       }
