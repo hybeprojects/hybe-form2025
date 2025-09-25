@@ -6,10 +6,10 @@ export default [
   },
   // Configuration for Node.js files
   {
-    files: ['server.js', 'lib/**/*.js', 'netlify/functions/**/*.js'],
+    files: ['server.js', 'lib/**/*.js'],
     languageOptions: {
       ecmaVersion: 2021,
-      sourceType: 'commonjs', // These are CommonJS files
+      sourceType: 'commonjs',
       globals: {
         ...globals.node,
       },
