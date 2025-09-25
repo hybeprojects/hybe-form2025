@@ -136,7 +136,7 @@ if (typeof document !== 'undefined') {
 
     // Email verification elements & state
     const emailInput = document.getElementById('email');
-    const verifyEmailBtn = document.getElementById('verify-email-btn');
+    // verifyEmailBtn removed from UI; remain resilient if absent
     const emailVerificationModal = modalManager.initialize('emailVerificationModal');
     const verificationEmail = document.getElementById('verification-email');
     const sendOtpBtn = document.getElementById('send-otp-btn');
@@ -158,11 +158,9 @@ if (typeof document !== 'undefined') {
       if (emailVerificationState.isVerified) {
         if (verifiedBadge) verifiedBadge.classList.remove('d-none');
         if (unverifiedBadge) unverifiedBadge.classList.add('d-none');
-        if (verifyEmailBtn) verifyEmailBtn.disabled = true;
       } else {
         if (verifiedBadge) verifiedBadge.classList.add('d-none');
         if (unverifiedBadge) unverifiedBadge.classList.remove('d-none');
-        if (verifyEmailBtn) verifyEmailBtn.disabled = false;
       }
     }
 
