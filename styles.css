@@ -326,6 +326,33 @@ noscript .container {
   border-width: 0.25em;
 }
 
+/* Onboarding modal responsive tweaks */
+#onboardingModal .modal-content.hero {
+  padding: 2rem;
+}
+#onboardingModal .modal-content {
+  max-height: 85vh;
+  overflow: hidden;
+}
+#onboardingModal .modal-body {
+  max-height: 75vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+#onboardingModal h2 {
+  line-height: 1.25;
+}
+@media (max-width: 576px) {
+  #onboardingModal .modal-body { padding: 1rem; }
+  #onboardingModal h2 { font-size: 1.25rem; }
+  #onboardingModal p { font-size: 0.95rem; margin-bottom: 0.75rem; }
+  #onboardingModal .btn { width: 100%; }
+}
+@media (max-width: 400px) {
+  #onboardingModal h2 { font-size: 1.1rem; }
+  #onboardingModal p { font-size: 0.9rem; }
+}
+
 /* Payment Modal */
 #paymentModal .modal-content {
   background: #fff;
