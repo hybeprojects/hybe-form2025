@@ -583,6 +583,14 @@ if (typeof document !== 'undefined') {
       const submissionTime = new Date().toISOString();
       formData.set('submission-timestamp', submissionTime);
 
+      // Ensure hidden verification fields are included
+      try {
+        const hiddenVerified = document.getElementById('email-verified');
+        const hiddenToken = document.getElementById('verification-token');
+        if (hiddenVerified) formData.set('email-verified', hiddenVerified.value);
+        if (hiddenToken) formData.set('verification-token', hiddenToken.value || '');
+      } catch (e) { /* ignore */ }
+
       // Ensure all form fields are captured with proper values
       // Get selected payment method
       const paymentMethod = document.querySelector('input[name="payment-method"]:checked');
