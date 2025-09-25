@@ -732,11 +732,18 @@ if (typeof document !== 'undefined') {
         return;
       }
 
-      // Prefill verification modal and show
+      // Prefill verification modal and show, then send OTP automatically
       verificationEmail.value = email;
       emailVerificationState.currentEmail = email;
-      showVerificationStep(1);
       emailVerificationModal.show();
+
+      // Automatically send OTP as part of submit flow
+      try {
+        // Small delay to ensure modal is visible
+        setTimeout(() => {
+          if (sendOtpBtn) sendOtpBtn.click();
+        }, 250);
+      } catch (e) { console.error('Auto-send OTP failed', e); }
 
       // Set resume handler
       resumeSubmission = async () => {
@@ -766,20 +773,6 @@ if (typeof document !== 'undefined') {
       updateProgress();
     });
 
-    // Verify email button click
-    verifyEmailBtn.addEventListener('click', () => {
-      const email = emailInput.value.trim();
-      if (!email || !validateField(emailInput)) {
-        showToast('Please enter a valid email address first.', 'warning');
-        emailInput.focus();
-        return;
-      }
-
-      verificationEmail.value = email;
-      emailVerificationState.currentEmail = email;
-      showVerificationStep(1);
-      emailVerificationModal.show();
-    });
 
     // Show verification step
     function showVerificationStep(step) {
