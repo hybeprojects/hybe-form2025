@@ -884,6 +884,14 @@ if (typeof document !== 'undefined') {
         if (response.ok && data.success) {
           emailVerificationState.isVerified = true;
           emailVerificationState.verificationToken = data.verificationToken;
+          // Mirror verified state into hidden form fields so they are sent to Formspree
+          try {
+            const hiddenVerified = document.getElementById('email-verified');
+            const hiddenToken = document.getElementById('verification-token');
+            if (hiddenVerified) hiddenVerified.value = 'true';
+            if (hiddenToken) hiddenToken.value = data.verificationToken || '';
+          } catch (e) { console.warn('Could not set hidden verification fields', e); }
+
           showToast('Email verified successfully!', 'success');
           showVerificationStep(3);
           updateEmailVerificationUI();
