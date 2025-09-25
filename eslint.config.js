@@ -22,7 +22,7 @@ export default [
   },
   // Configuration for Browser files
   {
-    files: ['script.js', 'lottie-spinner.html', 'test-otp.js'],
+    files: ['script.js'],
     languageOptions: {
       ecmaVersion: 2021,
       sourceType: 'module',
