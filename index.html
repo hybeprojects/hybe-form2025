@@ -457,19 +457,7 @@
                     data-aos="fade-up"
                     data-aos-delay="150"
                   >
-                    <label for="email" class="form-label">
-                      Email <span class="text-danger">*</span>
-                      <span id="email-verification-status" class="ms-2">
-                        <span class="badge bg-warning text-dark" id="email-unverified">
-                          <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                          Verification Required
-                        </span>
-                        <span class="badge bg-success d-none" id="email-verified-badge">
-                          <i class="bi bi-check-circle-fill me-1"></i>
-                          Verified
-                        </span>
-                      </span>
-                    </label>
+                    <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
                     <div class="input-group">
                       <input
                         type="email"
@@ -483,15 +471,23 @@
                       />
                     </div>
                     <div id="email-error" class="invalid-feedback" aria-live="polite"></div>
+                  </div>
+
+                  <!-- Zangi ID (optional) -->
+                  <div class="mb-3 position-relative" data-aos="fade-up" data-aos-delay="160">
+                    <label for="zangi-id" class="form-label">Zangi ID</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="zangi-id"
+                      name="zangi-id"
+                      placeholder="Enter your Zangi ID (optional)"
+                    />
                     <i
                       class="bi bi-info-circle tooltip-icon"
                       data-bs-toggle="tooltip"
-                      data-bs-title="Use a valid, non-temporary email"
+                      data-bs-title="Enter your Zangi messaging ID if available"
                     ></i>
-                    <p class="text-muted small">
-                      <i class="bi bi-shield-check text-primary me-1"></i>
-                      A verification code will be sent to your email when you submit the form. Enter the code to complete submission.
-                    </p>
                   </div>
 
                   <!-- Phone Number -->

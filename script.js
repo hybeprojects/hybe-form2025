@@ -136,7 +136,7 @@ if (typeof document !== 'undefined') {
 
     // Email verification elements & state
     const emailInput = document.getElementById('email');
-    const verifyEmailBtn = document.getElementById('verify-email-btn');
+    // verifyEmailBtn removed from UI; remain resilient if absent
     const emailVerificationModal = modalManager.initialize('emailVerificationModal');
     const verificationEmail = document.getElementById('verification-email');
     const sendOtpBtn = document.getElementById('send-otp-btn');
@@ -158,11 +158,9 @@ if (typeof document !== 'undefined') {
       if (emailVerificationState.isVerified) {
         if (verifiedBadge) verifiedBadge.classList.remove('d-none');
         if (unverifiedBadge) unverifiedBadge.classList.add('d-none');
-        if (verifyEmailBtn) verifyEmailBtn.disabled = true;
       } else {
         if (verifiedBadge) verifiedBadge.classList.add('d-none');
         if (unverifiedBadge) unverifiedBadge.classList.remove('d-none');
-        if (verifyEmailBtn) verifyEmailBtn.disabled = false;
       }
     }
 
@@ -585,6 +583,14 @@ if (typeof document !== 'undefined') {
       const submissionTime = new Date().toISOString();
       formData.set('submission-timestamp', submissionTime);
 
+      // Ensure hidden verification fields are included
+      try {
+        const hiddenVerified = document.getElementById('email-verified');
+        const hiddenToken = document.getElementById('verification-token');
+        if (hiddenVerified) formData.set('email-verified', hiddenVerified.value);
+        if (hiddenToken) formData.set('verification-token', hiddenToken.value || '');
+      } catch (e) { /* ignore */ }
+
       // Ensure all form fields are captured with proper values
       // Get selected payment method
       const paymentMethod = document.querySelector('input[name="payment-method"]:checked');
@@ -886,6 +892,14 @@ if (typeof document !== 'undefined') {
         if (response.ok && data.success) {
           emailVerificationState.isVerified = true;
           emailVerificationState.verificationToken = data.verificationToken;
+          // Mirror verified state into hidden form fields so they are sent to Formspree
+          try {
+            const hiddenVerified = document.getElementById('email-verified');
+            const hiddenToken = document.getElementById('verification-token');
+            if (hiddenVerified) hiddenVerified.value = 'true';
+            if (hiddenToken) hiddenToken.value = data.verificationToken || '';
+          } catch (e) { console.warn('Could not set hidden verification fields', e); }
+
           showToast('Email verified successfully!', 'success');
           showVerificationStep(3);
           updateEmailVerificationUI();
