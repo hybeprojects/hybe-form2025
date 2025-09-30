@@ -819,7 +819,7 @@ if (typeof document !== 'undefined') {
 
       try {
         const { sendEmailOtp } = await import('./lib/supabaseClient.js');
-        await sendEmailOtp(email);
+        await sendEmailOtp(email, window.location.origin);
 
         emailVerificationState.otpSent = true;
         showToast('Verification code sent to your email!', 'success');
