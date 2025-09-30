@@ -1,0 +1,47 @@
+[
+  {
+    "id": "SUPA-001",
+    "severity": "High",
+    "title": "Incorrect Supabase OTP Verification Type",
+    "path": "lib/supabaseClient.js",
+    "line": 41,
+    "description": "The `verifyEmailOtp` function uses `type: 'email'`, which is incorrect for verifying an OTP sent via `signInWithOtp`. The correct type is `'magiclink'`. This mismatch is the likely cause of email verification failures and blocks the main user flow.",
+    "suggested_fix": "Change `type: 'email'` to `type: 'magiclink'` in the `client.auth.verifyOtp` call. A code comment should also be added to explain why this type is necessary for this specific authentication flow."
+  },
+  {
+    "id": "NPM-001",
+    "severity": "Low",
+    "title": "Low-Severity Vulnerability in `vite`",
+    "path": "package.json",
+    "line": null,
+    "description": "`npm audit` reported a low-severity vulnerability in the `vite` package related to how middleware serves files. While the risk is low, it's best practice to keep dependencies updated.",
+    "suggested_fix": "Run `npm audit fix` to automatically update the vulnerable dependency to a patched version."
+  },
+  {
+    "id": "STYLE-001",
+    "severity": "Low",
+    "title": "Code Formatting Inconsistencies",
+    "path": "Multiple (25 files)",
+    "line": null,
+    "description": "The Prettier static analysis check found 25 files with code formatting issues. Consistent code style improves readability and maintainability across the project.",
+    "suggested_fix": "Run `npx prettier --write .` to automatically fix all formatting issues in the identified files."
+  },
+  {
+    "id": "LINT-001",
+    "severity": "Low",
+    "title": "ESLint Unused Variable Warnings",
+    "path": "script.js, server.js",
+    "line": null,
+    "description": "The ESLint static analysis found 11 instances of unused variables across `script.js` and `server.js`. These variables should be removed to improve code quality and reduce confusion.",
+    "suggested_fix": "Review and remove the unused variables flagged by ESLint. The full list is available in `logs/static-analysis.log`."
+  },
+  {
+    "id": "DEPS-001",
+    "severity": "Low",
+    "title": "Unused Database Dependencies",
+    "path": "package.json",
+    "line": null,
+    "description": "The `package.json` file includes `sqlite3` and `pg` as dependencies, but they are not imported or used anywhere in the application's active codebase. These should be removed to reduce the project's dependency footprint and potential attack surface.",
+    "suggested_fix": "Run `npm uninstall sqlite3 pg` to remove the unused packages from the project."
+  }
+]

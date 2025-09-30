@@ -37,24 +37,28 @@
 ## Current Security Features
 
 ### 🔒 Authentication & Authorization
+
 - **OTP Generation**: Cryptographically secure using `crypto.randomInt()`
 - **OTP Storage**: PBKDF2 hashing with 10,000 iterations and unique salts
 - **Token Generation**: Base64-encoded JSON with nonce for uniqueness
 - **Session Management**: 30-minute verification token expiry
 
 ### 🛡️ Attack Prevention
+
 - **Rate Limiting**: Multi-tier (email + IP) with progressive penalties
 - **Brute Force Protection**: Account lockouts and attempt tracking
 - **Input Validation**: Comprehensive validation with sanitization
 - **Domain Security**: Blocking of known temporary email services
 
 ### 📊 Monitoring & Logging
+
 - **Security Logging**: Failed attempts with IP and reason tracking
 - **Privacy Protection**: Email hashing in logs for privacy
 - **Performance Monitoring**: Request timing and processing metrics
 - **Audit Trail**: Complete verification attempt history
 
 ### 🔐 Cryptographic Security
+
 - **OTP Hashing**: PBKDF2 with SHA-512 and random salts
 - **Token Security**: Cryptographically secure random nonces
 - **Data Protection**: No plaintext storage of sensitive data
@@ -98,6 +102,7 @@
 ## Production Recommendations
 
 ### Immediate (Before Production)
+
 1. **Environment Security**
    - Store SMTP credentials in secure secret management
    - Use production-grade email service (SendGrid, AWS SES)
@@ -114,6 +119,7 @@
    - Set up SSL/TLS certificates
 
 ### Medium Term
+
 1. **Advanced Security**
    - Implement hardware security modules (HSM) for key management
    - Add advanced threat detection

@@ -1,0 +1,13 @@
+--- a/lib/supabaseClient.js
++++ b/lib/supabaseClient.js
+@@ -38,7 +38,9 @@
+
+ export async function verifyEmailOtp(email, token) {
+   const client = getSupabase();
+-  const { data, error } = await client.auth.verifyOtp({ email, token, type: 'email' });
++  // Use 'magiclink' for OTPs sent via signInWithOtp, as per Supabase convention.
++  // The 'email' type is for confirming email changes or initial sign-ups.
++  const { data, error } = await client.auth.verifyOtp({ email, token, type: 'magiclink' });
+   if (error) throw error;
+   return data;
+ }

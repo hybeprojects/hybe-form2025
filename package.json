@@ -10,13 +10,11 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.47.7",
     "cors": "^2.8.5",
     "express": "^4.19.2",
     "multer": "^1.4.5-lts.1",
-    "nodemailer": "^6.10.1",
-    "pg": "^8.16.3",
-    "sqlite3": "^5.1.7",
-    "@supabase/supabase-js": "^2.47.7"
+    "nodemailer": "^6.10.1"
   },
   "devDependencies": {
     "eslint": "^9.30.0",
