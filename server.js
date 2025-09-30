@@ -94,15 +94,6 @@ app.post('/submit-form', upload.none(), (req, res) => {
   }
 });
 
-// API routes replacing Netlify functions
-const { sendOtp } = require(path.join(__dirname, 'lib/api/sendOtp.js'));
-const { verifyOtp } = require(path.join(__dirname, 'lib/api/verifyOtp.js'));
-
-app.options('/send-otp', (req, res) => res.sendStatus(200));
-app.post('/send-otp', sendOtp);
-
-app.options('/verify-otp', (req, res) => res.sendStatus(200));
-app.post('/verify-otp', verifyOtp);
 
 // Catch-all to serve index file
 app.get('/*', (req, res) => {
