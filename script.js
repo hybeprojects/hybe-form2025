@@ -365,7 +365,7 @@ if (typeof document !== 'undefined') {
       countrySelect.innerHTML = '<option value="" disabled selected>Select Country</option>';
       let countries = [];
       try {
-        const res = await safeFetch('https://restcountries.com/v3.1/all?fields=name,cca2');
+        const res = await safeFetch('/api/countries');
         countries = (await res.json()).map(c => ({ code: c.cca2, name: c.name.common }));
       } catch {
         countries = [
@@ -392,7 +392,7 @@ if (typeof document !== 'undefined') {
       });
       // Auto-detect country
       try {
-        const res = await safeFetch('https://ipwho.is/');
+        const res = await safeFetch('/api/ipinfo');
         const data = await res.json();
         const cc = data.country_code?.toUpperCase();
         if (cc) {
