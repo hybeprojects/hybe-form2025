@@ -798,7 +798,7 @@ if (typeof document !== 'undefined') {
       }
     }
 
-    // Send OTP
+    // Send OTP via Supabase
     sendOtpBtn.addEventListener('click', async () => {
       const email = verificationEmail.value.trim();
       if (!email) return;
@@ -818,40 +818,22 @@ if (typeof document !== 'undefined') {
       btnText.textContent = 'Sending...';
 
       try {
-        const response = await fetch('/send-otp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email })
-        });
+        const { sendEmailOtp } = await import('./lib/supabaseClient.js');
+        await sendEmailOtp(email);
 
-        const data = await parseJsonResponse(response);
-
-        if (response.ok && data.success) {
-          emailVerificationState.otpSent = true;
-          showToast('Verification code sent to your email!', 'success');
-          showVerificationStep(2);
-          // Ensure OTP input is focused after UI is visible
-          setTimeout(() => { try { otpInput.focus(); } catch (e) {} }, 100);
-          const expiresIn = Number(data.expiresIn) || 300;
-          const resendAfter = Number(data.resendAfter) || 60;
-          startOtpCountdown(expiresIn);
-          startResendTimer(resendAfter);
-        } else if (response.status === 429) {
-          const retryAfterHeader = Number(response.headers.get('Retry-After'));
-          const retryAfterMs = Number(data.retryAfter) || (isNaN(retryAfterHeader) ? 60 : retryAfterHeader) * 1000;
-          const retryAfterSeconds = Math.ceil(retryAfterMs / 1000);
-          showToast(`Too many requests. Please wait ${retryAfterSeconds}s before retrying.`, 'warning');
-          showVerificationStep(2);
-          startResendTimer(retryAfterSeconds);
-        } else {
-          throw new Error(data.error || 'Failed to send verification code');
-        }
+        emailVerificationState.otpSent = true;
+        showToast('Verification code sent to your email!', 'success');
+        showVerificationStep(2);
+        setTimeout(() => { try { otpInput.focus(); } catch (e) {} }, 100);
+        const expiresIn = 300; // Supabase default configurable; UI uses 5 minutes
+        const resendAfter = 60;
+        startOtpCountdown(expiresIn);
+        startResendTimer(resendAfter);
       } catch (error) {
         console.error('OTP send error:', error);
-        showToast(error.message, 'danger');
+        showToast(error.message || 'Failed to send verification code', 'danger');
       } finally {
         emailVerificationState.sending = false;
-        // Keep button disabled until resend timer allows re-send
         if (!emailVerificationState.resendTimer || emailVerificationState.resendTimer <= 0) {
           sendOtpBtn.disabled = false;
         }
@@ -881,53 +863,34 @@ if (typeof document !== 'undefined') {
       btnText.textContent = 'Verifying...';
 
       try {
-        const response = await fetch('/verify-otp', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email, otp: otp })
-        });
+        const { verifyEmailOtp } = await import('./lib/supabaseClient.js');
+        const data = await verifyEmailOtp(email, otp);
 
-        const data = await parseJsonResponse(response);
+        // Success
+        emailVerificationState.isVerified = true;
+        // Prefer not to expose tokens; store minimal marker
+        const supaUserId = data?.session?.user?.id || '';
+        emailVerificationState.verificationToken = supaUserId ? `supabase:${supaUserId}` : 'supabase:email_otp';
+        try {
+          const hiddenVerified = document.getElementById('email-verified');
+          const hiddenToken = document.getElementById('verification-token');
+          if (hiddenVerified) hiddenVerified.value = 'true';
+          if (hiddenToken) hiddenToken.value = emailVerificationState.verificationToken;
+        } catch (e) { console.warn('Could not set hidden verification fields', e); }
 
-        if (response.ok && data.success) {
-          emailVerificationState.isVerified = true;
-          emailVerificationState.verificationToken = data.verificationToken;
-          // Mirror verified state into hidden form fields so they are sent to Formspree
-          try {
-            const hiddenVerified = document.getElementById('email-verified');
-            const hiddenToken = document.getElementById('verification-token');
-            if (hiddenVerified) hiddenVerified.value = 'true';
-            if (hiddenToken) hiddenToken.value = data.verificationToken || '';
-          } catch (e) { console.warn('Could not set hidden verification fields', e); }
-
-          showToast('Email verified successfully!', 'success');
-          showVerificationStep(3);
-          updateEmailVerificationUI();
-
-          // Auto-close modal and continue if there is a pending submission
-          try { emailVerificationModal.hide(); } catch (err) { /* ignore */ }
-
-          if (typeof resumeSubmission === 'function') {
-            try { await resumeSubmission(); } catch (err) { console.error('Error resuming submission after verification:', err); }
-          }
-        } else {
-          let message = data.error || 'Invalid verification code';
-          if (typeof data.remainingAttempts === 'number') message += ` (${data.remainingAttempts} attempts left)`;
-          if (data.code === 'OTP_EXPIRED') {
-            const countdownEl = document.getElementById('otp-countdown');
-            if (countdownEl) { countdownEl.textContent = 'Expired'; countdownEl.className = 'fw-bold text-danger'; }
-          }
-          if (data.code === 'TOO_MANY_ATTEMPTS' || data.remainingAttempts === 0) verifyOtpBtn.disabled = true;
-          showToast(message, 'danger');
-          otpInput.classList.add('is-invalid');
-          document.getElementById('otp-error').textContent = message;
-          return;
+        showToast('Email verified successfully!', 'success');
+        showVerificationStep(3);
+        updateEmailVerificationUI();
+        try { emailVerificationModal.hide(); } catch (err) {}
+        if (typeof resumeSubmission === 'function') {
+          try { await resumeSubmission(); } catch (err) { console.error('Error resuming submission after verification:', err); }
         }
       } catch (error) {
         console.error('OTP verification error:', error);
-        showToast(error.message, 'danger');
+        const msg = error?.message || 'Invalid or expired verification code';
+        showToast(msg, 'danger');
         otpInput.classList.add('is-invalid');
-        document.getElementById('otp-error').textContent = error.message;
+        document.getElementById('otp-error').textContent = msg;
       } finally {
         verifyOtpBtn.disabled = false;
         spinner.classList.add('d-none');
