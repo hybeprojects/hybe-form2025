@@ -1272,53 +1272,26 @@ if (typeof document !== "undefined") {
     // Initialize email verification UI
     updateEmailVerificationUI();
 
-    // Show onboarding modal once per user (persisted in localStorage)
+    // Show onboarding modal on every page load for consistency.
     try {
-      const params = new URLSearchParams(window.location.search);
-      const forceShow =
-        params.get("showOnboarding") === "true" ||
-        params.get("onboarding") === "1" ||
-        params.get("forceOnboarding") === "1";
-      const onboardingShown =
-        localStorage.getItem("onboardingShown") === "true";
+      const onboardingModalInstance =
+        modalManager.initialize("onboardingModal");
 
-      console.debug(
-        "[Onboarding] forceShow=%s, onboardingShown=%s, url=%s",
-        forceShow,
-        onboardingShown,
-        window.location.href,
-      );
-
-      if (!onboardingShown || forceShow) {
-        const onboardingModalInstance =
-          modalManager.initialize("onboardingModal");
-        if (onboardingModalInstance) {
-          try {
-            onboardingModalInstance.show();
-            try {
-              localStorage.setItem("onboardingShown", "true");
-            } catch {
-              /* ignore */
-            }
-            console.debug("[Onboarding] Shown via bootstrap modalManager");
-          } catch (err) {
-            console.warn("[Onboarding] bootstrap show failed:", err);
-            // Fallback: manual DOM-based modal show
-            manualShowModal("onboardingModal");
-          }
-        } else {
-          console.warn(
-            "[Onboarding] Modal instance not available; attempting manual show",
-          );
-          manualShowModal("onboardingModal");
-        }
+      if (onboardingModalInstance) {
+        onboardingModalInstance.show();
+        console.debug("[Onboarding] Modal shown on page load.");
+      } else {
+        console.warn(
+          "[Onboarding] Modal instance not available; attempting manual show.",
+        );
+        manualShowModal("onboardingModal");
       }
-    } catch (e) {
+    } catch (err) {
       console.warn(
         "[Onboarding] Error while attempting to show onboarding modal:",
-        e,
+        err,
       );
-      // If localStorage or URL parsing is unavailable, show modal once per page load via manual fallback
+      // Fallback if Bootstrap or other parts fail
       manualShowModal("onboardingModal");
     }
 
