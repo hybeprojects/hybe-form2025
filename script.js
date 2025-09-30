@@ -138,6 +138,12 @@ if (typeof document !== 'undefined') {
     const emailInput = document.getElementById('email');
     // verifyEmailBtn removed from UI; remain resilient if absent
     const emailVerificationModal = modalManager.initialize('emailVerificationModal');
+    if (emailVerificationModal && emailVerificationModal._element) {
+      emailVerificationModal._element.addEventListener('hidden.bs.modal', () => {
+        emailVerificationState.autoSent = false;
+        console.debug('Email verification modal closed, autoSent reset.');
+      });
+    }
     const verificationEmail = document.getElementById('verification-email');
     const sendOtpBtn = document.getElementById('send-otp-btn');
     const resendOtpBtn = document.getElementById('resend-otp-btn');
@@ -149,8 +155,13 @@ if (typeof document !== 'undefined') {
       currentEmail: '',
       verificationToken: '',
       otpSent: false,
-      resendTimer: 0
+      resendTimer: 0,
+      autoSent: false
     };
+    // Expose for testing
+    if (window.location.hostname === 'localhost' || window.location.protocol === 'file:') {
+      window.emailVerificationState = emailVerificationState;
+    }
 
     function updateEmailVerificationUI() {
       const verifiedBadge = document.getElementById('email-verified-badge');
@@ -748,7 +759,7 @@ if (typeof document !== 'undefined') {
         // Small delay to ensure modal is visible and prevent double auto-sends
         setTimeout(() => {
           try {
-            if (!emailVerificationState.otpSent && !emailVerificationState.autoSent && sendOtpBtn && !sendOtpBtn.disabled && (!emailVerificationState.resendTimer || emailVerificationState.resendTimer === 0)) {
+            if (!emailVerificationState.autoSent && sendOtpBtn && !sendOtpBtn.disabled && (!emailVerificationState.resendTimer || emailVerificationState.resendTimer === 0)) {
               emailVerificationState.autoSent = true;
               sendOtpBtn.click();
             } else {
