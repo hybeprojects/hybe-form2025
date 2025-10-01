@@ -151,34 +151,11 @@ if (typeof document !== "undefined") {
     if (submitBtn)
       submitBtn.parentNode.insertBefore(debugMsg, submitBtn.nextSibling);
 
-    // Email verification elements & state
-    const emailInput = document.getElementById("email");
-    // verifyEmailBtn removed from UI; remain resilient if absent
-    const emailVerificationModal = modalManager.initialize(
-      "emailVerificationModal",
-    );
-    if (emailVerificationModal && emailVerificationModal._element) {
-      emailVerificationModal._element.addEventListener(
-        "hidden.bs.modal",
-        () => {
-          emailVerificationState.autoSent = false;
-          console.debug("Email verification modal closed, autoSent reset.");
-        },
-      );
-    }
-    const verificationEmail = document.getElementById("verification-email");
-    const sendOtpBtn = document.getElementById("send-otp-btn");
-    const resendOtpBtn = document.getElementById("resend-otp-btn");
-    const otpInput = document.getElementById("otp-input");
-    const verifyOtpBtn = document.getElementById("verify-otp-btn");
 
+
+    // Treat email as verified by default and remove verification gating
     const emailVerificationState = {
-      isVerified: false,
-      currentEmail: "",
-      verificationToken: "",
-      otpSent: false,
-      resendTimer: 0,
-      autoSent: false,
+
     };
     // Expose for testing
     if (
@@ -189,15 +166,7 @@ if (typeof document !== "undefined") {
     }
 
     function updateEmailVerificationUI() {
-      const verifiedBadge = document.getElementById("email-verified-badge");
-      const unverifiedBadge = document.getElementById("email-unverified");
-      if (emailVerificationState.isVerified) {
-        if (verifiedBadge) verifiedBadge.classList.remove("d-none");
-        if (unverifiedBadge) unverifiedBadge.classList.add("d-none");
-      } else {
-        if (verifiedBadge) verifiedBadge.classList.add("d-none");
-        if (unverifiedBadge) unverifiedBadge.classList.remove("d-none");
-      }
+
     }
 
     // HYBE branch and group data
@@ -265,17 +234,7 @@ if (typeof document !== "undefined") {
 
     // Country phone data
     const countryPhoneData = {
-      US: { flag: "🇺🇸", code: "+1", format: "(XXX) XXX-XXXX" },
-      GB: { flag: "🇬🇧", code: "+44", format: "XXXX XXXXXX" },
-      JP: { flag: "🇯🇵", code: "+81", format: "XX-XXXX-XXXX" },
-      KR: { flag: "🇰🇷", code: "+82", format: "XX-XXXX-XXXX" },
-      CN: { flag: "🇨🇳", code: "+86", format: "XXX XXXX XXXX" },
-      FR: { flag: "🇫🇷", code: "+33", format: "X XX XX XX XX" },
-      DE: { flag: "🇩🇪", code: "+49", format: "XXXX XXXXXXX" },
-      IN: { flag: "🇮🇳", code: "+91", format: "XXXXX-XXXXX" },
-      BR: { flag: "🇧🇷", code: "+55", format: "(XX) XXXXX-XXXX" },
-      CA: { flag: "🇨🇦", code: "+1", format: "(XXX) XXX-XXXX" },
-      NG: { flag: "🇳🇬", code: "+234", format: "XXX XXX XXXX" },
+
     };
 
     // Validation rules
@@ -992,6 +951,7 @@ if (typeof document !== "undefined") {
       updateProgress();
     });
 
+
     // Show verification step
     function showVerificationStep(step) {
       document
@@ -1008,48 +968,7 @@ if (typeof document !== "undefined") {
       }
     }
 
-    // Send OTP via Supabase
-    sendOtpBtn.addEventListener("click", async () => {
-      const email = verificationEmail.value.trim();
-      if (!email) return;
 
-      // Prevent double-sending: if already sent, currently sending, or resend timer active, ignore
-      if (
-        emailVerificationState.otpSent ||
-        emailVerificationState.sending ||
-        (emailVerificationState.resendTimer &&
-          emailVerificationState.resendTimer > 0)
-      ) {
-        console.debug(
-          "Send OTP ignored: already sent or sending or resend timer active",
-        );
-        return;
-      }
-
-      emailVerificationState.sending = true;
-      const btnText = sendOtpBtn.querySelector(".btn-text");
-      const spinner = sendOtpBtn.querySelector(".spinner-border");
-
-      sendOtpBtn.disabled = true;
-      spinner.classList.remove("d-none");
-      btnText.textContent = "Sending...";
-
-      try {
-        const { sendEmailOtp } = await import("./lib/supabaseClient.js");
-        await sendEmailOtp(email, window.location.origin);
-
-        emailVerificationState.otpSent = true;
-        showToast("Verification code sent to your email!", "success");
-        showVerificationStep(2);
-        setTimeout(() => {
-          try {
-            otpInput.focus();
-          } catch {}
-        }, 100);
-        const expiresIn = 300; // Supabase default configurable; UI uses 5 minutes
-        const resendAfter = 60;
-        startOtpCountdown(expiresIn);
-        startResendTimer(resendAfter);
       } catch (error) {
         console.error("OTP send error:", error);
         showToast(
@@ -1069,103 +988,10 @@ if (typeof document !== "undefined") {
       }
     });
 
-    // Verify OTP helper function and click handler
+
+    // Verify OTP disabled; guard verify action if element exists
     async function verifyOtp(auto = false) {
-      const email = emailVerificationState.currentEmail;
-      const otp = otpInput.value.trim();
 
-      if (!otp || otp.length !== 6) {
-        if (!auto) {
-          showToast("Please enter a 6-digit verification code.", "warning");
-          otpInput.focus();
-        }
-        return;
-      }
-
-      const btnText = verifyOtpBtn.querySelector(".btn-text");
-      const spinner = verifyOtpBtn.querySelector(".spinner-border");
-
-      verifyOtpBtn.disabled = true;
-      spinner.classList.remove("d-none");
-      btnText.textContent = "Verifying...";
-
-      try {
-        const { verifyEmailOtp } = await import("./lib/supabaseClient.js");
-        const data = await verifyEmailOtp(email, otp);
-
-        // Success
-        emailVerificationState.isVerified = true;
-        // Prefer not to expose tokens; store minimal marker
-        const supaUserId = data?.session?.user?.id || "";
-        emailVerificationState.verificationToken = supaUserId
-          ? `supabase:${supaUserId}`
-          : "supabase:email_otp";
-        try {
-          const hiddenVerified = document.getElementById("email-verified");
-          const hiddenToken = document.getElementById("verification-token");
-          if (hiddenVerified) hiddenVerified.value = "true";
-          if (hiddenToken)
-            hiddenToken.value = emailVerificationState.verificationToken;
-        } catch (e) {
-          console.warn("Could not set hidden verification fields", e);
-        }
-
-        showToast("Email verified successfully!", "success");
-        showVerificationStep(3);
-        updateEmailVerificationUI();
-        try {
-          emailVerificationModal.hide();
-        } catch {}
-        if (typeof resumeSubmission === "function") {
-          try {
-            await resumeSubmission();
-          } catch (err) {
-            console.error("Error resuming submission after verification:", err);
-          }
-        }
-      } catch (error) {
-        console.error("OTP verification error:", error);
-        const msg = error?.message || "Invalid or expired verification code";
-        showToast(msg, "danger");
-        otpInput.classList.add("is-invalid");
-        document.getElementById("otp-error").textContent = msg;
-      } finally {
-        verifyOtpBtn.disabled = false;
-        spinner.classList.add("d-none");
-        btnText.textContent = "Verify Code";
-      }
-    }
-
-    verifyOtpBtn.addEventListener("click", () => verifyOtp(false));
-
-    // Resend OTP
-    resendOtpBtn.addEventListener("click", () => {
-      if (emailVerificationState.resendTimer > 0) return;
-
-      // Reset OTP input
-      otpInput.value = "";
-      otpInput.classList.remove("is-invalid");
-
-      // Trigger send OTP
-      sendOtpBtn.click();
-    });
-
-    // OTP input formatting
-    otpInput.addEventListener("input", (e) => {
-      let value = e.target.value.replace(/\D/g, ""); // Only digits
-      if (value.length > 6) value = value.slice(0, 6);
-      e.target.value = value;
-
-      // Clear error state
-      e.target.classList.remove("is-invalid");
-      document.getElementById("otp-error").textContent = "";
-
-      // Auto-verify when 6 digits entered
-      if (value.length === 6) {
-        // Directly call verification without extra delay
-        verifyOtp(true);
-      }
-    });
 
     // OTP countdown timer
     let otpCountdownInterval;
@@ -1243,7 +1069,7 @@ if (typeof document !== "undefined") {
       }
     });
 
-    // Initialize email verification UI
+    // Initialize email verification UI (verification disabled)
     updateEmailVerificationUI();
 
     // Show onboarding modal on every page load for consistency.
