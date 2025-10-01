@@ -49,10 +49,19 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve static files (prefer dist if present, else serve project root)
+// Serve static files strictly from dist to match production
 const distDir = path.join(__dirname, "dist");
-const staticRoot = fs.existsSync(distDir) ? distDir : __dirname;
-app.use(express.static(staticRoot));
+if (!fs.existsSync(distDir)) {
+  console.warn('Warning: dist directory not found. Build the project with "npm run build".');
+}
+app.use(
+  "/assets",
+  express.static(path.join(distDir, "assets"), {
+    immutable: true,
+    maxAge: "1y",
+  }),
+);
+app.use(express.static(distDir, { maxAge: "0" }));
 
 // Basic rate limiting
 const requestCounts = new Map();
@@ -118,11 +127,18 @@ app.post("/submit-form", upload.none(), (req, res) => {
   }
 });
 
-// Catch-all to serve index file
+// Success page route to mirror Netlify redirect
+app.get("/success", (req, res) => {
+  const successPath = path.join(distDir, "success.html");
+  if (fs.existsSync(successPath)) {
+    return res.sendFile(successPath);
+  }
+  res.status(404).send("success.html not found. Run npm run build.");
+});
+
+// Catch-all to serve SPA index from dist
 app.get("/*", (req, res) => {
-  const indexPath = fs.existsSync(distDir)
-    ? path.join(distDir, "index.html")
-    : path.join(__dirname, "index.html");
+  const indexPath = path.join(distDir, "index.html");
   res.sendFile(indexPath);
 });
 
