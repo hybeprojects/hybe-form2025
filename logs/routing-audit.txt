@@ -1,0 +1,15 @@
+Routing & Serverless Config Audit
+
+- netlify.toml:
+  - [[redirects]] /api/countries and /api/ipinfo proxy to external APIs with force=true.
+  - [[redirects]] /* -> /index.html 200 (no force flag).
+- Vite build inputs include success.html.
+
+Risk:
+- The catch-all 200 rewrite can shadow /success.html on Netlify depending on precedence. Add an explicit rule before the wildcard:
+  [[redirects]]
+    from = "/success"
+    to = "/success.html"
+    status = 200
+
+- No serverless functions directory found.
