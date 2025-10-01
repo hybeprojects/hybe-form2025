@@ -848,12 +848,14 @@ if (typeof document !== "undefined") {
 
       try {
         const { formData } = prepareNetlifyFormData(form);
-        const endpoint =
-          (import.meta.env?.DEV ? "http://localhost:3000" : "") + "/submit-form";
+        const payload = Object.fromEntries(formData.entries());
+        const endpoint = import.meta.env?.DEV
+          ? "http://localhost:3000/submit-form"
+          : "/.netlify/functions/submit-form";
         const response = await fetch(endpoint, {
           method: "POST",
-          body: formData,
-          credentials: "include",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify(payload),
         });
 
         const data = await response.json().catch(() => ({}));
@@ -872,8 +874,7 @@ if (typeof document !== "undefined") {
           return;
         }
 
-        console.log("Form submitted to Formspree successfully!");
-        // Nice redirect animation: show success modal with countdown then go to HYBECORP
+        // Success UX
         modalManager.show("digitalCurrencySuccessModal", {
           countdown: {
             duration: 5,
@@ -885,8 +886,7 @@ if (typeof document !== "undefined") {
         });
 
         // Store form data in sessionStorage for the success page
-        const dataToStore = Object.fromEntries(formData.entries());
-        sessionStorage.setItem("submissionData", JSON.stringify(dataToStore));
+        sessionStorage.setItem("submissionData", JSON.stringify(payload));
       } catch (err) {
         console.error("Submission Error:", err.message, err.stack);
         showToast(
