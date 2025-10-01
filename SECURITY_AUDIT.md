@@ -49,7 +49,7 @@
 ### 🟢 LOW SEVERITY
 
 9. **CORS Configuration (LOW)**
-   - **Issue**: Accepts requests from any origin (*)
+   - **Issue**: Accepts requests from any origin (\*)
    - **Risk**: Potential CSRF attacks
    - **Fix**: Restrict to specific origins
 

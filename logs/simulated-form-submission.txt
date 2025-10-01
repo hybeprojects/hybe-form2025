@@ -1,0 +1,16 @@
+HTTP/1.1 200 OK
+X-Powered-By: Express
+Vary: Origin
+Access-Control-Allow-Credentials: true
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+X-XSS-Protection: 1; mode=block
+Referrer-Policy: strict-origin-when-cross-origin
+Permissions-Policy: camera=(), microphone=(), geolocation=()
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: https: http:; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self' https:;
+Content-Type: application/json; charset=utf-8
+Content-Length: 96
+ETag: W/"60-Nz2p9Wa7Wr4t3RgNZ/Bs2EQBuTs"
+Date: 2025-10-01T14:54:41Z
+
+{"success":true,"message":"Form submitted successfully.","timestamp":"2025-10-01T14:54:41.273Z"}

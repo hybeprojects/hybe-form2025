@@ -1,13 +1,13 @@
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-			"type": "shell",
-			"label": "Vite Dev Server (Auto-Reload)",
-			"command": "npm run dev",
-			"isBackground": true,
-			"group": "build",
-			"problemMatcher": []
-		}
-	]
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "shell",
+      "label": "Vite Dev Server (Auto-Reload)",
+      "command": "npm run dev",
+      "isBackground": true,
+      "group": "build",
+      "problemMatcher": []
+    }
+  ]
 }

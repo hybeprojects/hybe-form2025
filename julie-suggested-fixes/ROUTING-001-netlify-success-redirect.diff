@@ -1,0 +1,19 @@
+*** Begin Patch
+*** Update File: netlify.toml
+@@
+ [[redirects]]
+   from = "/api/ipinfo"
+   to = "https://ipwho.is/"
+   status = 200
+   force = true
+ 
++[[redirects]]
++  from = "/success"
++  to = "/success.html"
++  status = 200
++
+ [[redirects]]
+   from = "/*"
+   to = "/index.html"
+   status = 200
+*** End Patch

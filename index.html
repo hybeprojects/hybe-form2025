@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -54,7 +54,10 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
       rel="stylesheet"
     />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css?v=2" />
     <script type="module" src="script.js?v=2" defer></script>
@@ -63,8 +66,14 @@
     <!-- Language Switcher -->
     <div class="container-fluid bg-light py-2 border-bottom">
       <div class="d-flex justify-content-end align-items-center">
-        <label for="language-switcher" class="me-2 mb-0 visually-hidden">Language</label>
-        <select id="language-switcher" class="form-select form-select-sm w-auto" aria-label="Language Switcher">
+        <label for="language-switcher" class="me-2 mb-0 visually-hidden"
+          >Language</label
+        >
+        <select
+          id="language-switcher"
+          class="form-select form-select-sm w-auto"
+          aria-label="Language Switcher"
+        >
           <option value="auto" selected>🌐 Auto</option>
           <option value="en">English</option>
           <option value="ko">한국어</option>
@@ -77,11 +86,27 @@
       </div>
     </div>
     <!-- Global Toast Container -->
-    <div aria-live="polite" aria-atomic="true" class="position-fixed top-0 end-0 p-3" style="z-index: 1080; min-width: 320px;">
-      <div id="global-toast" class="toast align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div
+      aria-live="polite"
+      aria-atomic="true"
+      class="position-fixed top-0 end-0 p-3"
+      style="z-index: 1080; min-width: 320px"
+    >
+      <div
+        id="global-toast"
+        class="toast align-items-center text-white bg-primary border-0"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+      >
         <div class="d-flex">
           <div class="toast-body" id="global-toast-body"></div>
-          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+          <button
+            type="button"
+            class="btn-close btn-close-white me-2 m-auto"
+            data-bs-dismiss="toast"
+            aria-label="Close"
+          ></button>
         </div>
       </div>
     </div>
@@ -112,7 +137,7 @@
       aria-labelledby="onboardingModalLabel"
       aria-hidden="true"
     >
-      <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content hero">
           <div class="modal-body text-center">
             <h2 id="onboardingModalLabel">Welcome to HYBE’s Fan-Permit!</h2>
@@ -198,14 +223,26 @@
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content text-center p-4">
           <div class="modal-body">
-            <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
-            <h2 id="digitalCurrencyModalTitle" class="mt-3 mb-2">Form Submitted Successfully!</h2>
+            <i
+              class="bi bi-check-circle-fill text-success"
+              style="font-size: 3rem"
+            ></i>
+            <h2 id="digitalCurrencyModalTitle" class="mt-3 mb-2">
+              Form Submitted Successfully!
+            </h2>
             <p class="text-muted mb-3">
-              Your subscription application has been submitted for review. Approval typically takes 2-3 hours, depending on your region and submission time. You’ll be notified via your preferred contact method once your application is approved and payment details are provided.
+              Your subscription application has been submitted for review.
+              Approval typically takes 2-3 hours, depending on your region and
+              submission time. You’ll be notified via your preferred contact
+              method once your application is approved and payment details are
+              provided.
             </p>
             <p class="text-muted">
-              Redirecting to <a href="https://hybecorp.com" class="text-decoration-none">hybecorp.com</a> in
-              <span id="digital-currency-countdown">5</span> seconds...
+              Redirecting to
+              <a href="https://hybecorp.com" class="text-decoration-none"
+                >hybecorp.com</a
+              >
+              in <span id="digital-currency-countdown">5</span> seconds...
             </p>
             <button
               id="digital-currency-home-btn"
@@ -220,7 +257,13 @@
     </div>
 
     <!-- Email Verification Modal -->
-    <div class="modal fade" id="emailVerificationModal" tabindex="-1" aria-labelledby="emailVerificationModalLabel" aria-hidden="true">
+    <div
+      class="modal fade"
+      id="emailVerificationModal"
+      tabindex="-1"
+      aria-labelledby="emailVerificationModalLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
@@ -228,30 +271,62 @@
               <i class="bi bi-envelope-check text-primary me-2"></i>
               Verify Your Email
             </h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
           </div>
           <div class="modal-body">
             <div id="verification-step-1" class="verification-step">
-              <p class="mb-3">To ensure the security of your subscription, please verify your email address.</p>
+              <p class="mb-3">
+                To ensure the security of your subscription, please verify your
+                email address.
+              </p>
               <div class="mb-3">
-                <label for="verification-email" class="form-label">Email Address</label>
-                <input type="email" class="form-control" id="verification-email" placeholder="Enter your email address" readonly>
+                <label for="verification-email" class="form-label"
+                  >Email Address</label
+                >
+                <input
+                  type="email"
+                  class="form-control"
+                  id="verification-email"
+                  placeholder="Enter your email address"
+                  readonly
+                />
               </div>
-              <button type="button" class="btn btn-primary w-100" id="send-otp-btn">
+              <button
+                type="button"
+                class="btn btn-primary w-100"
+                id="send-otp-btn"
+              >
                 <span class="btn-text">Send Verification Code</span>
-                <span class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
+                <span
+                  class="spinner-border spinner-border-sm d-none ms-2"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
               </button>
             </div>
 
             <div id="verification-step-2" class="verification-step d-none">
               <div class="text-center mb-3">
-                <i class="bi bi-envelope-check-fill text-success" style="font-size: 3rem;"></i>
+                <i
+                  class="bi bi-envelope-check-fill text-success"
+                  style="font-size: 3rem"
+                ></i>
                 <h6 class="mt-2">Verification Code Sent!</h6>
-                <p class="text-muted small">We've sent a 6-digit code to <span id="sent-to-email" class="fw-bold"></span></p>
+                <p class="text-muted small">
+                  We've sent a 6-digit code to
+                  <span id="sent-to-email" class="fw-bold"></span>
+                </p>
               </div>
 
               <div class="mb-3">
-                <label for="otp-input" class="form-label">Enter Verification Code</label>
+                <label for="otp-input" class="form-label"
+                  >Enter Verification Code</label
+                >
                 <input
                   type="text"
                   class="form-control text-center"
@@ -261,38 +336,80 @@
                   pattern="[0-9]{6}"
                   inputmode="numeric"
                   autocomplete="one-time-code"
-                  style="font-size: 1.5rem; letter-spacing: 0.5rem; font-family: 'Courier New', monospace;"
-                >
-                <div class="invalid-feedback" id="otp-error" aria-live="polite"></div>
+                  style="
+                    font-size: 1.5rem;
+                    letter-spacing: 0.5rem;
+                    font-family: &quot;Courier New&quot;, monospace;
+                  "
+                />
+                <div
+                  class="invalid-feedback"
+                  id="otp-error"
+                  aria-live="polite"
+                ></div>
               </div>
 
               <div class="d-flex gap-2">
-                <button type="button" class="btn btn-outline-secondary" id="resend-otp-btn">
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  id="resend-otp-btn"
+                >
                   Resend Code
-                  <span id="resend-countdown" class="d-none">(<span id="resend-timer">60</span>s)</span>
+                  <span id="resend-countdown" class="d-none"
+                    >(<span id="resend-timer">60</span>s)</span
+                  >
                 </button>
-                <button type="button" class="btn btn-primary flex-fill" id="verify-otp-btn">
+                <button
+                  type="button"
+                  class="btn btn-primary flex-fill"
+                  id="verify-otp-btn"
+                >
                   <span class="btn-text">Verify Code</span>
-                  <span class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
+                  <span
+                    class="spinner-border spinner-border-sm d-none ms-2"
+                    role="status"
+                    aria-hidden="true"
+                  ></span>
                 </button>
               </div>
 
               <div class="mt-3 text-center">
                 <small class="text-muted">
-                  Code expires in <span id="otp-countdown" class="fw-bold text-warning">5:00</span>
+                  Code expires in
+                  <span id="otp-countdown" class="fw-bold text-warning"
+                    >5:00</span
+                  >
                 </small>
               </div>
               <div class="mt-2 text-center">
-                <button type="button" class="btn btn-link p-0" id="change-email-link">Use a different email</button>
+                <button
+                  type="button"
+                  class="btn btn-link p-0"
+                  id="change-email-link"
+                >
+                  Use a different email
+                </button>
               </div>
             </div>
 
             <div id="verification-step-3" class="verification-step d-none">
               <div class="text-center">
-                <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+                <i
+                  class="bi bi-check-circle-fill text-success"
+                  style="font-size: 3rem"
+                ></i>
                 <h6 class="mt-2 text-success">Email Verified Successfully!</h6>
-                <p class="text-muted">You can now complete your subscription.</p>
-                <button type="button" class="btn btn-success" data-bs-dismiss="modal">Continue</button>
+                <p class="text-muted">
+                  You can now complete your subscription.
+                </p>
+                <button
+                  type="button"
+                  class="btn btn-success"
+                  data-bs-dismiss="modal"
+                >
+                  Continue
+                </button>
               </div>
             </div>
           </div>
@@ -301,15 +418,31 @@
     </div>
 
     <!-- Loading Spinner Modal for Redirects -->
-    <div class="modal fade" id="loadingRedirectModal" tabindex="-1" aria-labelledby="loadingRedirectLabel" aria-hidden="true">
+    <div
+      class="modal fade"
+      id="loadingRedirectModal"
+      tabindex="-1"
+      aria-labelledby="loadingRedirectLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content text-center p-4">
           <div class="modal-body">
-            <div class="spinner-border text-primary mb-3" role="status" style="width:3rem;height:3rem;">
+            <div
+              class="spinner-border text-primary mb-3"
+              role="status"
+              style="width: 3rem; height: 3rem"
+            >
               <span class="visually-hidden">Loading...</span>
             </div>
-            <h5 id="loadingRedirectLabel" class="mb-2">Redirecting, please wait...</h5>
-            <p class="text-muted">You will be redirected in <span id="redirect-countdown" aria-live="assertive">5</span> seconds.</p>
+            <h5 id="loadingRedirectLabel" class="mb-2">
+              Redirecting, please wait...
+            </h5>
+            <p class="text-muted">
+              You will be redirected in
+              <span id="redirect-countdown" aria-live="assertive">5</span>
+              seconds.
+            </p>
           </div>
         </div>
       </div>
@@ -388,19 +521,42 @@
                   </p>
                 </div>
 
-                <form id="subscription-form" method="POST" name="subscription-form">
+                <form
+                  id="subscription-form"
+                  method="POST"
+                  name="subscription-form"
+                >
                   <!-- Honeypot field for spam prevention -->
-                  <div style="display:none;">
+                  <div style="display: none">
                     <label for="website">Website</label>
-                    <input type="text" id="website" name="website" tabindex="-1" autocomplete="off" />
+                    <input
+                      type="text"
+                      id="website"
+                      name="website"
+                      tabindex="-1"
+                      autocomplete="off"
+                    />
                   </div>
 
                   <input type="hidden" name="country" id="country" />
                   <input type="hidden" name="currency" id="currency" />
                   <input type="hidden" name="language" id="language" />
-                  <input type="hidden" name="submission-id" id="submission-id" />
-                  <input type="hidden" name="email-verified" id="email-verified" value="false" />
-                  <input type="hidden" name="verification-token" id="verification-token" />
+                  <input
+                    type="hidden"
+                    name="submission-id"
+                    id="submission-id"
+                  />
+                  <input
+                    type="hidden"
+                    name="email-verified"
+                    id="email-verified"
+                    value="false"
+                  />
+                  <input
+                    type="hidden"
+                    name="verification-token"
+                    id="verification-token"
+                  />
 
                   <!-- Referral Code -->
                   <div
@@ -456,10 +612,7 @@
                     class="mb-3 position-relative"
                     data-aos="fade-up"
                     data-aos-delay="150"
-                  >
-                    <label for="email" class="form-label">
-                      Email <span class="text-danger">*</span>
-                    </label>
+ 
                     <div class="input-group">
                       <input
                         type="email"
@@ -472,21 +625,53 @@
                         pattern="^[^@\s]+@[^@\s]+\.[^@\s]+$"
                       />
                     </div>
-                    <div id="email-error" class="invalid-feedback" aria-live="polite"></div>
+                    <div
+                      id="email-error"
+                      class="invalid-feedback"
+                      aria-live="polite"
+                    ></div>
+                  </div>
+
+                  <!-- Zangi ID (optional) -->
+                  <div
+                    class="mb-3 position-relative"
+                    data-aos="fade-up"
+                    data-aos-delay="160"
+                  >
+                    <label for="zangi-id" class="form-label">Zangi ID</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="zangi-id"
+                      name="zangi-id"
+                      placeholder="Enter your Zangi ID (optional)"
+                    />
                     <i
                       class="bi bi-info-circle tooltip-icon"
                       data-bs-toggle="tooltip"
-                      data-bs-title="Use a valid, non-temporary email"
+                      data-bs-title="Enter your Zangi messaging ID if available"
                     ></i>
                   </div>
 
                   <!-- Phone Number -->
-                  <div class="mb-3 position-relative" data-aos="fade-up" data-aos-delay="175">
+                  <div
+                    class="mb-3 position-relative"
+                    data-aos="fade-up"
+                    data-aos-delay="175"
+                  >
                     <label for="phone" class="form-label">
                       Phone Number <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
-                      <span id="phone-prefix" class="input-group-text" style="border-top-right-radius: 0; border-bottom-right-radius: 0;">🇳🇬 +234</span>
+                      <span
+                        id="phone-prefix"
+                        class="input-group-text"
+                        style="
+                          border-top-right-radius: 0;
+                          border-bottom-right-radius: 0;
+                        "
+                        >🇳🇬 +234</span
+                      >
                       <input
                         type="tel"
                         class="form-control"
@@ -501,7 +686,11 @@
                         maxlength="20"
                       />
                     </div>
-                    <div id="phone-error" class="invalid-feedback" aria-live="polite"></div>
+                    <div
+                      id="phone-error"
+                      class="invalid-feedback"
+                      aria-live="polite"
+                    ></div>
                     <i
                       class="bi bi-info-circle tooltip-icon"
                       data-bs-toggle="tooltip"
@@ -559,15 +748,36 @@
                         required
                       />
 
-                      <input type="hidden" id="use-as-mailing-address-hidden" name="use-as-mailing-address" value="false" />
-                      <div class="form-check mb-3 mailing-checkbox" data-aos="fade-up" data-aos-delay="205">
-                        <input class="form-check-input" type="checkbox" id="use-as-mailing-address" name="use-as-mailing-address" value="true" />
-                        <label class="form-check-label" for="use-as-mailing-address">Use this address for mailing/delivery</label>
-                        <div id="use-as-mailing-address-help" class="form-text">Check this if we may use this address to send physical mail or deliveries. Leave unchecked if different mailing address will be provided later.</div>
+                      <input
+                        type="hidden"
+                        id="use-as-mailing-address-hidden"
+                        name="use-as-mailing-address"
+                        value="false"
+                      />
+                      <div
+                        class="form-check mb-3 mailing-checkbox"
+                        data-aos="fade-up"
+                        data-aos-delay="205"
+                      >
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="use-as-mailing-address"
+                          name="use-as-mailing-address"
+                          value="true"
+                        />
+                        <label
+                          class="form-check-label"
+                          for="use-as-mailing-address"
+                          >Use this address for mailing/delivery</label
+                        >
+                        <div id="use-as-mailing-address-help" class="form-text">
+                          Check this if we may use this address to send physical
+                          mail or deliveries. Leave unchecked if different
+                          mailing address will be provided later.
+                        </div>
                       </div>
-
                     </div>
-
                   </div>
 
                   <!-- Country -->
@@ -581,9 +791,7 @@
                       name="country"
                       required
                     >
-                      <option value="" disabled selected>
-                        Select Country
-                      </option>
+                      <option value="" disabled selected>Select Country</option>
                     </select>
                   </div>
 
@@ -607,7 +815,11 @@
                       min="1900-01-01"
                       max="2012-06-21"
                     />
-                    <div id="dob-error" class="invalid-feedback" aria-live="polite"></div>
+                    <div
+                      id="dob-error"
+                      class="invalid-feedback"
+                      aria-live="polite"
+                    ></div>
                     <i
                       class="bi bi-info-circle tooltip-icon"
                       data-bs-toggle="tooltip"
@@ -919,7 +1131,10 @@
 
                   <!-- Preferred Contact Method -->
                   <div class="mb-3" data-aos="fade-up" data-aos-delay="475">
-                    <label class="form-label">Preferred Contact Method <span class="text-danger">*</span></label>
+                    <label class="form-label"
+                      >Preferred Contact Method
+                      <span class="text-danger">*</span></label
+                    >
                     <div class="form-check">
                       <input
                         class="form-check-input"
@@ -929,7 +1144,9 @@
                         value="Via Email"
                         required
                       />
-                      <label class="form-check-label" for="email-contact">Via Email</label>
+                      <label class="form-check-label" for="email-contact"
+                        >Via Email</label
+                      >
                     </div>
                     <div class="form-check">
                       <input
@@ -939,7 +1156,9 @@
                         id="sms-contact"
                         value="Via SMS"
                       />
-                      <label class="form-check-label" for="sms-contact">Via SMS</label>
+                      <label class="form-check-label" for="sms-contact"
+                        >Via SMS</label
+                      >
                     </div>
                   </div>
 
@@ -965,8 +1184,8 @@
                         id="installment-terms"
                         name="installment-terms"
                       />
-                      <label class="form-check-label" for="installment-terms"
-                        > Agree to installment terms.</label
+                      <label class="form-check-label" for="installment-terms">
+                        Agree to installment terms.</label
                       >
                     </div>
                     <div class="form-check">
@@ -1003,7 +1222,8 @@
                       <label
                         class="form-check-label"
                         for="subscription-agreement"
-                        > Agree and complete subscription.</label
+                      >
+                        Agree and complete subscription.</label
                       >
                     </div>
                   </div>
@@ -1018,7 +1238,10 @@
                     disabled
                   >
                     <span class="btn-text">
-                      <i class="bi bi-envelope-exclamation me-2" id="submit-email-icon"></i>
+                      <i
+                        class="bi bi-envelope-exclamation me-2"
+                        id="submit-email-icon"
+                      ></i>
                       Verify Email to Continue
                     </span>
                     <span
@@ -1031,7 +1254,8 @@
                   <div class="text-center mt-2">
                     <small class="text-muted" id="submit-help-text">
                       <i class="bi bi-info-circle me-1"></i>
-                      Please verify your email address before submitting the form
+                      Please verify your email address before submitting the
+                      form
                     </small>
                   </div>
                 </form>
@@ -1155,17 +1379,18 @@
     <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
     <script>
       // Ensure AOS and Bootstrap tooltips are initialized after DOM and scripts load
-      document.addEventListener('DOMContentLoaded', function() {
-        if (typeof AOS !== 'undefined') {
+      document.addEventListener("DOMContentLoaded", function () {
+        if (typeof AOS !== "undefined") {
           AOS.init({ duration: 800, once: true });
         }
-        if (typeof bootstrap !== 'undefined') {
-          document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(function(el) {
-            new bootstrap.Tooltip(el);
-          });
+        if (typeof bootstrap !== "undefined") {
+          document
+            .querySelectorAll('[data-bs-toggle="tooltip"]')
+            .forEach(function (el) {
+              new bootstrap.Tooltip(el);
+            });
         }
       });
     </script>
-
   </body>
 </html>

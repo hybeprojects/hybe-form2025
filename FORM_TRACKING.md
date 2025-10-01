@@ -3,10 +3,12 @@
 ## Form Fields Captured in Netlify Dashboard
 
 ### Internal Unique Identification (Dashboard Only)
+
 - **submission-id**: Auto-generated unique ID (format: HYB[10-alphanumeric]) - **Internal tracking only**
 - **submission-timestamp**: ISO timestamp of submission
 
 ### Personal Information
+
 - **full-name**: User's full name
 - **email**: Email address
 - **phone**: Phone number with country prefix
@@ -14,6 +16,7 @@
 - **gender**: Selected gender
 
 ### Address Information
+
 - **address-line1**: Primary address
 - **address-line2**: Secondary address (optional)
 - **city**: City name
@@ -22,6 +25,7 @@
 - **country**: Selected country
 
 ### Preferences & Selections
+
 - **branch**: Selected HYBE branch
 - **group**: Selected K-pop group
 - **artist**: Selected artist
@@ -29,21 +33,25 @@
 - **referral-code**: Referral code (optional)
 
 ### Payment Information
+
 - **payment-type**: Full payment or Installment
 - **payment-method**: Card, Digital Currency, Bank Transfer, Mobile Money, or Cash
 - **installment-plan**: Selected installment plan
 - **amount**: Fixed amount ($1278.89USD/year)
 
 ### Contact & Communication
+
 - **contact-method**: Email or SMS preference
 - **feedback**: Optional user feedback
 
 ### Agreements & Terms
+
 - **privacy-policy**: Privacy policy acceptance
 - **subscription-agreement**: Subscription terms acceptance
 - **installment-terms**: Installment terms acceptance (if applicable)
 
 ### Technical Metadata
+
 - **form-name**: "subscription-form" (Netlify identifier)
 - **user-agent**: Browser information
 - **screen-resolution**: User's screen resolution
@@ -53,6 +61,7 @@
 ## Unique ID Generation
 
 Each form submission generates a unique subscription ID in the format:
+
 ```
 HYB[10-alphanumeric-characters]
 ```
@@ -60,6 +69,7 @@ HYB[10-alphanumeric-characters]
 Example: `HYBX3K9M7R2A5F`
 
 This subscription ID is used for **internal purposes only**:
+
 1. Track submissions in Netlify dashboard
 2. Identify user data uniquely in admin systems
 3. Internal reference for customer support
@@ -71,6 +81,7 @@ This subscription ID is used for **internal purposes only**:
 ## Netlify Form Dashboard
 
 All captured data appears in your Netlify dashboard under:
+
 - **Site Name** → Forms → subscription-form
 - Each submission shows all field data
 - Searchable by subscription-id (HYB format) or email
@@ -79,6 +90,7 @@ All captured data appears in your Netlify dashboard under:
 ## Data Validation
 
 ### Required Fields
+
 - full-name
 - email
 - country
@@ -93,6 +105,7 @@ All captured data appears in your Netlify dashboard under:
 - subscription-agreement (must be checked)
 
 ### Format Validation
+
 - **Email**: Standard email format validation
 - **Phone**: International format with country prefix
 - **Date**: ISO date format for date of birth
@@ -112,6 +125,7 @@ All captured data appears in your Netlify dashboard under:
 ## Debugging Form Submissions
 
 Check browser console for:
+
 - Generated Unique ID
 - Netlify submission success/failure
 - Function submission results

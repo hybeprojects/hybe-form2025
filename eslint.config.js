@@ -1,46 +1,65 @@
-import globals from 'globals';
+import globals from "globals";
 
 export default [
   {
-    ignores: ['dist/**', 'node_modules/**'],
+    ignores: ["dist/**", "node_modules/**"],
   },
-  // Configuration for Node.js files
+  // Configuration for Node.js files (CommonJS)
   {
-    files: ['server.js', 'lib/**/*.js', 'netlify/functions/**/*.js'],
+    files: ["server.js", "lib/security.js"],
     languageOptions: {
       ecmaVersion: 2021,
-      sourceType: 'commonjs', // These are CommonJS files
+      sourceType: "commonjs",
       globals: {
         ...globals.node,
       },
     },
     rules: {
-      'no-unused-vars': 'warn',
-      'no-undef': 'error',
-      'no-console': 'off',
+      "no-unused-vars": "warn",
+      "no-undef": "error",
+      "no-console": "off",
+    },
+  },
+  // Configuration for Supabase client (ESM)
+  {
+    files: ["lib/supabaseClient.js"],
+    languageOptions: {
+      ecmaVersion: 2021,
+      sourceType: "module",
+      globals: {
+        ...globals.browser,
+      },
+    },
+    rules: {
+      "no-unused-vars": "warn",
+      "no-undef": "error",
+      "no-console": "off",
     },
   },
   // Configuration for Browser files
   {
-    files: ['script.js', 'lottie-spinner.html', 'test-otp.js'],
+    files: ["script.js"],
     languageOptions: {
       ecmaVersion: 2021,
-      sourceType: 'module',
+      sourceType: "module",
       globals: {
         ...globals.browser,
         ...globals.jquery, // If you use jQuery
-        AOS: 'readonly',
-        bootstrap: 'readonly',
-        intlTelInput: 'readonly',
+        AOS: "readonly",
+        bootstrap: "readonly",
+        intlTelInput: "readonly",
       },
     },
     rules: {
-      'no-unused-vars': [
-        'warn',
-        { varsIgnorePattern: 'paymentMethods|countryInput|currencyInput|languageInput' },
+      "no-unused-vars": [
+        "warn",
+        {
+          varsIgnorePattern:
+            "paymentMethods|countryInput|currencyInput|languageInput",
+        },
       ],
-      'no-undef': 'error',
-      'no-console': 'off',
+      "no-undef": "error",
+      "no-console": "off",
     },
   },
 ];

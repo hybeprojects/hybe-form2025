@@ -5,7 +5,7 @@
 
 /* Base styles */
 body {
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   background: var(--primary-gradient);
   min-height: 100vh;
   color: #2c3e50;
@@ -143,12 +143,13 @@ body {
   border-radius: 5px;
   background: #fff;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   font-size: 0.9rem;
   display: none; /* Ensure closed on load */
 }
 
-.iti__country-list--open { /* Show only when opened by user */
+.iti__country-list--open {
+  /* Show only when opened by user */
   display: block;
 }
 
@@ -188,7 +189,8 @@ body {
 #country-select {
   appearance: none; /* Remove default arrow */
   padding: 0.5rem 1rem;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='currentColor' class='bi bi-caret-down-fill' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") no-repeat right 0.75rem center / 12px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='currentColor' class='bi bi-caret-down-fill' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E")
+    no-repeat right 0.75rem center / 12px;
   background-color: #fff;
   border: 1px solid #ced4da;
   border-radius: 0.375rem;
@@ -326,6 +328,46 @@ noscript .container {
   border-width: 0.25em;
 }
 
+/* Onboarding modal responsive tweaks */
+#onboardingModal .modal-content.hero {
+  padding: 2rem;
+}
+#onboardingModal .modal-content {
+  max-height: 85vh;
+  overflow: hidden;
+}
+#onboardingModal .modal-body {
+  max-height: 75vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+#onboardingModal h2 {
+  line-height: 1.25;
+}
+@media (max-width: 576px) {
+  #onboardingModal .modal-body {
+    padding: 1rem;
+  }
+  #onboardingModal h2 {
+    font-size: 1.25rem;
+  }
+  #onboardingModal p {
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+  }
+  #onboardingModal .btn {
+    width: 100%;
+  }
+}
+@media (max-width: 400px) {
+  #onboardingModal h2 {
+    font-size: 1.1rem;
+  }
+  #onboardingModal p {
+    font-size: 0.9rem;
+  }
+}
+
 /* Payment Modal */
 #paymentModal .modal-content {
   background: #fff;
@@ -376,8 +418,8 @@ noscript .container {
 }
 
 /* Bilingual careers link styling */
-footer a[lang='ko'] {
-  font-family: 'Noto Sans KR', sans-serif;
+footer a[lang="ko"] {
+  font-family: "Noto Sans KR", sans-serif;
   margin-left: 5px;
 }
 
@@ -443,21 +485,46 @@ footer a[lang='ko'] {
 
 /* Shake animation for invalid fields */
 @keyframes shake {
-  0% { transform: translateX(0); }
-  20% { transform: translateX(-8px); }
-  40% { transform: translateX(8px); }
-  60% { transform: translateX(-6px); }
-  80% { transform: translateX(6px); }
-  100% { transform: translateX(0); }
+  0% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-8px);
+  }
+  40% {
+    transform: translateX(8px);
+  }
+  60% {
+    transform: translateX(-6px);
+  }
+  80% {
+    transform: translateX(6px);
+  }
+  100% {
+    transform: translateX(0);
+  }
 }
 .shake {
   animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 @keyframes shake {
-  10%, 90% { transform: translate3d(-1px, 0, 0); }
-  20%, 80% { transform: translate3d(2px, 0, 0); }
-  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-  40%, 60% { transform: translate3d(4px, 0, 0); }
+  10%,
+  90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+  20%,
+  80% {
+    transform: translate3d(2px, 0, 0);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+  40%,
+  60% {
+    transform: translate3d(4px, 0, 0);
+  }
 }
 
 /* Additional spacing and layout fixes */
@@ -499,16 +566,17 @@ footer a[lang='ko'] {
   border: none;
   font-weight: 600;
   font-size: 1rem;
-  box-shadow: 0 2px 8px rgba(220,53,69,0.08);
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.08);
 }
-#globalErrorModal .btn-danger:focus, #globalErrorModal .btn-danger:hover {
+#globalErrorModal .btn-danger:focus,
+#globalErrorModal .btn-danger:hover {
   background: #b52a37;
   outline: 2px solid #fff;
 }
 
 #globalErrorModal .modal-content {
   border-radius: 12px;
-  box-shadow: 0 5px 30px rgba(220,53,69,0.15);
+  box-shadow: 0 5px 30px rgba(220, 53, 69, 0.15);
 }
 
 #global-error-message {
@@ -520,38 +588,48 @@ footer a[lang='ko'] {
 }
 /* Social Icon Styling */
 .social-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    font-size: 1.5rem; /* Size of the icons */
-    color: #ffffff; /* White color as per your footer text */
-    background-color: rgba(255, 255, 255, 0.1); /* Subtle background for contrast */
-    border-radius: 50%; /* Circular shape */
-    text-decoration: none; /* Remove underline */
-    transition: all 0.3s ease; /* Smooth hover transition */
-    margin-right: 10px; /* Spacing between icons */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  font-size: 1.5rem; /* Size of the icons */
+  color: #ffffff; /* White color as per your footer text */
+  background-color: rgba(
+    255,
+    255,
+    255,
+    0.1
+  ); /* Subtle background for contrast */
+  border-radius: 50%; /* Circular shape */
+  text-decoration: none; /* Remove underline */
+  transition: all 0.3s ease; /* Smooth hover transition */
+  margin-right: 10px; /* Spacing between icons */
 }
 
 /* Hover effect for social icons */
 .social-icon:hover {
-    background-color: rgba(255, 255, 255, 0.2); /* Slightly brighter background on hover */
-    color: #f0f0f0; /* Slightly lighter white for hover effect */
-    transform: translateY(-2px); /* Subtle lift effect */
+  background-color: rgba(
+    255,
+    255,
+    255,
+    0.2
+  ); /* Slightly brighter background on hover */
+  color: #f0f0f0; /* Slightly lighter white for hover effect */
+  transform: translateY(-2px); /* Subtle lift effect */
 }
 
 /* Ensure icons are not too large on smaller screens */
 @media (max-width: 576px) {
-    .social-icon {
-        width: 32px;
-        height: 32px;
-        font-size: 1.2rem;
-        margin-right: 8px;
-    }
+  .social-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 1.2rem;
+    margin-right: 8px;
+  }
 }
 
 /* Fix for last icon to avoid extra margin */
 .social-icon:last-child {
-    margin-right: 0;
+  margin-right: 0;
 }
