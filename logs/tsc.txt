@@ -1,0 +1,2 @@
+TypeScript check (npx tsc --noEmit) result:
+This project does not include TypeScript. To enable type checks, install typescript and add a tsconfig.json.

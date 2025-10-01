@@ -848,49 +848,25 @@ if (typeof document !== "undefined") {
 
       try {
         const { formData } = prepareNetlifyFormData(form);
-        const formspreeUrl = import.meta.env.VITE_FORMSPREE_URL;
-        if (!formspreeUrl)
-          throw new Error(
-            "Formspree URL is not configured. Please contact support.",
-          );
-
-        const response = await fetch(formspreeUrl, {
+        const payload = Object.fromEntries(formData.entries());
+        const endpoint = import.meta.env?.DEV
+          ? "http://localhost:3000/submit-form"
+          : "/.netlify/functions/submit-form";
+        const response = await fetch(endpoint, {
           method: "POST",
-          body: formData,
-          headers: { Accept: "application/json" },
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify(payload),
         });
 
-        if (!response.ok) {
-          const data = await response.json().catch(() => ({}));
-          let formLevelErrorMessage =
-            "An error occurred. Please check the form and try again.";
-          let handled = false;
-
-          if (data.errors && Array.isArray(data.errors)) {
-            data.errors.forEach((error) => {
-              const fieldName = error.field || error.name;
-              const field = form.querySelector(`[name="${fieldName}"]`);
-              if (field) {
-                showFieldError(field, error.message);
-                shakeField(field);
-                handled = true;
-              }
-            });
-            if (handled && data.errors.every((e) => e.field || e.name)) {
-              formLevelErrorMessage = "Please correct the highlighted errors.";
-            } else if (data.errors.length > 0) {
-              formLevelErrorMessage =
-                data.errors.find((e) => !e.field && !e.name)?.message ||
-                formLevelErrorMessage;
-            }
-          } else if (response.status === 400) {
-            formLevelErrorMessage =
-              "Invalid data sent to the server. Please refresh and try again.";
-          } else if (response.status >= 500) {
-            formLevelErrorMessage =
-              "A server error occurred. Please try again later.";
-          }
-
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data?.success === false) {
+          const formLevelErrorMessage =
+            data?.message ||
+            (response.status === 400
+              ? "Invalid data sent to the server. Please refresh and try again."
+              : response.status >= 500
+              ? "A server error occurred. Please try again later."
+              : "An error occurred. Please check the form and try again.");
           showToast(formLevelErrorMessage, "danger");
           submitBtn.disabled = false;
           spinner.classList.add("d-none");
@@ -898,8 +874,7 @@ if (typeof document !== "undefined") {
           return;
         }
 
-        console.log("Form submitted to Formspree successfully!");
-        // Nice redirect animation: show success modal with countdown then go to HYBECORP
+        // Success UX
         modalManager.show("digitalCurrencySuccessModal", {
           countdown: {
             duration: 5,
@@ -911,8 +886,7 @@ if (typeof document !== "undefined") {
         });
 
         // Store form data in sessionStorage for the success page
-        const dataToStore = Object.fromEntries(formData.entries());
-        sessionStorage.setItem("submissionData", JSON.stringify(dataToStore));
+        sessionStorage.setItem("submissionData", JSON.stringify(payload));
       } catch (err) {
         console.error("Submission Error:", err.message, err.stack);
         showToast(

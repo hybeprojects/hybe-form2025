@@ -2,6 +2,9 @@
   command = "npm run build"
   publish = "dist"
 
+[functions]
+  directory = "netlify/functions"
+
 [[redirects]]
   from = "/api/countries"
   to = "https://restcountries.com/v3.1/all?fields=name,cca2"
@@ -13,6 +16,11 @@
   to = "https://ipwho.is/"
   status = 200
   force = true
+
+[[redirects]]
+  from = "/success"
+  to = "/success.html"
+  status = 200
 
 [[redirects]]
   from = "/*"

@@ -1,0 +1,11 @@
+# Workspace Snapshot
+## Git Status (porcelain)
+## ai_main_d4b7a9337939
+
+## Versions
+node: v22.16.0
+npm: 10.9.2
+
+## Notes
+- git branch listing and yarn/pnpm checks blocked by ACL.
+- No lockfile detected; using npm for installs.

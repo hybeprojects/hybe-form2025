@@ -1,0 +1,7 @@
+Keyword search results gathered via Grep for form/email/verification/environment:
+
+- Found Supabase email OTP flow in lib/supabaseClient.js (sendEmailOtp, verifyEmailOtp) using VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.
+- Frontend submission posts to Formspree via import.meta.env.VITE_FORMSPREE_URL in script.js.
+- Express server exposes POST /submit-form but is not called by script.js.
+- Environment variable usage in lib/security.js (various process.env names for rate limiting and security headers).
+- No SMTP, SendGrid, or Mailgun API calls found in codebase.
