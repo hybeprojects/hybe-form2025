@@ -851,7 +851,7 @@ if (typeof document !== "undefined") {
         const payload = Object.fromEntries(formData.entries());
         const endpoint = import.meta.env?.DEV
           ? "http://localhost:3000/submit-form"
-          : "/.netlify/functions/submit-form";
+          : "/submit-form";
         const response = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json", Accept: "application/json" },
