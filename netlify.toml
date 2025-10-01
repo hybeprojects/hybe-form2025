@@ -23,6 +23,11 @@
   status = 200
 
 [[redirects]]
+  from = "/submit-form"
+  to = "/.netlify/functions/submit-form"
+  status = 200
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
