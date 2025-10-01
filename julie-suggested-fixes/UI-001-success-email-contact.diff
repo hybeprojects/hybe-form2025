@@ -1,0 +1,14 @@
+*** Begin Patch
+*** Update File: success.html
+@@
+-              <a
+-                href="mailto:hybe.corp@aol.com"
+-                class="text-white text-decoration-none hover-link"
+-                >support@hybecorp</a
+-              >
++              <a
++                href="mailto:support@hybecorp.com"
++                class="text-white text-decoration-none hover-link"
++                >support@hybecorp.com</a
++              >
+*** End Patch
