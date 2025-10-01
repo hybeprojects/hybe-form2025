@@ -2,6 +2,9 @@
   command = "npm run build"
   publish = "dist"
 
+[functions]
+  directory = "netlify/functions"
+
 [[redirects]]
   from = "/api/countries"
   to = "https://restcountries.com/v3.1/all?fields=name,cca2"
