@@ -1,0 +1,7 @@
+Verification Flow Notes
+
+- Provider: Supabase Auth (email OTP via signInWithOtp / verifyOtp with type="signup").
+- OTP format: 6 digits (UI enforces numeric, maxlength=6). Default expiry ~5 minutes.
+- Redirect target after successful form submission: success.html (also modal countdown then redirect).
+- Unable to capture actual OTP emails in this environment; requires VITE_SUPABASE_URL/ANON_KEY and an inbox.
+- No server logs contain token values (good). Hidden fields store a non-sensitive marker after verification.
