@@ -1,16 +1,26 @@
+# Dependencies
 node_modules/
 
-#Ignore vscode AI rules
-.github/copilot-instructions.md
+# Build output
+dist/
 
-# Local Netlify folder
-.netlify
-
-# Environment variables
+# Environment files
 .env
+.env.*
+!.env.example
 
-# Local database file
-data/otp_database.db
+# Logs
+npm-debug.log*
+yarn-error.log
+pnpm-debug.log*
 
-# Log files
-*.log
+# OS / Editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Netlify local build/cache
+.netlify/
