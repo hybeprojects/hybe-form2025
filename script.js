@@ -258,10 +258,60 @@ if (typeof document !== "undefined") {
       ],
     };
 
-    // Country phone data
-    const countryPhoneData = {
-
+    // Country phone data (populated at runtime from Rest Countries)
+    const countryPhoneData = {};
+    const countryCodeToFlagEmoji = (code) => {
+      if (!code || code.length !== 2) return "🌐";
+      const A = 0x1f1e6;
+      return String.fromCodePoint(
+        A + (code.toUpperCase().charCodeAt(0) - 65),
+        A + (code.toUpperCase().charCodeAt(1) - 65)
+      );
     };
+    async function populateCountries() {
+      if (!countrySelect) return;
+      try {
+        const res = await fetch("https://restcountries.com/v3.1/all?fields=name,cca2,idd");
+        const json = await res.json();
+        const countries = Array.isArray(json) ? json : [];
+        countries
+          .map((c) => {
+            const root = c?.idd?.root || "";
+            const suffix = Array.isArray(c?.idd?.suffixes) && c.idd.suffixes.length ? c.idd.suffixes[0] : "";
+            const dial = root || suffix ? `${root}${suffix}` : "";
+            const flag = countryCodeToFlagEmoji(c.cca2 || "");
+            return {
+              name: c?.name?.common || c?.name?.official || c?.cca2 || "",
+              code2: c?.cca2 || "",
+              dialCode: dial,
+              flag,
+            };
+          })
+          .filter((c) => c.name && c.code2)
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .forEach((c) => {
+            const opt = document.createElement("option");
+            opt.value = c.code2;
+            opt.textContent = c.name;
+            countrySelect.appendChild(opt);
+            countryPhoneData[c.code2] = { flag: c.flag, code: c.dialCode, format: "" };
+          });
+
+        // Try to preselect country from IP
+        try {
+          const ipRes = await fetch("https://ipwho.is/");
+          const ip = await ipRes.json();
+          const cc = ip?.country_code || ip?.country_code_iso2 || "";
+          if (cc && countryPhoneData[cc]) {
+            countrySelect.value = cc;
+            countrySelect.dispatchEvent(new Event("change"));
+          }
+        } catch {}
+      } catch (e) {
+        console.error("Failed to load countries", e);
+      }
+    }
+    populateCountries();
 
     // Validation rules
     const validationRules = {
