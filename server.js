@@ -49,19 +49,24 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve static files strictly from dist to match production
+// Serve static files from dist when available; fallback to source in development
 const distDir = path.join(__dirname, "dist");
-if (!fs.existsSync(distDir)) {
-  console.warn('Warning: dist directory not found. Build the project with "npm run build".');
+const distIndexPath = path.join(distDir, "index.html");
+const useSourceFallback = !fs.existsSync(distIndexPath);
+
+if (useSourceFallback) {
+  console.warn('Dist build not found; serving source files for development.');
+  app.use(express.static(__dirname, { maxAge: "0" }));
+} else {
+  app.use(
+    "/assets",
+    express.static(path.join(distDir, "assets"), {
+      immutable: true,
+      maxAge: "1y",
+    }),
+  );
+  app.use(express.static(distDir, { maxAge: "0" }));
 }
-app.use(
-  "/assets",
-  express.static(path.join(distDir, "assets"), {
-    immutable: true,
-    maxAge: "1y",
-  }),
-);
-app.use(express.static(distDir, { maxAge: "0" }));
 
 // Basic rate limiting
 const requestCounts = new Map();
@@ -129,17 +134,25 @@ app.post("/submit-form", upload.none(), (req, res) => {
 
 // Success page route to mirror Netlify redirect
 app.get("/success", (req, res) => {
-  const successPath = path.join(distDir, "success.html");
-  if (fs.existsSync(successPath)) {
-    return res.sendFile(successPath);
+  const successDistPath = path.join(distDir, "success.html");
+  if (fs.existsSync(successDistPath)) {
+    return res.sendFile(successDistPath);
   }
-  res.status(404).send("success.html not found. Run npm run build.");
+  const successSourcePath = path.join(__dirname, "success.html");
+  if (fs.existsSync(successSourcePath)) {
+    return res.sendFile(successSourcePath);
+  }
+  res.status(404).send("success.html not found. Build the project with npm run build.");
 });
 
-// Catch-all to serve SPA index from dist
+// Catch-all to serve SPA index
 app.get("/*", (req, res) => {
-  const indexPath = path.join(distDir, "index.html");
-  res.sendFile(indexPath);
+  const distIndex = path.join(distDir, "index.html");
+  if (fs.existsSync(distIndex)) {
+    return res.sendFile(distIndex);
+  }
+  const sourceIndex = path.join(__dirname, "index.html");
+  return res.sendFile(sourceIndex);
 });
 
 app.listen(port, () => {
