@@ -330,35 +330,132 @@ if (typeof document !== "undefined") {
     }
 
     function showFieldError(field, message) {
-      let feedback = field.parentElement.querySelector(".invalid-feedback");
-      if (!feedback) {
-        feedback = document.createElement("div");
-        feedback.className = "invalid-feedback";
-        field.parentElement.appendChild(feedback);
+      let feedback = null;
+      const describedBy = field.getAttribute("aria-describedby");
+      if (describedBy) {
+        feedback = document.getElementById(describedBy);
       }
+
+      if (!feedback) {
+        if (field.type === "radio") {
+          const container = field.closest(".mb-3") || field.parentElement;
+          const groupId = `${field.name}-error`;
+          feedback = container.querySelector(`#${CSS.escape(groupId)}`) || container.querySelector(".invalid-feedback");
+          if (!feedback) {
+            feedback = document.createElement("div");
+            feedback.className = "invalid-feedback d-block";
+            feedback.id = groupId;
+            container.appendChild(feedback);
+          } else {
+            feedback.classList.add("d-block");
+          }
+          const radios = form.querySelectorAll(`input[type="radio"][name="${CSS.escape(field.name)}"]`);
+          radios.forEach((r) => {
+            const existing = r.getAttribute("aria-describedby");
+            if (!existing || !existing.includes(groupId)) {
+              r.setAttribute("aria-describedby", groupId);
+            }
+          });
+        } else {
+          const parent = field.parentElement || field.closest(".mb-3");
+          feedback = parent.querySelector(".invalid-feedback");
+          if (!feedback) {
+            feedback = document.createElement("div");
+            feedback.className = "invalid-feedback";
+            parent.appendChild(feedback);
+          }
+        }
+      }
+
       feedback.textContent = message;
-      field.classList.add("is-invalid");
-      field.setAttribute("aria-invalid", "true");
+      if (field.type === "radio") {
+        const radios = form.querySelectorAll(`input[type="radio"][name="${CSS.escape(field.name)}"]`);
+        radios.forEach((r) => {
+          r.classList.add("is-invalid");
+          r.setAttribute("aria-invalid", "true");
+        });
+      } else {
+        field.classList.add("is-invalid");
+        field.setAttribute("aria-invalid", "true");
+      }
     }
 
     function clearFieldError(field) {
-      const feedback = field.parentElement.querySelector(".invalid-feedback");
+      const describedBy = field.getAttribute("aria-describedby");
+      let feedback = describedBy ? document.getElementById(describedBy) : null;
+      if (!feedback) {
+        if (field.type === "radio") {
+          const container = field.closest(".mb-3") || field.parentElement;
+          feedback = container.querySelector(".invalid-feedback");
+        } else {
+          feedback = field.parentElement.querySelector(".invalid-feedback");
+        }
+      }
       if (feedback) feedback.textContent = "";
-      field.classList.remove("is-invalid");
-      field.setAttribute("aria-invalid", "false");
+      if (field.type === "radio") {
+        const radios = form.querySelectorAll(`input[type="radio"][name="${CSS.escape(field.name)}"]`);
+        radios.forEach((r) => {
+          r.classList.remove("is-invalid");
+          r.setAttribute("aria-invalid", "false");
+        });
+      } else {
+        field.classList.remove("is-invalid");
+        field.setAttribute("aria-invalid", "false");
+      }
     }
 
     function validateField(field) {
-      const rule = validationRules[field.name || field.id];
-      if (!rule) return true;
-      if (rule.required && !field.value) {
-        showFieldError(field, rule.message);
+      const key = field.name || field.id;
+      const rule = validationRules[key];
+      const isRequired = rule?.required ?? field.required;
+
+      // Radio group handling
+      if (field.type === "radio") {
+        const name = field.name;
+        const radios = form.querySelectorAll(`input[type="radio"][name="${CSS.escape(name)}"]`);
+        const anyChecked = Array.from(radios).some((r) => r.checked);
+        if (isRequired && !anyChecked) {
+          showFieldError(field, rule?.message || "This selection is required.");
+          return false;
+        }
+        clearFieldError(field);
+        return true;
+      }
+
+      // Checkbox handling
+      if (field.type === "checkbox") {
+        if (isRequired && !field.checked) {
+          showFieldError(field, rule?.message || "This checkbox is required.");
+          return false;
+        }
+        clearFieldError(field);
+        return true;
+      }
+
+      // Default inputs/selects
+      const value = (field.value || "").trim();
+      if (isRequired && !value) {
+        showFieldError(field, rule?.message || "This field is required.");
         return false;
       }
-      if (rule.pattern && field.value && !rule.pattern.test(field.value)) {
-        showFieldError(field, rule.message);
+
+      const pattern = rule?.pattern;
+      if (pattern && value && !pattern.test(value)) {
+        showFieldError(field, rule?.message || "Invalid value.");
         return false;
       }
+
+      if (field.type === "date" && value) {
+        const min = field.getAttribute("min");
+        const max = field.getAttribute("max");
+        const d = new Date(value);
+        if ((min && d < new Date(min)) || (max && d > new Date(max))) {
+          const msg = rule?.message || `Please enter a date between ${min} and ${max}.`;
+          showFieldError(field, msg);
+          return false;
+        }
+      }
+
       clearFieldError(field);
       return true;
     }
@@ -376,29 +473,65 @@ if (typeof document !== "undefined") {
     }
 
     function updateProgress() {
-      const requiredFields = form.querySelectorAll("[required]");
-      let filledFields = 0;
-      requiredFields.forEach((field) => {
-        if (field.value.trim() || (field.type === "radio" && field.checked))
-          filledFields++;
+      const requiredElements = Array.from(form.querySelectorAll("[required]"));
+      const items = [];
+      const radioNames = new Set();
+
+      requiredElements.forEach((el) => {
+        if (el.type === "radio") {
+          if (!radioNames.has(el.name)) {
+            radioNames.add(el.name);
+            items.push({ type: "radio", name: el.name });
+          }
+        } else if (el.type === "checkbox") {
+          items.push({ type: "checkbox", el });
+        } else {
+          items.push({ type: "field", el });
+        }
       });
-      const progress = (filledFields / requiredFields.length) * 100;
+
+      let filled = 0;
+      items.forEach((item) => {
+        if (item.type === "radio") {
+          const anyChecked = !!form.querySelector(`input[type="radio"][name="${CSS.escape(item.name)}"]:checked`);
+          if (anyChecked) filled++;
+        } else if (item.type === "checkbox") {
+          if (item.el.checked) filled++;
+        } else {
+          if ((item.el.value || "").trim()) filled++;
+        }
+      });
+
+      const progress = items.length ? (filled / items.length) * 100 : 0;
       progressBar.style.width = `${progress}%`;
       progressBar.setAttribute("aria-valuenow", progress);
     }
 
     function isFormValidRealtime(debug = false) {
-      const requiredFields = form.querySelectorAll("[required]");
+      const requiredElements = Array.from(form.querySelectorAll("[required]"));
+      const radioNames = new Set();
       const debugList = [];
       let valid = true;
-      requiredFields.forEach((field) => {
-        if (!validateField(field)) {
-          valid = false;
-          if (debug) debugList.push(field.name || field.id);
+
+      for (const field of requiredElements) {
+        if (field.type === "radio") {
+          if (radioNames.has(field.name)) continue;
+          radioNames.add(field.name);
+          const ok = validateField(field);
+          if (!ok) {
+            valid = false;
+            if (debug) debugList.push(field.name);
+          }
+        } else {
+          const ok = validateField(field);
+          if (!ok) {
+            valid = false;
+            if (debug) debugList.push(field.name || field.id);
+          }
         }
-      });
-      if (debug) return debugList;
-      return valid;
+      }
+
+      return debug ? debugList : valid;
     }
 
     function updateSubmitButton() {
@@ -679,11 +812,13 @@ if (typeof document !== "undefined") {
       updateSubmitButton();
     });
     form.querySelectorAll("input, select, textarea").forEach((field) => {
-      field.addEventListener("input", () => {
+      const handleValidate = () => {
         validateField(field);
         updateProgress();
         updateSubmitButton();
-      });
+      };
+      field.addEventListener("input", handleValidate);
+      field.addEventListener("change", handleValidate);
       field.addEventListener("blur", () => validateField(field));
       field.addEventListener("invalid", () => shakeField(field));
     });
