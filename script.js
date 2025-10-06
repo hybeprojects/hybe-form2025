@@ -817,7 +817,14 @@ if (typeof document !== "undefined") {
           installments = m ? Number(m[1]) : installments;
         }
         if (!installments || installments < 1) installments = 2;
-        const per = base / installments;
+        let per = base / installments;
+        if (planSelect) {
+          const selected = planSelect.options[planSelect.selectedIndex];
+          if (selected && selected.dataset && selected.dataset.perAmount) {
+            const override = parseFloat(selected.dataset.perAmount);
+            if (!Number.isNaN(override) && override > 0) per = override;
+          }
+        }
         const perStr = per.toFixed(2);
         if (amountEl) amountEl.textContent = `${currencySymbol}${perStr} / installment (x${installments})`;
         if (amountInputEl) amountInputEl.value = `${perStr}${currency}/installment x${installments}`;
