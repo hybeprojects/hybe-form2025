@@ -377,6 +377,7 @@ if (typeof document !== "undefined") {
         }
       }
 
+      feedback.setAttribute("aria-live", "polite");
       feedback.textContent = message;
       if (field.type === "radio") {
         const radios = form.querySelectorAll(`input[type="radio"][name="${CSS.escape(field.name)}"]`);
