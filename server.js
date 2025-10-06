@@ -49,19 +49,24 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve static files strictly from dist to match production
+// Serve static files from dist when available; fallback to source in development
 const distDir = path.join(__dirname, "dist");
-if (!fs.existsSync(distDir)) {
-  console.warn('Warning: dist directory not found. Build the project with "npm run build".');
+const distIndexPath = path.join(distDir, "index.html");
+const useSourceFallback = !fs.existsSync(distIndexPath);
+
+if (useSourceFallback) {
+  console.warn('Dist build not found; serving source files for development.');
+  app.use(express.static(__dirname, { maxAge: "0" }));
+} else {
+  app.use(
+    "/assets",
+    express.static(path.join(distDir, "assets"), {
+      immutable: true,
+      maxAge: "1y",
+    }),
+  );
+  app.use(express.static(distDir, { maxAge: "0" }));
 }
-app.use(
-  "/assets",
-  express.static(path.join(distDir, "assets"), {
-    immutable: true,
-    maxAge: "1y",
-  }),
-);
-app.use(express.static(distDir, { maxAge: "0" }));
 
 // Basic rate limiting
 const requestCounts = new Map();
