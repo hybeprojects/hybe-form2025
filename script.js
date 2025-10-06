@@ -793,26 +793,56 @@ if (typeof document !== "undefined") {
     }
 
     function updateInstallmentOptions() {
+      const amountEl = document.getElementById("subscription-amount");
+      const amountInputEl = document.getElementById("amount-input");
+      const base = amountEl ? parseFloat(amountEl.dataset.baseAmount || "0") : 0;
+      const currency = amountEl ? amountEl.dataset.currency || "USD" : "USD";
+      const currencySymbol = currency === "USD" ? "$" : "";
+      const planSelect = document.getElementById("installment-plan");
+
       if (paymentTypeSelect.value === "Installment") {
         installmentOptions.classList.remove("d-none");
-        document.getElementById("installment-plan").required = true;
+        if (planSelect) planSelect.required = true;
         if (installmentTerms) {
-          installmentTerms.closest(".form-check").classList.remove("d-none");
+          const wrapper = document.getElementById("installment-terms-wrapper") || installmentTerms.closest(".form-check");
+          if (wrapper) wrapper.classList.remove("d-none");
           installmentTerms.required = true;
           validationRules["installment-terms"].required = true;
         }
+
+        // Determine number of installments from plan or default to 2
+        let installments = 2;
+        if (planSelect && planSelect.value) {
+          const m = String(planSelect.value).match(/^(\d+)/);
+          installments = m ? Number(m[1]) : installments;
+        }
+        if (!installments || installments < 1) installments = 2;
+        const per = base / installments;
+        const perStr = per.toFixed(2);
+        if (amountEl) amountEl.textContent = `${currencySymbol}${perStr} / installment (x${installments})`;
+        if (amountInputEl) amountInputEl.value = `${perStr}${currency}/installment x${installments}`;
       } else {
         installmentOptions.classList.add("d-none");
-        document.getElementById("installment-plan").required = false;
+        if (planSelect) planSelect.required = false;
         if (installmentTerms) {
-          installmentTerms.closest(".form-check").classList.add("d-none");
+          const wrapper = document.getElementById("installment-terms-wrapper") || installmentTerms.closest(".form-check");
+          if (wrapper) wrapper.classList.add("d-none");
           installmentTerms.checked = false;
           installmentTerms.required = false;
           validationRules["installment-terms"].required = false;
         }
+        if (amountEl) amountEl.textContent = `${currencySymbol}${base.toFixed(2)} / year`;
+        if (amountInputEl) amountInputEl.value = `${base.toFixed(2)}${currency}/year`;
       }
+
       updateProgress();
       updateSubmitButton();
+    }
+
+    // Update amount when installment plan changes
+    const _installmentPlanSelect = document.getElementById("installment-plan");
+    if (_installmentPlanSelect) {
+      _installmentPlanSelect.addEventListener("change", updateInstallmentOptions);
     }
 
     paymentTypeSelect.addEventListener("change", updateInstallmentOptions);
