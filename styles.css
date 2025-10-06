@@ -668,3 +668,7 @@ footer a[lang="ko"] {
     width: 100%;
   }
 }
+
+.redirect-icon {
+  font-size: 2rem;
+}
