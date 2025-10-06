@@ -377,6 +377,7 @@ if (typeof document !== "undefined") {
         }
       }
 
+      feedback.setAttribute("aria-live", "polite");
       feedback.textContent = message;
       if (field.type === "radio") {
         const radios = form.querySelectorAll(`input[type="radio"][name="${CSS.escape(field.name)}"]`);
@@ -1003,28 +1004,54 @@ if (typeof document !== "undefined") {
 
       try {
         const { formData } = prepareNetlifyFormData(form);
+        // Ensure Netlify picks up this form and all fields
+        formData.set("form-name", "subscription-form");
         const payload = Object.fromEntries(formData.entries());
-        const endpoint = "/submit-form";
-        const response = await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Accept: "application/json" },
-          body: JSON.stringify(payload),
-        });
 
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok || data?.success === false) {
-          const formLevelErrorMessage =
-            data?.message ||
-            (response.status === 400
-              ? "Invalid data sent to the server. Please refresh and try again."
-              : response.status >= 500
-              ? "A server error occurred. Please try again later."
-              : "An error occurred. Please check the form and try again.");
-          showToast(formLevelErrorMessage, "danger");
-          submitBtn.disabled = false;
-          if (spinner) spinner.classList.add("d-none");
-          if (btnText) btnText.textContent = "Submit Subscription";
-          return;
+        const netlifyCapture = (async () => {
+          try {
+            const encoded = new URLSearchParams();
+            for (const [k, v] of formData.entries()) encoded.append(k, v);
+            await fetch("/", {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body: encoded.toString(),
+            });
+          } catch (e) {
+            if (location.hostname !== "localhost") {
+              console.warn("Netlify forms capture failed", e);
+            }
+          }
+        })();
+
+        const serverFunction = (async () => {
+          try {
+            const endpoint = "/submit-form";
+            const response = await fetch(endpoint, {
+              method: "POST",
+              headers: { "Content-Type": "application/json", Accept: "application/json" },
+              body: JSON.stringify(payload),
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || data?.success === false) {
+              const formLevelErrorMessage =
+                data?.message ||
+                (response.status === 400
+                  ? "Invalid data sent to the server. Please refresh and try again."
+                  : response.status >= 500
+                  ? "A server error occurred. Please try again later."
+                  : "An error occurred. Please check the form and try again.");
+              showToast(formLevelErrorMessage, "warning");
+            }
+          } catch (e) {
+            console.warn("Server function submission failed", e);
+          }
+        })();
+
+        const results = await Promise.allSettled([netlifyCapture, serverFunction]);
+        const allFailed = results.every((r) => r.status === "rejected");
+        if (allFailed) {
+          throw new Error("All submission attempts failed");
         }
 
         sessionStorage.setItem("submissionData", JSON.stringify(payload));
