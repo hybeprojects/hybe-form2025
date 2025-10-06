@@ -20,22 +20,6 @@ export default [
       "no-console": "off",
     },
   },
-  // Configuration for Supabase client (ESM)
-  {
-    files: ["lib/supabaseClient.js"],
-    languageOptions: {
-      ecmaVersion: 2021,
-      sourceType: "module",
-      globals: {
-        ...globals.browser,
-      },
-    },
-    rules: {
-      "no-unused-vars": "warn",
-      "no-undef": "error",
-      "no-console": "off",
-    },
-  },
   // Configuration for Browser files
   {
     files: ["script.js"],
