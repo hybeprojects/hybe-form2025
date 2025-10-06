@@ -145,10 +145,14 @@ app.get("/success", (req, res) => {
   res.status(404).send("success.html not found. Build the project with npm run build.");
 });
 
-// Catch-all to serve SPA index from dist
+// Catch-all to serve SPA index
 app.get("/*", (req, res) => {
-  const indexPath = path.join(distDir, "index.html");
-  res.sendFile(indexPath);
+  const distIndex = path.join(distDir, "index.html");
+  if (fs.existsSync(distIndex)) {
+    return res.sendFile(distIndex);
+  }
+  const sourceIndex = path.join(__dirname, "index.html");
+  return res.sendFile(sourceIndex);
 });
 
 app.listen(port, () => {
