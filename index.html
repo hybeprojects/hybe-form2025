@@ -414,6 +414,8 @@
                   id="subscription-form"
                   method="POST"
                   name="subscription-form"
+                  data-netlify="true"
+                  data-netlify-honeypot="website"
                 >
                   <!-- Honeypot field for spam prevention -->
                   <div style="display: none">
@@ -427,7 +429,8 @@
                     />
                   </div>
 
-                  <input type="hidden" name="country" id="country" />
+                  <input type="hidden" name="form-name" value="subscription-form" />
+                  <input type="hidden" name="country-hidden" id="country" />
                   <input type="hidden" name="currency" id="currency" />
                   <input type="hidden" name="language" id="language" />
                   <input
