@@ -134,11 +134,15 @@ app.post("/submit-form", upload.none(), (req, res) => {
 
 // Success page route to mirror Netlify redirect
 app.get("/success", (req, res) => {
-  const successPath = path.join(distDir, "success.html");
-  if (fs.existsSync(successPath)) {
-    return res.sendFile(successPath);
+  const successDistPath = path.join(distDir, "success.html");
+  if (fs.existsSync(successDistPath)) {
+    return res.sendFile(successDistPath);
   }
-  res.status(404).send("success.html not found. Run npm run build.");
+  const successSourcePath = path.join(__dirname, "success.html");
+  if (fs.existsSync(successSourcePath)) {
+    return res.sendFile(successSourcePath);
+  }
+  res.status(404).send("success.html not found. Build the project with npm run build.");
 });
 
 // Catch-all to serve SPA index from dist
