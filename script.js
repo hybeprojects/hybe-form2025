@@ -1,4 +1,3 @@
-import { sendEmailOtp, verifyEmailOtp } from "./lib/supabaseClient.js";
 if (typeof document !== "undefined") {
   class ModalManager {
     constructor() {
@@ -103,7 +102,6 @@ if (typeof document !== "undefined") {
 
   const modalManager = new ModalManager();
 
-  // Utility functions
   function showToast(message, type = "warning", timeout = 4000) {
     const toast = document.getElementById("global-toast");
     if (toast) {
@@ -118,17 +116,14 @@ if (typeof document !== "undefined") {
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    // Initialize AOS
     if (typeof AOS !== "undefined") {
       AOS.init({ duration: 800, once: true });
     }
 
-    // Initialize Bootstrap tooltips
     document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((el) => {
       new bootstrap.Tooltip(el);
     });
 
-    // Form and DOM elements
     const form = document.getElementById("subscription-form");
     const submitBtn = document.getElementById("submit-btn");
     const btnText = submitBtn?.querySelector(".btn-text");
@@ -144,58 +139,18 @@ if (typeof document !== "undefined") {
     const branchSelect = document.getElementById("branch");
     const groupSelect = document.getElementById("group");
     const artistSelect = document.getElementById("artist");
+    const emailInput = document.getElementById("email");
+
     const debugMsg = document.createElement("div");
     debugMsg.id = "form-debug-msg";
     debugMsg.style.color = "red";
     debugMsg.style.fontSize = "0.95em";
     debugMsg.style.marginTop = "0.5em";
-    if (submitBtn)
-      submitBtn.parentNode.insertBefore(debugMsg, submitBtn.nextSibling);
+    if (submitBtn) submitBtn.parentNode.insertBefore(debugMsg, submitBtn.nextSibling);
 
+    const confirmModal = modalManager.initialize("confirmModal");
+    const confirmBtn = document.getElementById("confirm-submit-btn");
 
-
-    // Email verification elements and state
-    const emailInput = document.getElementById("email");
-    const verificationEmail = document.getElementById("verification-email");
-    const otpInput = document.getElementById("otp-input");
-    const sendOtpBtn = document.getElementById("send-otp-btn");
-    const verifyOtpBtn = document.getElementById("verify-otp-btn");
-    const resendOtpBtn = document.getElementById("resend-otp-btn");
-    const emailVerificationModal = modalManager.initialize("emailVerificationModal");
-
-    const emailVerificationState = {
-      isVerified: false,
-      currentEmail: "",
-      sending: false,
-      verifying: false,
-      resendTimer: 0,
-      autoSent: false,
-      verificationToken: "",
-    };
-    // Expose for testing
-    if (
-      window.location.hostname === "localhost" ||
-      window.location.protocol === "file:"
-    ) {
-      window.emailVerificationState = emailVerificationState;
-    }
-
-    function updateEmailVerificationUI() {
-      const hiddenVerified = document.getElementById("email-verified");
-      const hiddenToken = document.getElementById("verification-token");
-      if (hiddenVerified)
-        hiddenVerified.value = emailVerificationState.isVerified ? "true" : "false";
-      if (hiddenToken)
-        hiddenToken.value = emailVerificationState.verificationToken || "";
-      if (submitBtn && btnText) {
-        submitBtn.disabled = !emailVerificationState.isVerified;
-        btnText.textContent = emailVerificationState.isVerified
-          ? "Submit Subscription"
-          : "Verify Email to Continue";
-      }
-    }
-
-    // HYBE branch and group data
     const branches = [
       { name: "BigHit Music", groups: ["BTS", "TXT"] },
       { name: "PLEDIS Entertainment", groups: ["SEVENTEEN", "fromis_9"] },
@@ -258,7 +213,6 @@ if (typeof document !== "undefined") {
       ],
     };
 
-    // Country phone data (populated at runtime from Rest Countries)
     const countryPhoneData = {};
     const countryCodeToFlagEmoji = (code) => {
       if (!code || code.length !== 2) return "🌐";
@@ -297,7 +251,6 @@ if (typeof document !== "undefined") {
             countryPhoneData[c.code2] = { flag: c.flag, code: c.dialCode, format: "" };
           });
 
-        // Try to preselect country from IP
         try {
           const ipRes = await fetch("https://ipwho.is/");
           const ip = await ipRes.json();
@@ -313,7 +266,6 @@ if (typeof document !== "undefined") {
     }
     populateCountries();
 
-    // Validation rules
     const validationRules = {
       "referral-code": {
         required: true,
@@ -449,7 +401,12 @@ if (typeof document !== "undefined") {
       return valid;
     }
 
-    // Populate branch dropdown
+    function updateSubmitButton() {
+      if (!submitBtn) return;
+      const isValid = isFormValidRealtime(false);
+      submitBtn.disabled = !isValid;
+    }
+
     branches.forEach((branch) => {
       const option = document.createElement("option");
       option.value = branch.name;
@@ -457,7 +414,6 @@ if (typeof document !== "undefined") {
       branchSelect.appendChild(option);
     });
 
-    // Populate group dropdown based on branch
     branchSelect.addEventListener("change", () => {
       groupSelect.innerHTML =
         '<option value="" disabled selected>Select a Group</option>';
@@ -475,9 +431,9 @@ if (typeof document !== "undefined") {
         });
       }
       updateProgress();
+      updateSubmitButton();
     });
 
-    // Populate artist dropdown based on group
     groupSelect.addEventListener("change", () => {
       artistSelect.innerHTML =
         '<option value="" disabled selected>Select an Artist</option>';
@@ -491,9 +447,9 @@ if (typeof document !== "undefined") {
         });
       }
       updateProgress();
+      updateSubmitButton();
     });
 
-    // Update phone prefix
     function updatePhonePrefix(countryCode) {
       const phoneData = countryPhoneData[countryCode] || {
         flag: "🌐",
@@ -521,7 +477,6 @@ if (typeof document !== "undefined") {
       };
     }
 
-    // Dynamic address fields
     function updateAddressFieldsForCountry(countryCode) {
       const addressFormats = {
         US: {
@@ -660,7 +615,6 @@ if (typeof document !== "undefined") {
           el.required = f.required;
           el.pattern = f.pattern ? f.pattern.source : "";
 
-          // Ensure there's a validation rule object for this field before assigning
           if (!validationRules[f.id]) {
             validationRules[f.id] = {
               required: !!f.required,
@@ -693,7 +647,6 @@ if (typeof document !== "undefined") {
       });
     }
 
-    // Installment options and terms
     function updateInstallmentOptions() {
       if (paymentTypeSelect.value === "Installment") {
         installmentOptions.classList.remove("d-none");
@@ -714,26 +667,27 @@ if (typeof document !== "undefined") {
         }
       }
       updateProgress();
+      updateSubmitButton();
     }
 
-    // Event listeners
     paymentTypeSelect.addEventListener("change", updateInstallmentOptions);
     countrySelect.addEventListener("change", () => {
       countryInput.value = countrySelect.value;
       updatePhonePrefix(countrySelect.value);
       updateAddressFieldsForCountry(countrySelect.value);
       updateProgress();
+      updateSubmitButton();
     });
     form.querySelectorAll("input, select, textarea").forEach((field) => {
       field.addEventListener("input", () => {
         validateField(field);
         updateProgress();
+        updateSubmitButton();
       });
       field.addEventListener("blur", () => validateField(field));
       field.addEventListener("invalid", () => shakeField(field));
     });
 
-    // Ensure mailing checkbox hidden mirror exists and stays in sync (covers non-JS submits)
     try {
       const mailingCheckbox = document.getElementById("use-as-mailing-address");
       if (mailingCheckbox) {
@@ -746,27 +700,13 @@ if (typeof document !== "undefined") {
           hidden.value = mailingCheckbox.checked ? "true" : "false";
           form.appendChild(hidden);
         }
-        // Keep hidden input updated whenever checkbox changes
         mailingCheckbox.addEventListener("change", () => {
           hidden.value = mailingCheckbox.checked ? "true" : "false";
         });
       }
-    } catch {
-      /* ignore */
-    }
-    document
-      .getElementById("digital-currency-home-btn")
-      .addEventListener("click", () => {
-        try {
-          modalManager.hide("digitalCurrencySuccessModal");
-        } catch {}
-        // Navigate to success page
-        window.location.href = "success.html";
-      });
+    } catch {}
 
-    // Unique ID generation function
     function generateUniqueID() {
-      // Generate 10 random alphanumeric characters (0-9, A-Z)
       const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
       let result = "";
       for (let i = 0; i < 10; i++) {
@@ -775,35 +715,17 @@ if (typeof document !== "undefined") {
       return `HYB${result}`;
     }
 
-    // Enhanced form data preparation for Netlify
     function prepareNetlifyFormData(form) {
       const formData = new FormData(form);
-
-      // Generate unique submission ID
       const uniqueID = generateUniqueID();
 
-      // Add/update unique ID in both hidden fields and form data
-      document.getElementById("submission-id").value = uniqueID;
+      const submissionIdEl = document.getElementById("submission-id");
+      if (submissionIdEl) submissionIdEl.value = uniqueID;
       formData.set("submission-id", uniqueID);
 
-      // Add timestamp for tracking
       const submissionTime = new Date().toISOString();
       formData.set("submission-timestamp", submissionTime);
 
-      // Ensure hidden verification fields are included
-      try {
-        const hiddenVerified = document.getElementById("email-verified");
-        const hiddenToken = document.getElementById("verification-token");
-        if (hiddenVerified)
-          formData.set("email-verified", hiddenVerified.value);
-        if (hiddenToken)
-          formData.set("verification-token", hiddenToken.value || "");
-      } catch {
-        /* ignore */
-      }
-
-      // Ensure all form fields are captured with proper values
-      // Get selected payment method
       const paymentMethod = document.querySelector(
         'input[name="payment-method"]:checked',
       );
@@ -811,7 +733,6 @@ if (typeof document !== "undefined") {
         formData.set("payment-method", paymentMethod.value);
       }
 
-      // Get selected contact method
       const contactMethod = document.querySelector(
         'input[name="contact-method"]:checked',
       );
@@ -819,7 +740,6 @@ if (typeof document !== "undefined") {
         formData.set("contact-method", contactMethod.value);
       }
 
-      // Capture current language, country, and currency settings
       formData.set(
         "language",
         document.getElementById("language-switcher").value,
@@ -830,7 +750,6 @@ if (typeof document !== "undefined") {
         document.getElementById("currency").value || "USD",
       );
 
-      // Include mailing address consent checkbox as a normalized boolean string
       try {
         const hiddenMailing = document.getElementById(
           "use-as-mailing-address-hidden",
@@ -849,11 +768,8 @@ if (typeof document !== "undefined") {
             mailingCheckbox.checked ? "true" : "false",
           );
         }
-      } catch {
-        /* ignore */
-      }
+      } catch {}
 
-      // Add user agent and submission metadata
       formData.set("user-agent", navigator.userAgent);
       formData.set("screen-resolution", `${screen.width}x${screen.height}`);
       formData.set("referrer", document.referrer || "Direct");
@@ -861,11 +777,18 @@ if (typeof document !== "undefined") {
       return { formData, uniqueID, submissionTime };
     }
 
-    // Form submission
-    let resumeSubmission = null; // will hold a function to continue submission after verification
+    function showRedirectOverlayAndGo() {
+      const overlay = document.getElementById("redirect-overlay");
+      if (overlay) {
+        overlay.classList.remove("d-none");
+        overlay.setAttribute("aria-hidden", "false");
+      }
+      setTimeout(() => {
+        window.location.href = "/success";
+      }, 3000);
+    }
 
     async function submitFormInternal() {
-      // Check form validation
       if (!isFormValidRealtime()) {
         showToast(
           "Please correct the highlighted errors and try again.",
@@ -878,15 +801,13 @@ if (typeof document !== "undefined") {
       }
 
       submitBtn.disabled = true;
-      spinner.classList.remove("d-none");
-      btnText.textContent = "Submitting...";
+      if (spinner) spinner.classList.remove("d-none");
+      if (btnText) btnText.textContent = "Submitting...";
 
       try {
         const { formData } = prepareNetlifyFormData(form);
         const payload = Object.fromEntries(formData.entries());
-        const endpoint = import.meta.env?.DEV
-          ? "http://localhost:3000/submit-form"
-          : "/submit-form";
+        const endpoint = "/submit-form";
         const response = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -904,24 +825,13 @@ if (typeof document !== "undefined") {
               : "An error occurred. Please check the form and try again.");
           showToast(formLevelErrorMessage, "danger");
           submitBtn.disabled = false;
-          spinner.classList.add("d-none");
-          btnText.textContent = "Submit Subscription";
+          if (spinner) spinner.classList.add("d-none");
+          if (btnText) btnText.textContent = "Submit Subscription";
           return;
         }
 
-        // Success UX
-        modalManager.show("digitalCurrencySuccessModal", {
-          countdown: {
-            duration: 5,
-            elementId: "digital-currency-countdown",
-            onComplete: () => {
-              window.location.href = "success.html";
-            },
-          },
-        });
-
-        // Store form data in sessionStorage for the success page
         sessionStorage.setItem("submissionData", JSON.stringify(payload));
+        showRedirectOverlayAndGo();
       } catch (err) {
         console.error("Submission Error:", err.message, err.stack);
         showToast(
@@ -929,374 +839,66 @@ if (typeof document !== "undefined") {
           "danger",
         );
         submitBtn.disabled = false;
-        spinner.classList.add("d-none");
-        btnText.textContent = "Submit Subscription";
+        if (spinner) spinner.classList.add("d-none");
+        if (btnText) btnText.textContent = "Submit Subscription";
       }
+    }
+
+    function fillConfirmDetails() {
+      const get = (id) => document.getElementById(id);
+      const text = (el, val) => {
+        if (el) el.textContent = val || "—";
+      };
+      text(get("confirm-full-name"), document.getElementById("full-name").value);
+      text(get("confirm-email"), emailInput.value);
+      text(get("confirm-phone"), `${phonePrefixSpan.textContent} ${phoneInput.value}`.trim());
+      const countryOption = countrySelect.options[countrySelect.selectedIndex];
+      text(get("confirm-country"), countryOption ? countryOption.textContent : "");
+      text(get("confirm-dob"), document.getElementById("dob").value);
+      text(get("confirm-gender"), document.getElementById("gender").value);
+      text(get("confirm-branch"), document.getElementById("branch").value);
+      text(get("confirm-group"), document.getElementById("group").value);
+      text(get("confirm-artist"), document.getElementById("artist").value);
+      text(get("confirm-payment"), document.getElementById("payment-type").value);
+      const contactMethod = document.querySelector('input[name="contact-method"]:checked');
+      text(get("confirm-contact"), contactMethod ? contactMethod.value : "");
     }
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      // Honeypot
       const honeypot = form.querySelector('[name="website"]');
       if (honeypot && honeypot.value) {
         showToast("Spam detected. Submission blocked.", "danger");
         return;
       }
 
-      // If email already verified, proceed immediately
-      if (emailVerificationState.isVerified) {
+      if (!isFormValidRealtime()) {
+        const missing = isFormValidRealtime(true);
+        console.debug("Invalid fields:", missing);
+        showToast("Please complete the required fields.", "danger");
+        return;
+      }
+
+      fillConfirmDetails();
+      confirmModal?.show();
+    });
+
+    if (confirmBtn) {
+      confirmBtn.addEventListener("click", async () => {
+        try { confirmModal?.hide(); } catch {}
         await submitFormInternal();
-        return;
-      }
-
-      // Otherwise, initiate verification flow, then resume submission when verified
-      const email =
-        emailInput && emailInput.value ? emailInput.value.trim() : "";
-      if (!email) {
-        showToast(
-          "Please enter your email address before submitting.",
-          "warning",
-        );
-        emailInput.scrollIntoView({ behavior: "smooth", block: "center" });
-        emailInput.focus();
-        return;
-      }
-
-      // Prefill verification modal and show, then send OTP automatically
-      verificationEmail.value = email;
-      emailVerificationState.currentEmail = email;
-      emailVerificationModal.show();
-
-      // Automatically send OTP as part of submit flow
-      try {
-        // Small delay to ensure modal is visible and prevent double auto-sends
-        setTimeout(() => {
-          try {
-            if (
-              !emailVerificationState.autoSent &&
-              sendOtpBtn &&
-              !sendOtpBtn.disabled &&
-              (!emailVerificationState.resendTimer ||
-                emailVerificationState.resendTimer === 0)
-            ) {
-              emailVerificationState.autoSent = true;
-              sendOtpBtn.click();
-            } else {
-              console.debug("Auto-send skipped: conditions not met");
-            }
-          } catch (err) {
-            console.error("Auto-send inner error", err);
-          }
-        }, 250);
-      } catch (e) {
-        console.error("Auto-send OTP failed", e);
-      }
-
-      // Set resume handler
-      resumeSubmission = async () => {
-        // Small delay to allow modal close animation
-        await new Promise((r) => setTimeout(r, 300));
-        await submitFormInternal();
-        resumeSubmission = null;
-      };
-    });
-
-    // Check if email needs re-verification
-    function checkEmailChanged() {
-      const currentEmail = emailInput.value.trim();
-      if (
-        currentEmail !== emailVerificationState.currentEmail &&
-        emailVerificationState.isVerified
-      ) {
-        emailVerificationState.isVerified = false;
-        emailVerificationState.currentEmail = "";
-        emailVerificationState.verificationToken = "";
-        updateEmailVerificationUI();
-        showToast(
-          "Email changed. Please verify your new email address.",
-          "warning",
-        );
-      }
-    }
-
-    // Email input change handler
-    emailInput.addEventListener("input", () => {
-      checkEmailChanged();
-      validateField(emailInput);
-      updateProgress();
-    });
-
-
-    // Show verification step
-    function showVerificationStep(step) {
-      document
-        .querySelectorAll(".verification-step")
-        .forEach((el) => el.classList.add("d-none"));
-      document
-        .getElementById(`verification-step-${step}`)
-        .classList.remove("d-none");
-
-      if (step === 2) {
-        document.getElementById("sent-to-email").textContent =
-          emailVerificationState.currentEmail;
-        otpInput.focus();
-      }
-    }
-
-    // Send OTP via Supabase
-    if (sendOtpBtn) {
-      sendOtpBtn.addEventListener("click", async () => {
-        if (!emailInput) return;
-        if (emailVerificationState.sending) return;
-        const email = (emailInput.value || "").trim();
-        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-          showToast("Enter a valid email address.", "warning");
-          shakeField(emailInput);
-          return;
-        }
-        if (verificationEmail) verificationEmail.value = email;
-        emailVerificationState.currentEmail = email;
-        emailVerificationState.sending = true;
-
-        const sText = sendOtpBtn.querySelector(".btn-text");
-        const sSpin = sendOtpBtn.querySelector(".spinner-border");
-        sendOtpBtn.disabled = true;
-        if (sSpin) sSpin.classList.remove("d-none");
-        if (sText) sText.textContent = "Sending...";
-
-        try {
-          await sendEmailOtp(email, window.location.origin);
-          showVerificationStep(2);
-          startOtpCountdown(300);
-          startResendTimer(60);
-          showToast("Verification code sent.", "success");
-        } catch (error) {
-          console.error("OTP send error:", error);
-          showToast(error.message || "Failed to send verification code", "danger");
-        } finally {
-          emailVerificationState.sending = false;
-          if (!emailVerificationState.resendTimer || emailVerificationState.resendTimer <= 0) {
-            sendOtpBtn.disabled = false;
-          }
-          if (sSpin) sSpin.classList.add("d-none");
-          if (sText) sText.textContent = "Send Verification Code";
-        }
       });
     }
 
-    // Resend OTP
-    if (resendOtpBtn) {
-      resendOtpBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        if (resendOtpBtn.disabled) return;
-        if (sendOtpBtn && !sendOtpBtn.disabled) sendOtpBtn.click();
-      });
-    }
-
-    // Verify OTP via Supabase
-    async function verifyOtp(auto = false) {
-      if (!verifyOtpBtn || emailVerificationState.verifying) return;
-      const code = (otpInput?.value || "").trim();
-      if (!/^\d{6}$/.test(code)) {
-        const errEl = document.getElementById("otp-error");
-        if (errEl) errEl.textContent = "Enter the 6-digit code.";
-        if (otpInput) {
-          otpInput.classList.add("is-invalid");
-          if (!auto) shakeField(otpInput);
-        }
-        return;
-      }
-
-      const vText = verifyOtpBtn.querySelector(".btn-text");
-      const vSpin = verifyOtpBtn.querySelector(".spinner-border");
-      verifyOtpBtn.disabled = true;
-      if (vSpin) vSpin.classList.remove("d-none");
-      if (vText) vText.textContent = "Verifying...";
-      emailVerificationState.verifying = true;
-
-      try {
-        await verifyEmailOtp(emailVerificationState.currentEmail, code);
-        emailVerificationState.isVerified = true;
-        emailVerificationState.verificationToken = code;
-        updateEmailVerificationUI();
-        showVerificationStep(3);
-        setTimeout(() => emailVerificationModal?.hide(), 800);
-        if (typeof resumeSubmission === "function") {
-          try { await resumeSubmission(); } catch {}
-        }
-      } catch (error) {
-        const errEl = document.getElementById("otp-error");
-        if (errEl) errEl.textContent = (error && error.message) || "Invalid or expired code.";
-        if (otpInput) otpInput.classList.add("is-invalid");
-        showToast("Verification failed. Please try again.", "danger");
-      } finally {
-        emailVerificationState.verifying = false;
-        verifyOtpBtn.disabled = false;
-        if (vSpin) vSpin.classList.add("d-none");
-        if (vText) vText.textContent = "Verify Code";
-      }
-    }
-
-    if (verifyOtpBtn) verifyOtpBtn.addEventListener("click", () => verifyOtp(false));
-    if (otpInput) {
-      otpInput.addEventListener("input", () => {
-        otpInput.classList.remove("is-invalid");
-        const digits = otpInput.value.replace(/\D/g, "");
-        if (digits.length === 6) verifyOtp(true);
-      });
-    }
-
-    // OTP countdown timer
-    let otpCountdownInterval;
-    function startOtpCountdown(seconds = 300) {
-      let timeLeft = Number(seconds);
-      if (!Number.isFinite(timeLeft) || timeLeft <= 0) timeLeft = 300;
-      const countdownEl = document.getElementById("otp-countdown");
-
-      clearInterval(otpCountdownInterval);
-      otpCountdownInterval = setInterval(() => {
-        const minutes = Math.floor(timeLeft / 60);
-        const seconds = timeLeft % 60;
-        countdownEl.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
-
-        if (timeLeft <= 0) {
-          clearInterval(otpCountdownInterval);
-          countdownEl.textContent = "Expired";
-          countdownEl.className = "fw-bold text-danger";
-          showToast(
-            "Verification code expired. Please request a new one.",
-            "warning",
-          );
-        }
-        timeLeft--;
-      }, 1000);
-    }
-
-    // Resend timer
-    let resendTimerInterval;
-    function startResendTimer(seconds = 60) {
-      emailVerificationState.resendTimer = Number(seconds) || 60;
-      const resendCountdown = document.getElementById("resend-countdown");
-      const resendTimer = document.getElementById("resend-timer");
-
-      resendOtpBtn.disabled = true;
-      resendCountdown.classList.remove("d-none");
-
-      clearInterval(resendTimerInterval);
-      resendTimerInterval = setInterval(() => {
-        resendTimer.textContent = emailVerificationState.resendTimer;
-        emailVerificationState.resendTimer--;
-
-        if (emailVerificationState.resendTimer < 0) {
-          clearInterval(resendTimerInterval);
-          resendOtpBtn.disabled = false;
-          resendCountdown.classList.add("d-none");
-          emailVerificationState.resendTimer = 0;
-        }
-      }, 1000);
-    }
-
-    // Change email link
-    const changeEmailLink = document.getElementById("change-email-link");
-    if (changeEmailLink) {
-      changeEmailLink.addEventListener("click", () => {
-        emailVerificationModal.hide();
-        setTimeout(() => {
-          emailInput.scrollIntoView({ behavior: "smooth", block: "center" });
-          emailInput.focus();
-        }, 300);
-      });
-    }
-
-    // Allow paste of 6-digit code
-    otpInput.addEventListener("paste", (e) => {
-      e.preventDefault();
-      const text =
-        (e.clipboardData || window.clipboardData).getData("text") || "";
-      const digits = (text.match(/\d/g) || []).join("").slice(0, 6);
-      if (digits) {
-        otpInput.value = digits;
-        // Trigger input handling and immediate verification
-        otpInput.dispatchEvent(new Event("input"));
-        verifyOtp(true);
-      }
-    });
-
-    // Initialize email verification UI (verification disabled)
-    updateEmailVerificationUI();
-
-    // Show onboarding modal on every page load for consistency.
     try {
-      const onboardingModalInstance =
-        modalManager.initialize("onboardingModal");
+      const onboardingModalInstance = modalManager.initialize("onboardingModal");
+      if (onboardingModalInstance) onboardingModalInstance.show();
+    } catch {}
 
-      if (onboardingModalInstance) {
-        onboardingModalInstance.show();
-        console.debug("[Onboarding] Modal shown on page load.");
-      } else {
-        console.warn(
-          "[Onboarding] Modal instance not available; attempting manual show.",
-        );
-        manualShowModal("onboardingModal");
-      }
-    } catch (err) {
-      console.warn(
-        "[Onboarding] Error while attempting to show onboarding modal:",
-        err,
-      );
-      // Fallback if Bootstrap or other parts fail
-      manualShowModal("onboardingModal");
-    }
+    updateProgress();
+    updateSubmitButton();
 
-    // Manual fallback to show a Bootstrap-like modal using DOM manipulation
-    function manualShowModal(modalId) {
-      try {
-        const el = document.getElementById(modalId);
-        if (!el) {
-          console.warn(
-            "[Onboarding] manualShowModal: element not found",
-            modalId,
-          );
-          return;
-        }
-
-        // Avoid double-backdrop
-        if (!document.querySelector(".modal-backdrop")) {
-          const backdrop = document.createElement("div");
-          backdrop.className = "modal-backdrop fade show";
-          document.body.appendChild(backdrop);
-        }
-
-        el.classList.add("show");
-        el.style.display = "block";
-        el.setAttribute("aria-modal", "true");
-        el.setAttribute("role", "dialog");
-        el.removeAttribute("aria-hidden");
-
-        // Prevent body scroll
-        document.body.classList.add("modal-open");
-
-        // Focus the modal for accessibility
-        setTimeout(() => {
-          const focusEl =
-            el.querySelector("[autofocus]") ||
-            el.querySelector("button, [tabindex]");
-          if (focusEl) focusEl.focus();
-        }, 50);
-
-        try {
-          localStorage.setItem("onboardingShown", "true");
-        } catch {
-          /* ignore */
-        }
-        console.debug("[Onboarding] Shown via manual fallback");
-      } catch (err) {
-        console.error("[Onboarding] manualShowModal error:", err);
-      }
-    }
-
-    // Debug logging (optional)
     if (window.location.hostname === "localhost") {
       form.querySelectorAll("input, select, textarea").forEach((field) => {
         field.addEventListener("change", () => {

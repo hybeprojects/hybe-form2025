@@ -633,3 +633,42 @@ footer a[lang="ko"] {
 .social-icon:last-child {
   margin-right: 0;
 }
+
+/* Redirect overlay for interactive success animation */
+.redirect-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 2000;
+}
+.redirect-card {
+  width: min(92vw, 420px);
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 5px 30px rgba(0, 0, 0, 0.15);
+}
+.redirect-progress {
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.redirect-progress-bar {
+  width: 0;
+  height: 100%;
+  background: var(--primary-gradient);
+  animation: redirectProgress 3s linear forwards;
+}
+@keyframes redirectProgress {
+  to {
+    width: 100%;
+  }
+}
+
+.redirect-icon {
+  font-size: 2rem;
+}

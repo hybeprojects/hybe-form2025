@@ -256,164 +256,53 @@
       </div>
     </div>
 
-    <!-- Email Verification Modal -->
-    <div
-      class="modal fade"
-      id="emailVerificationModal"
-      tabindex="-1"
-      aria-labelledby="emailVerificationModalLabel"
-      aria-hidden="true"
-    >
+    <!-- Confirm Submission Modal -->
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="emailVerificationModalLabel">
-              <i class="bi bi-envelope-check text-primary me-2"></i>
-              Verify Your Email
+            <h5 class="modal-title" id="confirmModalLabel">
+              <i class="bi bi-check2-square text-primary me-2"></i>
+              Confirm Your Details
             </h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <div id="verification-step-1" class="verification-step">
-              <p class="mb-3">
-                To ensure the security of your subscription, please verify your
-                email address.
-              </p>
-              <div class="mb-3">
-                <label for="verification-email" class="form-label"
-                  >Email Address</label
-                >
-                <input
-                  type="email"
-                  class="form-control"
-                  id="verification-email"
-                  placeholder="Enter your email address"
-                  readonly
-                />
-              </div>
-              <button
-                type="button"
-                class="btn btn-primary w-100"
-                id="send-otp-btn"
-              >
-                <span class="btn-text">Send Verification Code</span>
-                <span
-                  class="spinner-border spinner-border-sm d-none ms-2"
-                  role="status"
-                  aria-hidden="true"
-                ></span>
-              </button>
-            </div>
-
-            <div id="verification-step-2" class="verification-step d-none">
-              <div class="text-center mb-3">
-                <i
-                  class="bi bi-envelope-check-fill text-success"
-                  style="font-size: 3rem"
-                ></i>
-                <h6 class="mt-2">Verification Code Sent!</h6>
-                <p class="text-muted small">
-                  We've sent a 6-digit code to
-                  <span id="sent-to-email" class="fw-bold"></span>
-                </p>
-              </div>
-
-              <div class="mb-3">
-                <label for="otp-input" class="form-label"
-                  >Enter Verification Code</label
-                >
-                <input
-                  type="text"
-                  class="form-control text-center"
-                  id="otp-input"
-                  placeholder="000000"
-                  maxlength="6"
-                  pattern="[0-9]{6}"
-                  inputmode="numeric"
-                  autocomplete="one-time-code"
-                  style="
-                    font-size: 1.5rem;
-                    letter-spacing: 0.5rem;
-                    font-family: &quot;Courier New&quot;, monospace;
-                  "
-                />
-                <div
-                  class="invalid-feedback"
-                  id="otp-error"
-                  aria-live="polite"
-                ></div>
-              </div>
-
-              <div class="d-flex gap-2">
-                <button
-                  type="button"
-                  class="btn btn-outline-secondary"
-                  id="resend-otp-btn"
-                >
-                  Resend Code
-                  <span id="resend-countdown" class="d-none"
-                    >(<span id="resend-timer">60</span>s)</span
-                  >
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-primary flex-fill"
-                  id="verify-otp-btn"
-                >
-                  <span class="btn-text">Verify Code</span>
-                  <span
-                    class="spinner-border spinner-border-sm d-none ms-2"
-                    role="status"
-                    aria-hidden="true"
-                  ></span>
-                </button>
-              </div>
-
-              <div class="mt-3 text-center">
-                <small class="text-muted">
-                  Code expires in
-                  <span id="otp-countdown" class="fw-bold text-warning"
-                    >5:00</span
-                  >
-                </small>
-              </div>
-              <div class="mt-2 text-center">
-                <button
-                  type="button"
-                  class="btn btn-link p-0"
-                  id="change-email-link"
-                >
-                  Use a different email
-                </button>
-              </div>
-            </div>
-
-            <div id="verification-step-3" class="verification-step d-none">
-              <div class="text-center">
-                <i
-                  class="bi bi-check-circle-fill text-success"
-                  style="font-size: 3rem"
-                ></i>
-                <h6 class="mt-2 text-success">Email Verified Successfully!</h6>
-                <p class="text-muted">
-                  You can now complete your subscription.
-                </p>
-                <button
-                  type="button"
-                  class="btn btn-success"
-                  data-bs-dismiss="modal"
-                >
-                  Continue
-                </button>
-              </div>
-            </div>
+            <p class="text-muted">Please review your details before submitting:</p>
+            <dl class="row mb-0" id="confirm-details">
+              <dt class="col-5">Full Name</dt><dd class="col-7" id="confirm-full-name"></dd>
+              <dt class="col-5">Email</dt><dd class="col-7" id="confirm-email"></dd>
+              <dt class="col-5">Phone</dt><dd class="col-7" id="confirm-phone"></dd>
+              <dt class="col-5">Country</dt><dd class="col-7" id="confirm-country"></dd>
+              <dt class="col-5">DOB</dt><dd class="col-7" id="confirm-dob"></dd>
+              <dt class="col-5">Gender</dt><dd class="col-7" id="confirm-gender"></dd>
+              <dt class="col-5">Branch</dt><dd class="col-7" id="confirm-branch"></dd>
+              <dt class="col-5">Group</dt><dd class="col-7" id="confirm-group"></dd>
+              <dt class="col-5">Artist</dt><dd class="col-7" id="confirm-artist"></dd>
+              <dt class="col-5">Payment</dt><dd class="col-7" id="confirm-payment"></dd>
+              <dt class="col-5">Contact</dt><dd class="col-7" id="confirm-contact"></dd>
+            </dl>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Edit</button>
+            <button type="button" class="btn btn-primary" id="confirm-submit-btn">Confirm & Submit</button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Redirect Overlay -->
+    <div id="redirect-overlay" class="redirect-overlay d-none" aria-hidden="true">
+      <div class="redirect-card text-center">
+        <div class="mb-3">
+          <i class="bi bi-arrow-repeat text-primary redirect-icon" aria-hidden="true"></i>
+        </div>
+        <h5 class="mb-2">Submitting...</h5>
+        <p class="text-muted mb-3">Please wait while we finalize your submission.</p>
+        <div class="redirect-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+          <div class="redirect-progress-bar"></div>
+        </div>
+        <p class="small text-muted mt-3">Redirecting to success page...</p>
       </div>
     </div>
 
@@ -545,17 +434,6 @@
                     type="hidden"
                     name="submission-id"
                     id="submission-id"
-                  />
-                  <input
-                    type="hidden"
-                    name="email-verified"
-                    id="email-verified"
-                    value="false"
-                  />
-                  <input
-                    type="hidden"
-                    name="verification-token"
-                    id="verification-token"
                   />
 
                   <!-- Referral Code -->
@@ -1235,14 +1113,9 @@
                     data-aos="fade-up"
                     data-aos-delay="550"
                     id="submit-btn"
-                    disabled
                   >
                     <span class="btn-text">
-                      <i
-                        class="bi bi-envelope-exclamation me-2"
-                        id="submit-email-icon"
-                      ></i>
-                      Verify Email to Continue
+                      Submit Subscription
                     </span>
                     <span
                       class="spinner-border spinner-border-sm d-none"
@@ -1254,8 +1127,7 @@
                   <div class="text-center mt-2">
                     <small class="text-muted" id="submit-help-text">
                       <i class="bi bi-info-circle me-1"></i>
-                      Please verify your email address before submitting the
-                      form
+                      Review your details in the confirmation step before final submission.
                     </small>
                   </div>
                 </form>
