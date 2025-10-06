@@ -1093,6 +1093,8 @@ if (typeof document !== "undefined") {
 
     updateProgress();
     updateSubmitButton();
+    // Ensure subscription amount and installment UI reflect initial selection
+    try { updateInstallmentOptions(); } catch (e) { console.warn('updateInstallmentOptions failed on init', e); }
 
     if (window.location.hostname === "localhost") {
       form.querySelectorAll("input, select, textarea").forEach((field) => {
