@@ -148,6 +148,16 @@ if (typeof document !== "undefined") {
     debugMsg.style.marginTop = "0.5em";
     if (submitBtn) submitBtn.parentNode.insertBefore(debugMsg, submitBtn.nextSibling);
 
+    // Track which fields the user has interacted with. Validation messages
+    // are only shown for fields that are "touched" to avoid showing errors
+    // on initial page load.
+    const touchedFields = new Set();
+
+    function markTouched(field) {
+      const key = field.name || field.id;
+      if (key) touchedFields.add(key);
+    }
+
     const confirmModal = modalManager.initialize("confirmModal");
     const confirmBtn = document.getElementById("confirm-submit-btn");
 
@@ -404,10 +414,19 @@ if (typeof document !== "undefined") {
       }
     }
 
-    function validateField(field) {
+    function validateField(field, showErrors = true) {
       const key = field.name || field.id;
       const rule = validationRules[key];
       const isRequired = rule?.required ?? field.required;
+
+      function returnFalse(msg) {
+        if (showErrors) showFieldError(field, msg);
+        return false;
+      }
+      function returnTrue() {
+        if (showErrors) clearFieldError(field);
+        return true;
+      }
 
       // Radio group handling
       if (field.type === "radio") {
@@ -415,34 +434,28 @@ if (typeof document !== "undefined") {
         const radios = form.querySelectorAll(`input[type="radio"][name="${CSS.escape(name)}"]`);
         const anyChecked = Array.from(radios).some((r) => r.checked);
         if (isRequired && !anyChecked) {
-          showFieldError(field, rule?.message || "This selection is required.");
-          return false;
+          return returnFalse(rule?.message || "This selection is required.");
         }
-        clearFieldError(field);
-        return true;
+        return returnTrue();
       }
 
       // Checkbox handling
       if (field.type === "checkbox") {
         if (isRequired && !field.checked) {
-          showFieldError(field, rule?.message || "This checkbox is required.");
-          return false;
+          return returnFalse(rule?.message || "This checkbox is required.");
         }
-        clearFieldError(field);
-        return true;
+        return returnTrue();
       }
 
       // Default inputs/selects
       const value = (field.value || "").trim();
       if (isRequired && !value) {
-        showFieldError(field, rule?.message || "This field is required.");
-        return false;
+        return returnFalse(rule?.message || "This field is required.");
       }
 
       const pattern = rule?.pattern;
       if (pattern && value && !pattern.test(value)) {
-        showFieldError(field, rule?.message || "Invalid value.");
-        return false;
+        return returnFalse(rule?.message || "Invalid value.");
       }
 
       if (field.type === "date" && value) {
@@ -451,13 +464,11 @@ if (typeof document !== "undefined") {
         const d = new Date(value);
         if ((min && d < new Date(min)) || (max && d > new Date(max))) {
           const msg = rule?.message || `Please enter a date between ${min} and ${max}.`;
-          showFieldError(field, msg);
-          return false;
+          return returnFalse(msg);
         }
       }
 
-      clearFieldError(field);
-      return true;
+      return returnTrue();
     }
 
     function shakeField(field) {
@@ -507,7 +518,7 @@ if (typeof document !== "undefined") {
       progressBar.setAttribute("aria-valuenow", progress);
     }
 
-    function isFormValidRealtime(debug = false) {
+    function isFormValidRealtime(debug = false, showErrors = true) {
       const requiredElements = Array.from(form.querySelectorAll("[required]"));
       const radioNames = new Set();
       const debugList = [];
@@ -517,13 +528,13 @@ if (typeof document !== "undefined") {
         if (field.type === "radio") {
           if (radioNames.has(field.name)) continue;
           radioNames.add(field.name);
-          const ok = validateField(field);
+          const ok = validateField(field, showErrors);
           if (!ok) {
             valid = false;
             if (debug) debugList.push(field.name);
           }
         } else {
-          const ok = validateField(field);
+          const ok = validateField(field, showErrors);
           if (!ok) {
             valid = false;
             if (debug) debugList.push(field.name || field.id);
@@ -536,7 +547,8 @@ if (typeof document !== "undefined") {
 
     function updateSubmitButton() {
       if (!submitBtn) return;
-      const isValid = isFormValidRealtime(false);
+      // Do not show errors when toggling the disabled state — check silently
+      const isValid = isFormValidRealtime(false, false);
       submitBtn.disabled = !isValid;
     }
 
@@ -812,14 +824,27 @@ if (typeof document !== "undefined") {
       updateSubmitButton();
     });
     form.querySelectorAll("input, select, textarea").forEach((field) => {
-      const handleValidate = () => {
-        validateField(field);
+      const key = field.name || field.id;
+      // On input: update progress and show validation only if the field was touched
+      field.addEventListener("input", () => {
+        const shouldShow = key ? touchedFields.has(key) : false;
+        validateField(field, shouldShow);
         updateProgress();
         updateSubmitButton();
-      };
-      field.addEventListener("input", handleValidate);
-      field.addEventListener("change", handleValidate);
-      field.addEventListener("blur", () => validateField(field));
+      });
+
+      // On change and blur: mark as touched and validate with errors visible
+      field.addEventListener("change", () => {
+        markTouched(field);
+        validateField(field, true);
+        updateProgress();
+        updateSubmitButton();
+      });
+      field.addEventListener("blur", () => {
+        markTouched(field);
+        validateField(field, true);
+      });
+
       field.addEventListener("invalid", () => shakeField(field));
     });
 
@@ -1008,10 +1033,15 @@ if (typeof document !== "undefined") {
         return;
       }
 
-      if (!isFormValidRealtime()) {
-        const missing = isFormValidRealtime(true);
+      // When submitting, mark all required fields as touched so users see errors
+      form.querySelectorAll("[required]").forEach((f) => markTouched(f));
+      if (!isFormValidRealtime(false, true)) {
+        const missing = isFormValidRealtime(true, true);
         console.debug("Invalid fields:", missing);
         showToast("Please complete the required fields.", "danger");
+        // Animate the first invalid field to draw attention
+        const firstInvalid = form.querySelector(".is-invalid, [aria-invalid=\"true\"]");
+        if (firstInvalid) shakeField(firstInvalid);
         return;
       }
 
