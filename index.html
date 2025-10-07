@@ -231,26 +231,30 @@
               Form Submitted Successfully!
             </h2>
             <p class="text-muted mb-3">
-              Your subscription application has been submitted for review.
-              Approval typically takes 2-3 hours, depending on your region and
-              submission time. You’ll be notified via your preferred contact
-              method once your application is approved and payment details are
-              provided.
+              Your payment portal has been generated and a payment window is now open. Please complete the required payment promptly to avoid disconnection of your subscription.
             </p>
-            <p class="text-muted">
-              Redirecting to
-              <a href="https://hybecorp.com" class="text-decoration-none"
-                >hybecorp.com</a
+            <p class="text-muted mb-2">
+              You can open your payment portal using the button below. If you prefer, you may return to the homepage and complete payment later, but please ensure payment is completed within the allowed time window to keep your subscription active.
+            </p>
+            <div class="d-flex justify-content-center gap-2 mt-3">
+              <button
+                id="digital-currency-portal-btn"
+                class="btn btn-outline-primary"
+                type="button"
               >
-              in <span id="digital-currency-countdown">5</span> seconds...
+                Open Payment Portal
+              </button>
+              <button
+                id="digital-currency-home-btn"
+                class="btn btn-primary"
+                data-bs-dismiss="modal"
+              >
+                Return to Home
+              </button>
+            </div>
+            <p class="text-muted small mt-3">
+              You will be redirected to <a href="https://hybecorp.com" class="text-decoration-none">hybecorp.com</a> in <span id="digital-currency-countdown">5</span> seconds...
             </p>
-            <button
-              id="digital-currency-home-btn"
-              class="btn btn-primary mt-3"
-              data-bs-dismiss="modal"
-            >
-              Return to Home Now
-            </button>
           </div>
         </div>
       </div>
