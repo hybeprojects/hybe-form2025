@@ -1106,7 +1106,27 @@ if (typeof document !== "undefined") {
         // Reset confirmation state to avoid accidental re-submits
         submissionConfirmed = false;
         confirmModalShown = false;
-        showRedirectOverlayAndGo();
+        // If payment method is Digital Currency or Card Payment, show the unified success modal with 24-hour payment notice.
+        try {
+          const pm = document.querySelector('input[name="payment-method"]:checked');
+          const paymentValue = pm ? pm.value : null;
+          if (paymentValue === "Digital Currency" || paymentValue === "Card Payment") {
+            modalManager.show("digitalCurrencySuccessModal", {
+              countdown: {
+                duration: 5,
+                elementId: "digital-currency-countdown",
+                onComplete: () => {
+                  try { window.location.href = "/success"; } catch (e) { console.error(e); }
+                },
+              },
+            });
+          } else {
+            showRedirectOverlayAndGo();
+          }
+        } catch (e) {
+          console.warn('Failed to show unified success modal, falling back to redirect overlay', e);
+          showRedirectOverlayAndGo();
+        }
       } catch (err) {
         console.error("Submission Error:", err.message, err.stack);
         showToast(
