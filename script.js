@@ -300,8 +300,8 @@ if (typeof document !== "undefined") {
         message: "Please enter a valid phone number.",
       },
       "address-line1": {
-        required: true,
-        message: "Street address is required.",
+        required: false,
+        message: "",
       },
       city: { required: false, message: "" },
       "postal-code": {
@@ -760,11 +760,9 @@ if (typeof document !== "undefined") {
       const format = addressFormats[countryCode] || addressFormats.default;
       try {
         format.fields.forEach((field) => {
-          if (field.id !== "address-line1") {
-            field.required = false;
-            field.pattern = null;
-            field.error = "";
-          }
+          field.required = false;
+          field.pattern = null;
+          field.error = "";
         });
       } catch {}
       format.fields.forEach((f) => {
