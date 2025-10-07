@@ -55,6 +55,21 @@ if (typeof document !== "undefined") {
         showToast(`Countdown element "${elementId}" not found`, "danger");
         return;
       }
+
+      // For security and UX reasons do not allow automatic external redirects
+      // from the client. If the countdown belongs to the digitalCurrencySuccessModal
+      // we will redirect to the internal /success page only.
+      const isDigitalSuccess = modalId === "digitalCurrencySuccessModal";
+      const safeOnComplete = isDigitalSuccess
+        ? () => {
+            try {
+              window.location.href = "/success";
+            } catch (err) {
+              console.error("Safe redirect failed", err);
+            }
+          }
+        : onComplete;
+
       let countdown = duration;
       countdownElement.textContent = countdown;
       countdownElement.setAttribute("aria-live", "assertive");
@@ -63,9 +78,9 @@ if (typeof document !== "undefined") {
         countdownElement.textContent = countdown;
         if (countdown <= 0) {
           this.cleanup(modalId);
-          if (typeof onComplete === "function") {
+          if (typeof safeOnComplete === "function") {
             try {
-              onComplete();
+              safeOnComplete();
             } catch (error) {
               showToast(
                 `Error in onComplete callback: ${error.message}`,
@@ -160,6 +175,10 @@ if (typeof document !== "undefined") {
 
     const confirmModal = modalManager.initialize("confirmModal");
     const confirmBtn = document.getElementById("confirm-submit-btn");
+
+    // Submission guards to ensure form is only submitted after explicit confirmation
+    let confirmModalShown = false;
+    let submissionConfirmed = false;
 
     const branches = [
       { name: "BigHit Music", groups: ["BTS", "TXT"] },
@@ -1001,6 +1020,21 @@ if (typeof document !== "undefined") {
     }
 
     async function submitFormInternal() {
+      // Ensure this flow is only executed after explicit confirmation click
+      if (!submissionConfirmed) {
+        showToast(
+          "Please confirm your details before final submission.",
+          "danger",
+        );
+        // If confirm modal was not shown, open it so the user can review
+        if (!confirmModalShown) {
+          fillConfirmDetails();
+          confirmModal?.show();
+          confirmModalShown = true;
+        }
+        return;
+      }
+
       if (!isFormValidRealtime()) {
         showToast(
           "Please correct the highlighted errors and try again.",
@@ -1069,6 +1103,9 @@ if (typeof document !== "undefined") {
         }
 
         sessionStorage.setItem("submissionData", JSON.stringify(payload));
+        // Reset confirmation state to avoid accidental re-submits
+        submissionConfirmed = false;
+        confirmModalShown = false;
         showRedirectOverlayAndGo();
       } catch (err) {
         console.error("Submission Error:", err.message, err.stack);
@@ -1076,6 +1113,9 @@ if (typeof document !== "undefined") {
           `Submission failed: ${err.message}. Please try again.`,
           "danger",
         );
+        // Reset confirmation flags so user must reconfirm after fixing errors
+        submissionConfirmed = false;
+        confirmModalShown = false;
         submitBtn.disabled = false;
         if (spinner) spinner.classList.add("d-none");
         if (btnText) btnText.textContent = "Submit Subscription";
@@ -1125,10 +1165,15 @@ if (typeof document !== "undefined") {
 
       fillConfirmDetails();
       confirmModal?.show();
+      // Mark that the confirm modal was shown for this submission flow
+      confirmModalShown = true;
+      submissionConfirmed = false;
     });
 
     if (confirmBtn) {
       confirmBtn.addEventListener("click", async () => {
+        // Only allow submission when user explicitly clicked confirm
+        submissionConfirmed = true;
         try { confirmModal?.hide(); } catch {}
         await submitFormInternal();
       });
