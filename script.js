@@ -300,7 +300,7 @@ if (typeof document !== "undefined") {
         message: "Please enter a valid phone number.",
       },
       "address-line1": {
-        required: true,
+        required: false,
         message: "Street address is required.",
       },
       city: { required: false, message: "" },
@@ -760,8 +760,8 @@ if (typeof document !== "undefined") {
       const format = addressFormats[countryCode] || addressFormats.default;
       try {
         format.fields.forEach((field) => {
+          field.required = false;
           if (field.id !== "address-line1") {
-            field.required = false;
             field.pattern = null;
             field.error = "";
           }
