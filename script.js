@@ -1179,22 +1179,6 @@ if (typeof document !== "undefined") {
       });
     }
 
-    // Open the generated payment portal for digital currency submissions
-    const paymentPortalBtn = document.getElementById("digital-currency-portal-btn");
-    if (paymentPortalBtn) {
-      paymentPortalBtn.addEventListener("click", () => {
-        try {
-          const idEl = document.getElementById("submission-id");
-          const submissionId = idEl && idEl.value ? idEl.value : generateUniqueID();
-          const url = `/payment?submission=${encodeURIComponent(submissionId)}`;
-          window.open(url, "_blank", "noopener,noreferrer");
-        } catch (err) {
-          console.error("Failed to open payment portal", err);
-          showToast("Unable to open payment portal. Please try again.", "danger");
-        }
-      });
-    }
-
     try {
       const onboardingModalInstance = modalManager.initialize("onboardingModal");
       if (onboardingModalInstance) onboardingModalInstance.show();
