@@ -269,6 +269,13 @@ if (typeof document !== "undefined") {
             countrySelect.value = cc;
             countrySelect.dispatchEvent(new Event("change"));
           }
+          const setIfEmpty = (id, val) => {
+            const el = document.getElementById(id);
+            if (el && !el.value && val) el.value = val;
+          };
+          setIfEmpty("city", ip?.city || "");
+          setIfEmpty("state", ip?.region || ip?.region_name || "");
+          setIfEmpty("postal-code", ip?.postal || ip?.postal_code || "");
         } catch {}
       } catch (e) {
         console.error("Failed to load countries", e);
@@ -296,11 +303,11 @@ if (typeof document !== "undefined") {
         required: true,
         message: "Street address is required.",
       },
-      city: { required: true, message: "City is required." },
+      city: { required: false, message: "" },
       "postal-code": {
-        required: true,
-        pattern: /^.{2,10}$/,
-        message: "Postal code is required.",
+        required: false,
+        pattern: null,
+        message: "",
       },
       "country": {
         required: true,
@@ -751,6 +758,15 @@ if (typeof document !== "undefined") {
         },
       };
       const format = addressFormats[countryCode] || addressFormats.default;
+      try {
+        format.fields.forEach((field) => {
+          if (field.id !== "address-line1") {
+            field.required = false;
+            field.pattern = null;
+            field.error = "";
+          }
+        });
+      } catch {}
       format.fields.forEach((f) => {
         const el = document.getElementById(f.id);
         if (el) {
