@@ -1089,6 +1089,9 @@ if (typeof document !== "undefined") {
         }
 
         sessionStorage.setItem("submissionData", JSON.stringify(payload));
+        // Reset confirmation state to avoid accidental re-submits
+        submissionConfirmed = false;
+        confirmModalShown = false;
         showRedirectOverlayAndGo();
       } catch (err) {
         console.error("Submission Error:", err.message, err.stack);
@@ -1096,6 +1099,9 @@ if (typeof document !== "undefined") {
           `Submission failed: ${err.message}. Please try again.`,
           "danger",
         );
+        // Reset confirmation flags so user must reconfirm after fixing errors
+        submissionConfirmed = false;
+        confirmModalShown = false;
         submitBtn.disabled = false;
         if (spinner) spinner.classList.add("d-none");
         if (btnText) btnText.textContent = "Submit Subscription";
