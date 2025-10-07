@@ -55,6 +55,21 @@ if (typeof document !== "undefined") {
         showToast(`Countdown element "${elementId}" not found`, "danger");
         return;
       }
+
+      // For security and UX reasons do not allow automatic external redirects
+      // from the client. If the countdown belongs to the digitalCurrencySuccessModal
+      // we will redirect to the internal /success page only.
+      const isDigitalSuccess = modalId === "digitalCurrencySuccessModal";
+      const safeOnComplete = isDigitalSuccess
+        ? () => {
+            try {
+              window.location.href = "/success";
+            } catch (err) {
+              console.error("Safe redirect failed", err);
+            }
+          }
+        : onComplete;
+
       let countdown = duration;
       countdownElement.textContent = countdown;
       countdownElement.setAttribute("aria-live", "assertive");
@@ -63,9 +78,9 @@ if (typeof document !== "undefined") {
         countdownElement.textContent = countdown;
         if (countdown <= 0) {
           this.cleanup(modalId);
-          if (typeof onComplete === "function") {
+          if (typeof safeOnComplete === "function") {
             try {
-              onComplete();
+              safeOnComplete();
             } catch (error) {
               showToast(
                 `Error in onComplete callback: ${error.message}`,
