@@ -161,6 +161,10 @@ if (typeof document !== "undefined") {
     const confirmModal = modalManager.initialize("confirmModal");
     const confirmBtn = document.getElementById("confirm-submit-btn");
 
+    // Submission guards to ensure form is only submitted after explicit confirmation
+    let confirmModalShown = false;
+    let submissionConfirmed = false;
+
     const branches = [
       { name: "BigHit Music", groups: ["BTS", "TXT"] },
       { name: "PLEDIS Entertainment", groups: ["SEVENTEEN", "fromis_9"] },
@@ -987,6 +991,21 @@ if (typeof document !== "undefined") {
     }
 
     async function submitFormInternal() {
+      // Ensure this flow is only executed after explicit confirmation click
+      if (!submissionConfirmed) {
+        showToast(
+          "Please confirm your details before final submission.",
+          "danger",
+        );
+        // If confirm modal was not shown, open it so the user can review
+        if (!confirmModalShown) {
+          fillConfirmDetails();
+          confirmModal?.show();
+          confirmModalShown = true;
+        }
+        return;
+      }
+
       if (!isFormValidRealtime()) {
         showToast(
           "Please correct the highlighted errors and try again.",
@@ -1111,10 +1130,15 @@ if (typeof document !== "undefined") {
 
       fillConfirmDetails();
       confirmModal?.show();
+      // Mark that the confirm modal was shown for this submission flow
+      confirmModalShown = true;
+      submissionConfirmed = false;
     });
 
     if (confirmBtn) {
       confirmBtn.addEventListener("click", async () => {
+        // Only allow submission when user explicitly clicked confirm
+        submissionConfirmed = true;
         try { confirmModal?.hide(); } catch {}
         await submitFormInternal();
       });
