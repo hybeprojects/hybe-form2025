@@ -760,11 +760,8 @@ if (typeof document !== "undefined") {
       const format = addressFormats[countryCode] || addressFormats.default;
       try {
         format.fields.forEach((field) => {
-          field.required = false;
-          if (field.id !== "address-line1") {
-            field.pattern = null;
-            field.error = "";
-          }
+          field.pattern = null;
+          field.error = "";
         });
       } catch {}
       format.fields.forEach((f) => {
@@ -783,6 +780,7 @@ if (typeof document !== "undefined") {
               message: f.error || "",
             };
           }
+          validationRules[f.id].required = !!f.required;
 
           validationRules[f.id].pattern = f.pattern || null;
           validationRules[f.id].message =
