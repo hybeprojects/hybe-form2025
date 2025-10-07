@@ -302,7 +302,7 @@ if (typeof document !== "undefined") {
         pattern: /^.{2,10}$/,
         message: "Postal code is required.",
       },
-      "country-select": {
+      "country": {
         required: true,
         message: "Please select your country.",
       },
