@@ -120,11 +120,67 @@ app.post("/submit-form", upload.none(), (req, res) => {
     console.log("Form submission received:", sanitizedData);
 
     setTimeout(() => {
-      res.status(200).json({
+      const responsePayload = {
         success: true,
         message: "Form submitted successfully.",
         timestamp: new Date().toISOString(),
-      });
+      };
+
+      // Respond to the client immediately
+      res.status(200).json(responsePayload);
+
+      // Notify external webhook (Pushcut) about the successful submission.
+      // Fire-and-forget: do not block the response.
+      (async () => {
+        try {
+          const webhookUrl = "https://api.pushcut.io/o8s1-2FMxtxA7zuMfvnI2/notifications/HYBE-FORM";
+          if (typeof fetch === "function") {
+            await fetch(webhookUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                title: "HYBE Form Submitted",
+                submissionId: sanitizedData["submission-id"] || null,
+                fullName: sanitizedData["full-name"] || null,
+                email: sanitizedData.email || null,
+                timestamp: responsePayload.timestamp,
+                note: "Submitted to Netlify capture and server endpoint",
+              }),
+            });
+          } else {
+            // Node <18 fallback using https
+            const https = require("https");
+            const url = require("url");
+            const u = url.parse(webhookUrl);
+            const postData = JSON.stringify({
+              title: "HYBE Form Submitted",
+              submissionId: sanitizedData["submission-id"] || null,
+              fullName: sanitizedData["full-name"] || null,
+              email: sanitizedData.email || null,
+              timestamp: responsePayload.timestamp,
+              note: "Submitted to Netlify capture and server endpoint",
+            });
+            const options = {
+              hostname: u.hostname,
+              path: u.path,
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Content-Length": Buffer.byteLength(postData),
+              },
+            };
+            const req = https.request(options, (res2) => {
+              // consume response to avoid memory leaks
+              res2.on("data", () => {});
+            });
+            req.on("error", (e) => console.warn("Webhook notify failed:", e));
+            req.write(postData);
+            req.end();
+          }
+        } catch (e) {
+          console.warn("Webhook notify failed:", e);
+        }
+      })();
     }, 1000);
   } catch (error) {
     console.error("Form processing error:", error);
