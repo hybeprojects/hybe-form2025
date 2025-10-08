@@ -39,6 +39,42 @@ body {
   animation: pulse 2s infinite;
 }
 
+/* Header and footer logo sizing and visual weight */
+.header-logo {
+  max-width: 200px;
+  width: auto;
+  display: inline-block;
+  filter: contrast(1.15) saturate(1.1);
+  /* Slight shadow to make the mark feel bolder */
+  drop-shadow: 0 2px 0 rgba(0,0,0,0.06);
+}
+
+/* Reduce size for the footer logo and ensure it sits to the left */
+.footer-logo {
+  max-width: 80px;
+  width: auto;
+  display: inline-block;
+  margin-right: 0.75rem;
+}
+
+/* Success page logo slightly smaller than header */
+.success-logo {
+  max-width: 140px;
+  display: inline-block;
+}
+
+@media (max-width: 576px) {
+  .header-logo {
+    max-width: 140px;
+  }
+  .footer-logo {
+    max-width: 64px;
+  }
+  .success-logo {
+    max-width: 110px;
+  }
+}
+
 @keyframes pulse {
   0% {
     transform: scale(1);
