@@ -239,15 +239,12 @@ if (typeof document !== "undefined") {
     function validateReferralCode(value) {
       const v = (value || "").trim().toUpperCase();
       if (!v) {
-        // Show default mapping for empty input
-        const defaultArtist = referralMap["HYBE2025"];
-        if (defaultArtist) {
-          showValidReferral(defaultArtist);
-          return true;
-        }
+        // Do not display a default artist when the field is empty
+        clearReferralStatus();
         return false;
       }
       if (referralMap[v]) {
+        // Only show BTS (Group) when HYBE2025 is explicitly entered
         showValidReferral(referralMap[v]);
         return true;
       }
