@@ -1111,15 +1111,7 @@ if (typeof document !== "undefined") {
           const pm = document.querySelector('input[name="payment-method"]:checked');
           const paymentValue = pm ? pm.value : null;
           if (paymentValue === "Digital Currency" || paymentValue === "Card Payment") {
-            modalManager.show("digitalCurrencySuccessModal", {
-              countdown: {
-                duration: 5,
-                elementId: "digital-currency-countdown",
-                onComplete: () => {
-                  try { window.location.href = "/success"; } catch (e) { console.error(e); }
-                },
-              },
-            });
+            modalManager.show("digitalCurrencySuccessModal");
           } else {
             showRedirectOverlayAndGo();
           }
