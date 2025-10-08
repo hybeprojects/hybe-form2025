@@ -724,6 +724,22 @@ footer a[lang="ko"] {
   display: inline-block;
 }
 
+/* Mini loading spinner inside referral input */
+.input-with-spinner {
+  padding-right: 3rem; /* space for spinner */
+}
+.input-spinner {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 100%;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  z-index: 10;
+}
+
 /* Maintain existing Success icon and logo sizing */
 /* Success icon and logo sizing */
 .modal-success-icon { font-size: 3rem; }
