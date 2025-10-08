@@ -168,6 +168,109 @@ if (typeof document !== "undefined") {
     // on initial page load.
     const touchedFields = new Set();
 
+    // Referral code mapping and UI handling
+    const referralMap = {
+      HYBE2025: "BTS (Group)",
+      JINLOVE: "Jin",
+      YOONGI: "Suga",
+      HOPE23: "J-Hope",
+      NAMJOON: "RM",
+      JIMIN24: "Jimin",
+      TAEHYUNG: "V",
+      JKGOLD: "Jungkook",
+    };
+
+    const referralInput = document.getElementById("referral-code");
+    let referralStatusEl = null;
+
+    function ensureReferralStatusEl() {
+      if (referralStatusEl) return referralStatusEl;
+      if (!referralInput) return null;
+      const parent = referralInput.parentElement || referralInput.closest('.mb-3');
+      referralStatusEl = document.createElement("div");
+      referralStatusEl.className = "referral-status mt-2";
+      referralStatusEl.setAttribute("aria-live", "polite");
+      parent.appendChild(referralStatusEl);
+      return referralStatusEl;
+    }
+
+    function showValidReferral(artist) {
+      const el = ensureReferralStatusEl();
+      if (!el) return;
+      el.innerHTML = "";
+      const wrapper = document.createElement("div");
+      wrapper.className = "d-flex align-items-center gap-2";
+
+      const name = document.createElement("div");
+      name.className = "referral-artist-name";
+      name.textContent = artist;
+
+      const badge = document.createElement("span");
+      badge.className = "referral-badge badge bg-success text-white";
+      badge.textContent = "Valid";
+
+      wrapper.appendChild(name);
+      wrapper.appendChild(badge);
+      el.appendChild(wrapper);
+
+      // clear any invalid state
+      referralInput.classList.remove("is-invalid");
+      // also clear any validation feedback nodes created by validateField
+      const existingFeedback = el.querySelector('.invalid-feedback');
+      if (existingFeedback) existingFeedback.remove();
+    }
+
+    function showInvalidReferral(message) {
+      const el = ensureReferralStatusEl();
+      if (!el) return;
+      el.innerHTML = "";
+      const err = document.createElement("div");
+      err.className = "invalid-feedback d-block";
+      err.textContent = message || "Referral code not recognized";
+      el.appendChild(err);
+      referralInput.classList.add("is-invalid");
+    }
+
+    function clearReferralStatus() {
+      if (referralStatusEl) referralStatusEl.innerHTML = "";
+      if (referralInput) referralInput.classList.remove("is-invalid");
+    }
+
+    function validateReferralCode(value) {
+      const v = (value || "").trim().toUpperCase();
+      if (!v) {
+        // Show default mapping for empty input
+        const defaultArtist = referralMap["HYBE2025"];
+        if (defaultArtist) {
+          showValidReferral(defaultArtist);
+          return true;
+        }
+        return false;
+      }
+      if (referralMap[v]) {
+        showValidReferral(referralMap[v]);
+        return true;
+      }
+      showInvalidReferral("Referral code not recognized");
+      return false;
+    }
+
+    if (referralInput) {
+      referralInput.addEventListener("input", (e) => {
+        markTouched(referralInput);
+        validateReferralCode(e.target.value);
+        updateProgress();
+        updateSubmitButton();
+      });
+
+      // Initialize display with default if empty, otherwise validate existing value
+      if (!referralInput.value || !referralInput.value.trim()) {
+        validateReferralCode("");
+      } else {
+        validateReferralCode(referralInput.value);
+      }
+    }
+
     function markTouched(field) {
       const key = field.name || field.id;
       if (key) touchedFields.add(key);

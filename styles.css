@@ -708,6 +708,23 @@ footer a[lang="ko"] {
   font-size: 2rem;
 }
 
+/* Referral status styles */
+.referral-status {
+  font-size: 0.95rem;
+  margin-top: 0.25rem;
+}
+.referral-artist-name {
+  font-weight: 600;
+  color: #2c3e50;
+}
+.referral-badge {
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.8rem;
+  display: inline-block;
+}
+
+/* Maintain existing Success icon and logo sizing */
 /* Success icon and logo sizing */
 .modal-success-icon { font-size: 3rem; }
 .page-success-icon { font-size: 3.5rem; }
