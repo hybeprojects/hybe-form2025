@@ -44,9 +44,8 @@ body {
   max-width: 200px;
   width: auto;
   display: inline-block;
-  filter: contrast(1.15) saturate(1.1);
-  /* Slight shadow to make the mark feel bolder */
-  drop-shadow: 0 2px 0 rgba(0,0,0,0.06);
+  /* Slightly increase contrast and saturation to make the mark appear bolder. Add a subtle drop-shadow. */
+  filter: contrast(1.15) saturate(1.1) drop-shadow(0 2px 4px rgba(0,0,0,0.06));
 }
 
 /* Reduce size for the footer logo and ensure it sits to the left */
