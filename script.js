@@ -574,9 +574,17 @@ if (typeof document !== "undefined") {
 
     function updateSubmitButton() {
       if (!submitBtn) return;
-      // Do not show errors when toggling the disabled state — check silently
+      // Keep the submit button clickable at all times so the user is directed to
+      // the first invalid field on submit. Validation still runs on submit.
       const isValid = isFormValidRealtime(false, false);
-      submitBtn.disabled = !isValid;
+      // Never actually disable the button (so it's always clickable). Use
+      // aria-disabled to communicate the state to assistive tech instead.
+      submitBtn.disabled = false;
+      if (!isValid) {
+        submitBtn.setAttribute('aria-disabled', 'true');
+      } else {
+        submitBtn.removeAttribute('aria-disabled');
+      }
     }
 
     branches.forEach((branch) => {
@@ -1169,9 +1177,59 @@ if (typeof document !== "undefined") {
         const missing = isFormValidRealtime(true, true);
         console.debug("Invalid fields:", missing);
         showToast("Please complete the required fields.", "danger");
-        // Animate the first invalid field to draw attention
-        const firstInvalid = form.querySelector(".is-invalid, [aria-invalid=\"true\"]");
-        if (firstInvalid) shakeField(firstInvalid);
+
+        // Find the first invalid element or radio group. Prefer visible elements.
+        const allInvalid = Array.from(form.querySelectorAll('.is-invalid, [aria-invalid="true"]'));
+        const isVisible = (el) => !!(el && el.offsetParent !== null && el.getClientRects && el.getClientRects().length);
+        let target = allInvalid.find(isVisible) || allInvalid[0];
+
+        // If target is inside a known hidden section, try to reveal it so we can focus.
+        if (target && !isVisible(target)) {
+          try {
+            const container = target.closest('#installment-options');
+            if (container && container.classList.contains('d-none')) {
+              // Reveal installment options and recalc UI
+              updateInstallmentOptions();
+              container.classList.remove('d-none');
+            }
+            const addressContainer = target.closest('#address-section');
+            if (addressContainer && addressContainer.classList.contains('d-none')) {
+              updateAddressFieldsForCountry(countrySelect.value);
+              addressContainer.classList.remove('d-none');
+            }
+          } catch (err) {
+            console.warn('Failed to reveal hidden section for invalid field', err);
+          }
+
+          // Wait a tick for layout to update and try to find a visible invalid field again
+          await new Promise((r) => setTimeout(r, 50));
+          const refreshed = Array.from(form.querySelectorAll('.is-invalid, [aria-invalid="true"]'));
+          target = refreshed.find(isVisible) || target;
+        }
+
+        if (target) {
+          try {
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          } catch (err) {}
+
+          try {
+            // If the invalid target is a radio input, focus the first radio in the group
+            if (target.type === 'radio') {
+              const radios = form.querySelectorAll(`input[type="radio"][name="${CSS.escape(target.name)}"]`);
+              if (radios && radios[0] && typeof radios[0].focus === 'function') radios[0].focus({ preventScroll: true });
+            } else if (typeof target.focus === 'function') {
+              target.focus({ preventScroll: true });
+            } else {
+              const focusable = target.querySelector && target.querySelector('input,select,textarea,button');
+              if (focusable && typeof focusable.focus === 'function') focusable.focus({ preventScroll: true });
+            }
+          } catch (err) {
+            console.warn('Focus failed for invalid field', err);
+          }
+
+          shakeField(target);
+        }
+
         return;
       }
 
