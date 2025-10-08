@@ -672,3 +672,8 @@ footer a[lang="ko"] {
 .redirect-icon {
   font-size: 2rem;
 }
+
+/* Success icon and logo sizing */
+.modal-success-icon { font-size: 3rem; }
+.page-success-icon { font-size: 3.5rem; }
+.success-logo { max-width: 120px; }
