@@ -168,6 +168,163 @@ if (typeof document !== "undefined") {
     // on initial page load.
     const touchedFields = new Set();
 
+    // Referral code mapping and UI handling
+    const referralMap = {
+      HYBE2025: "BTS (Group)",
+      JINLOVE: "Jin",
+      YOONGI: "Suga",
+      HOPE23: "J-Hope",
+      NAMJOON: "RM",
+      JIMIN24: "Jimin",
+      TAEHYUNG: "V",
+      JKGOLD: "Jungkook",
+    };
+
+    const referralInput = document.getElementById("referral-code");
+    let referralStatusEl = null;
+
+    function ensureReferralStatusEl() {
+      if (referralStatusEl) return referralStatusEl;
+      if (!referralInput) return null;
+      const parent = referralInput.parentElement || referralInput.closest('.mb-3');
+      referralStatusEl = document.createElement("div");
+      referralStatusEl.className = "referral-status mt-2";
+      referralStatusEl.setAttribute("aria-live", "polite");
+      parent.appendChild(referralStatusEl);
+      return referralStatusEl;
+    }
+
+    function showValidReferral(artist) {
+      const el = ensureReferralStatusEl();
+      if (!el) return;
+      el.innerHTML = "";
+      const wrapper = document.createElement("div");
+      wrapper.className = "d-flex align-items-center gap-2";
+
+      const name = document.createElement("div");
+      name.className = "referral-artist-name";
+      name.textContent = artist;
+
+      const badge = document.createElement("span");
+      badge.className = "referral-badge badge bg-success text-white";
+      badge.textContent = "Valid";
+
+      wrapper.appendChild(name);
+      wrapper.appendChild(badge);
+      el.appendChild(wrapper);
+
+      // clear any invalid state
+      referralInput.classList.remove("is-invalid");
+      // also clear any validation feedback nodes created by validateField
+      const existingFeedback = el.querySelector('.invalid-feedback');
+      if (existingFeedback) existingFeedback.remove();
+    }
+
+    function showInvalidReferral(message) {
+      const el = ensureReferralStatusEl();
+      if (!el) return;
+      el.innerHTML = "";
+      const err = document.createElement("div");
+      err.className = "invalid-feedback d-block";
+      err.textContent = message || "Referral code not recognized";
+      el.appendChild(err);
+      referralInput.classList.add("is-invalid");
+    }
+
+    function clearReferralStatus() {
+      if (referralStatusEl) referralStatusEl.innerHTML = "";
+      if (referralInput) referralInput.classList.remove("is-invalid");
+    }
+
+    function validateReferralCode(value) {
+      const v = (value || "").trim().toUpperCase();
+      if (!v) {
+        // Do not display a default artist when the field is empty
+        clearReferralStatus();
+        return false;
+      }
+      if (referralMap[v]) {
+        // Only show BTS (Group) when HYBE2025 is explicitly entered
+        showValidReferral(referralMap[v]);
+        return true;
+      }
+      showInvalidReferral("Referral code not recognized");
+      return false;
+    }
+
+    if (referralInput) {
+      // Simulate a mini loading experience on input and debounce validation by 3s
+      let referralTimer = null;
+      let referralLoading = false;
+      let spinnerEl = null;
+
+      function showInputSpinner() {
+        if (!referralInput) return;
+        const parent = referralInput.parentElement || referralInput.closest('.mb-3');
+        // parent should already be position-relative; ensure it for proper absolute positioning
+        parent.classList.add('position-relative');
+        if (!spinnerEl) {
+          spinnerEl = document.createElement('div');
+          spinnerEl.className = 'input-spinner d-flex align-items-center justify-content-center';
+          spinnerEl.setAttribute('aria-hidden', 'true');
+          spinnerEl.innerHTML = '<div class="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true"></div>';
+          parent.appendChild(spinnerEl);
+        }
+        referralInput.classList.add('input-with-spinner');
+      }
+
+      function hideInputSpinner() {
+        if (spinnerEl && spinnerEl.parentNode) spinnerEl.parentNode.removeChild(spinnerEl);
+        spinnerEl = null;
+        if (referralInput) referralInput.classList.remove('input-with-spinner');
+      }
+
+      referralInput.addEventListener('input', (e) => {
+        markTouched(referralInput);
+        const value = e.target.value || '';
+        // Clear any pending timers and previous messages immediately
+        clearTimeout(referralTimer);
+        if (referralStatusEl) referralStatusEl.innerHTML = '';
+
+        if (!value.trim()) {
+          // If empty, show default mapping immediately (preserve previous behavior)
+          hideInputSpinner();
+          validateReferralCode('');
+          updateProgress();
+          updateSubmitButton();
+          return;
+        }
+
+        // Show loading spinner and debounce validation by 3s
+        showInputSpinner();
+        referralLoading = true;
+        referralTimer = setTimeout(() => {
+          try {
+            validateReferralCode(value);
+          } finally {
+            hideInputSpinner();
+            referralLoading = false;
+            updateProgress();
+            updateSubmitButton();
+          }
+        }, 3000);
+      });
+
+      // Initialize display: if empty, show default immediately; if present, simulate loading then validate
+      if (!referralInput.value || !referralInput.value.trim()) {
+        validateReferralCode('');
+      } else {
+        showInputSpinner();
+        clearTimeout(referralTimer);
+        referralTimer = setTimeout(() => {
+          validateReferralCode(referralInput.value);
+          hideInputSpinner();
+          updateProgress();
+          updateSubmitButton();
+        }, 3000);
+      }
+    }
+
     function markTouched(field) {
       const key = field.name || field.id;
       if (key) touchedFields.add(key);

@@ -708,6 +708,39 @@ footer a[lang="ko"] {
   font-size: 2rem;
 }
 
+/* Referral status styles */
+.referral-status {
+  font-size: 0.95rem;
+  margin-top: 0.25rem;
+}
+.referral-artist-name {
+  font-weight: 600;
+  color: #2c3e50;
+}
+.referral-badge {
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.8rem;
+  display: inline-block;
+}
+
+/* Mini loading spinner inside referral input */
+.input-with-spinner {
+  padding-right: 3rem; /* space for spinner */
+}
+.input-spinner {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 100%;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Maintain existing Success icon and logo sizing */
 /* Success icon and logo sizing */
 .modal-success-icon { font-size: 3rem; }
 .page-success-icon { font-size: 3.5rem; }
