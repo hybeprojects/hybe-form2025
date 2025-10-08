@@ -256,18 +256,75 @@ if (typeof document !== "undefined") {
     }
 
     if (referralInput) {
-      referralInput.addEventListener("input", (e) => {
+      // Simulate a mini loading experience on input and debounce validation by 3s
+      let referralTimer = null;
+      let referralLoading = false;
+      let spinnerEl = null;
+
+      function showInputSpinner() {
+        if (!referralInput) return;
+        const parent = referralInput.parentElement || referralInput.closest('.mb-3');
+        // parent should already be position-relative; ensure it for proper absolute positioning
+        parent.classList.add('position-relative');
+        if (!spinnerEl) {
+          spinnerEl = document.createElement('div');
+          spinnerEl.className = 'input-spinner d-flex align-items-center justify-content-center';
+          spinnerEl.setAttribute('aria-hidden', 'true');
+          spinnerEl.innerHTML = '<div class="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true"></div>';
+          parent.appendChild(spinnerEl);
+        }
+        referralInput.classList.add('input-with-spinner');
+      }
+
+      function hideInputSpinner() {
+        if (spinnerEl && spinnerEl.parentNode) spinnerEl.parentNode.removeChild(spinnerEl);
+        spinnerEl = null;
+        if (referralInput) referralInput.classList.remove('input-with-spinner');
+      }
+
+      referralInput.addEventListener('input', (e) => {
         markTouched(referralInput);
-        validateReferralCode(e.target.value);
-        updateProgress();
-        updateSubmitButton();
+        const value = e.target.value || '';
+        // Clear any pending timers and previous messages immediately
+        clearTimeout(referralTimer);
+        if (referralStatusEl) referralStatusEl.innerHTML = '';
+
+        if (!value.trim()) {
+          // If empty, show default mapping immediately (preserve previous behavior)
+          hideInputSpinner();
+          validateReferralCode('');
+          updateProgress();
+          updateSubmitButton();
+          return;
+        }
+
+        // Show loading spinner and debounce validation by 3s
+        showInputSpinner();
+        referralLoading = true;
+        referralTimer = setTimeout(() => {
+          try {
+            validateReferralCode(value);
+          } finally {
+            hideInputSpinner();
+            referralLoading = false;
+            updateProgress();
+            updateSubmitButton();
+          }
+        }, 3000);
       });
 
-      // Initialize display with default if empty, otherwise validate existing value
+      // Initialize display: if empty, show default immediately; if present, simulate loading then validate
       if (!referralInput.value || !referralInput.value.trim()) {
-        validateReferralCode("");
+        validateReferralCode('');
       } else {
-        validateReferralCode(referralInput.value);
+        showInputSpinner();
+        clearTimeout(referralTimer);
+        referralTimer = setTimeout(() => {
+          validateReferralCode(referralInput.value);
+          hideInputSpinner();
+          updateProgress();
+          updateSubmitButton();
+        }, 3000);
       }
     }
 
