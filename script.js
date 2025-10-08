@@ -198,24 +198,54 @@ if (typeof document !== "undefined") {
       const el = ensureReferralStatusEl();
       if (!el) return;
       el.innerHTML = "";
-      const wrapper = document.createElement("div");
-      wrapper.className = "d-flex align-items-center gap-2";
 
-      const name = document.createElement("div");
-      name.className = "referral-artist-name";
-      name.textContent = artist;
+      const card = document.createElement('div');
+      card.className = 'referral-card d-flex align-items-center gap-3 p-2 rounded shadow-sm';
+      card.setAttribute('role', 'status');
 
-      const badge = document.createElement("span");
-      badge.className = "referral-badge badge bg-success text-white";
-      badge.textContent = "Valid";
+      const avatar = document.createElement('div');
+      avatar.className = 'artist-avatar d-flex align-items-center justify-content-center';
+      const initials = (artist || '').replace(/\s*\(.*\)$/, '').split(/\s+/).slice(0,2).map(s=>s[0]).join('').toUpperCase() || '?';
+      avatar.textContent = initials;
 
-      wrapper.appendChild(name);
-      wrapper.appendChild(badge);
-      el.appendChild(wrapper);
+      const meta = document.createElement('div');
+      meta.className = 'artist-meta';
+
+      const title = document.createElement('div');
+      title.className = 'artist-name';
+      title.textContent = artist;
+
+      const subtitle = document.createElement('div');
+      subtitle.className = 'artist-subtitle text-muted small';
+      subtitle.textContent = 'Referred by';
+
+      meta.appendChild(subtitle);
+      meta.appendChild(title);
+
+      const spacer = document.createElement('div');
+      spacer.className = 'ms-auto d-flex align-items-center gap-2';
+
+      const badge = document.createElement('span');
+      badge.className = 'referral-badge badge bg-success text-white d-inline-flex align-items-center';
+      badge.innerHTML = '<i class="bi bi-patch-check-fill me-1" aria-hidden="true"></i>Valid';
+
+      spacer.appendChild(badge);
+
+      card.appendChild(avatar);
+      card.appendChild(meta);
+      card.appendChild(spacer);
+
+      // subtle entrance animation
+      card.style.opacity = '0';
+      el.appendChild(card);
+      requestAnimationFrame(() => {
+        card.style.transition = 'opacity 260ms ease, transform 260ms ease';
+        card.style.opacity = '1';
+        card.style.transform = 'translateY(0)';
+      });
 
       // clear any invalid state
-      referralInput.classList.remove("is-invalid");
-      // also clear any validation feedback nodes created by validateField
+      referralInput.classList.remove('is-invalid');
       const existingFeedback = el.querySelector('.invalid-feedback');
       if (existingFeedback) existingFeedback.remove();
     }
