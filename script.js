@@ -574,9 +574,17 @@ if (typeof document !== "undefined") {
 
     function updateSubmitButton() {
       if (!submitBtn) return;
-      // Do not show errors when toggling the disabled state — check silently
+      // Keep the submit button clickable at all times so the user is directed to
+      // the first invalid field on submit. Validation still runs on submit.
       const isValid = isFormValidRealtime(false, false);
-      submitBtn.disabled = !isValid;
+      // Never actually disable the button (so it's always clickable). Use
+      // aria-disabled to communicate the state to assistive tech instead.
+      submitBtn.disabled = false;
+      if (!isValid) {
+        submitBtn.setAttribute('aria-disabled', 'true');
+      } else {
+        submitBtn.removeAttribute('aria-disabled');
+      }
     }
 
     branches.forEach((branch) => {
