@@ -1584,7 +1584,7 @@ if (typeof document !== "undefined") {
         }
         if (current < totalSteps) { current++; showStep(current); }
         else { // at review step, show confirm modal
-          try { fillConfirmDetails(); confirmModal?.show(); confirmModalShown = true; submissionConfirmed = false; } catch(e) { console.warn('confirm modal failed', e); }
+          try { fillConfirmDetails(); modalManager.show('confirmModal'); confirmModalShown = true; submissionConfirmed = false; } catch(e) { console.warn('confirm modal failed', e); }
         }
       });
 
