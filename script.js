@@ -14,7 +14,7 @@ if (typeof document !== "undefined") {
       try {
         const modal = new bootstrap.Modal(element, {
           backdrop: "static",
-          keyboard: false,
+          keyboard: true,
         });
         this.activeModals.set(modalId, modal);
         element.addEventListener(
@@ -1421,7 +1421,7 @@ if (typeof document !== "undefined") {
       }
 
       fillConfirmDetails();
-      confirmModal?.show();
+      modalManager.show('confirmModal');
       // Mark that the confirm modal was shown for this submission flow
       confirmModalShown = true;
       submissionConfirmed = false;
@@ -1438,9 +1438,144 @@ if (typeof document !== "undefined") {
 
     try {
       const onboardingModalInstance = modalManager.initialize("onboardingModal");
-      if (onboardingModalInstance) onboardingModalInstance.show();
+      const startBtn = document.getElementById('start-now-btn');
+      if (startBtn) startBtn.addEventListener('click', () => {
+        try { document.getElementById('subscription-form').scrollIntoView({ behavior: 'smooth' }); } catch {}
+      });
+      if (onboardingModalInstance) modalManager.show('onboardingModal');
     } catch {}
 
+    // Create and initialize a lightweight 4-step wizard grouping existing fields
+    function createWizard() {
+      const totalSteps = 4;
+      let current = 1;
+      const form = document.getElementById('subscription-form');
+      if (!form) return;
+      if (form.dataset.wizardInitialized) return;
+      form.dataset.wizardInitialized = 'true';
+
+      const findWrapper = (el) => {
+        if (!el) return null;
+        if (typeof el.closest === 'function' && el.closest('.mb-3')) return el.closest('.mb-3');
+        return el.parentElement || el;
+      };
+
+      const stepMap = {
+        1: ['referral-code','full-name','email','zangi-id','phone'],
+        2: ['address-section','country-select','dob','gender'],
+        3: ['branch','group','artist','subscription-amount','payment-type','installment-options','payment-methods','email-contact'],
+        4: ['feedback','installment-terms-wrapper','privacy-policy','subscription-agreement','submit-btn','submit-help-text']
+      };
+
+      // Build indicators and step containers
+      const indicators = document.createElement('div');
+      indicators.className = 'step-indicators d-flex justify-content-center mb-3';
+      indicators.id = 'wizard-step-indicators';
+      indicators.setAttribute('role','tablist');
+      ['Profile','Address','Preferences','Review'].forEach((label, i) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.id = `step-tab-${i+1}`;
+        btn.className = `btn btn-sm btn-light step-indicator${i===0? ' active' : ''}`;
+        btn.dataset.step = String(i+1);
+        btn.setAttribute('role','tab');
+        btn.setAttribute('aria-controls', `step-${i+1}`);
+        btn.setAttribute('aria-selected', i===0 ? 'true' : 'false');
+        btn.tabIndex = i===0?0:-1;
+        btn.textContent = label;
+        btn.addEventListener('click', () => showStep(i+1));
+        indicators.appendChild(btn);
+      });
+
+      const stepsContainer = document.createElement('div');
+      stepsContainer.className = 'form-steps';
+
+      for (let i=1;i<=totalSteps;i++){
+        const sec = document.createElement('section');
+        sec.className = 'step' + (i===1 ? '' : ' d-none');
+        sec.dataset.step = String(i);
+        sec.id = `step-${i}`;
+        sec.setAttribute('role','tabpanel');
+        sec.setAttribute('aria-labelledby', `step-tab-${i}`);
+        sec.setAttribute('aria-hidden', i===1 ? 'false' : 'true');
+        stepsContainer.appendChild(sec);
+      }
+
+      // Move elements into steps
+      for (let s=1;s<=totalSteps;s++){
+        const ids = stepMap[s] || [];
+        ids.forEach((id) => {
+          try{
+            let el = document.getElementById(id);
+            if (!el) el = form.querySelector(`[name="${id}"]`);
+            if (!el) return;
+            const wrapper = findWrapper(el);
+            const target = document.getElementById(`step-${s}`);
+            if (wrapper && target && wrapper !== target) target.appendChild(wrapper);
+            else if (el && target && el.parentElement !== target) target.appendChild(el);
+          }catch(e){ console.warn('move error', e); }
+        });
+      }
+
+      // Insert indicators and steps at top of form
+      form.insertBefore(indicators, form.firstChild);
+      form.insertBefore(stepsContainer, indicators.nextSibling);
+
+
+      const prevBtn = null; const nextBtn = null;
+
+      function updateWizardUI() {
+        for (let i=1;i<=totalSteps;i++){
+          const sEl = document.getElementById(`step-${i}`);
+          if (!sEl) continue;
+          const visible = i===current;
+          sEl.classList.toggle('d-none', !visible);
+          sEl.setAttribute('aria-hidden', visible ? 'false' : 'true');
+        }
+        document.querySelectorAll('.step-indicator').forEach((b)=>{
+          const isCurrent = Number(b.dataset.step)===current;
+          b.classList.toggle('active', isCurrent);
+          b.setAttribute('aria-selected', isCurrent ? 'true' : 'false');
+          b.tabIndex = isCurrent ? 0 : -1;
+          if (isCurrent) b.setAttribute('aria-current','true'); else b.removeAttribute('aria-current');
+        });
+        // progress UI updated via step indicators
+        // Update progress bar to reflect step progress
+        try{
+          const stepProgress = ((current-1)/(totalSteps-1))*100;
+          if (progressBar) { progressBar.style.width = `${stepProgress}%`; progressBar.setAttribute('aria-valuenow', String(Math.round(stepProgress))); }
+        }catch(e){}
+      }
+
+      function showStep(n){
+        if (!n || n<1) n=1; if (n>totalSteps) n=totalSteps;
+        current = n;
+        updateWizardUI();
+        // focus first input in step
+        const first = document.querySelector(`#step-${current} input, #step-${current} select, #step-${current} textarea, #step-${current} button`);
+        if (first && typeof first.focus === 'function') try{ first.focus({preventScroll:true}); }catch(e){}
+      }
+
+      function validateStep(stepNum){
+        const stepEl = document.getElementById(`step-${stepNum}`);
+        if (!stepEl) return true;
+        const requiredFields = Array.from(stepEl.querySelectorAll('[required]'));
+        let ok = true;
+        for (const f of requiredFields){
+          const res = validateField(f, true);
+          if (!res) { ok = false; }
+        }
+        return ok;
+      }
+
+      /* Back/Next controls removed; navigation handled via step indicators */
+
+
+      // initialize view
+      showStep(1);
+    }
+
+    try { createWizard(); } catch (e) { console.warn('Wizard init failed', e); }
     updateProgress();
     updateSubmitButton();
     // Ensure subscription amount and installment UI reflect initial selection
