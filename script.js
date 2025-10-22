@@ -1471,11 +1471,17 @@ if (typeof document !== "undefined") {
       const indicators = document.createElement('div');
       indicators.className = 'step-indicators d-flex justify-content-center mb-3';
       indicators.id = 'wizard-step-indicators';
+      indicators.setAttribute('role','tablist');
       ['Profile','Address','Preferences','Review'].forEach((label, i) => {
         const btn = document.createElement('button');
         btn.type = 'button';
+        btn.id = `step-tab-${i+1}`;
         btn.className = `btn btn-sm btn-light step-indicator${i===0? ' active' : ''}`;
         btn.dataset.step = String(i+1);
+        btn.setAttribute('role','tab');
+        btn.setAttribute('aria-controls', `step-${i+1}`);
+        btn.setAttribute('aria-selected', i===0 ? 'true' : 'false');
+        btn.tabIndex = i===0?0:-1;
         btn.textContent = label;
         btn.addEventListener('click', () => showStep(i+1));
         indicators.appendChild(btn);
@@ -1489,6 +1495,9 @@ if (typeof document !== "undefined") {
         sec.className = 'step' + (i===1 ? '' : ' d-none');
         sec.dataset.step = String(i);
         sec.id = `step-${i}`;
+        sec.setAttribute('role','tabpanel');
+        sec.setAttribute('aria-labelledby', `step-tab-${i}`);
+        sec.setAttribute('aria-hidden', i===1 ? 'false' : 'true');
         stepsContainer.appendChild(sec);
       }
 
@@ -1525,14 +1534,19 @@ if (typeof document !== "undefined") {
         for (let i=1;i<=totalSteps;i++){
           const sEl = document.getElementById(`step-${i}`);
           if (!sEl) continue;
-          if (i===current) sEl.classList.remove('d-none'); else sEl.classList.add('d-none');
+          const visible = i===current;
+          sEl.classList.toggle('d-none', !visible);
+          sEl.setAttribute('aria-hidden', visible ? 'false' : 'true');
         }
         document.querySelectorAll('.step-indicator').forEach((b)=>{
-          b.classList.toggle('active', Number(b.dataset.step)===current);
-          if (Number(b.dataset.step)===current) b.setAttribute('aria-current','true'); else b.removeAttribute('aria-current');
+          const isCurrent = Number(b.dataset.step)===current;
+          b.classList.toggle('active', isCurrent);
+          b.setAttribute('aria-selected', isCurrent ? 'true' : 'false');
+          b.tabIndex = isCurrent ? 0 : -1;
+          if (isCurrent) b.setAttribute('aria-current','true'); else b.removeAttribute('aria-current');
         });
-        if (prevBtn) prevBtn.disabled = current === 1;
-        if (nextBtn) nextBtn.textContent = current === totalSteps ? 'Review' : 'Next';
+        if (prevBtn) { prevBtn.disabled = current === 1; prevBtn.setAttribute('aria-disabled', String(current===1)); }
+        if (nextBtn) { nextBtn.textContent = current === totalSteps ? 'Review' : 'Next'; nextBtn.setAttribute('aria-disabled', String(false)); }
         // Update progress bar to reflect step progress
         try{
           const stepProgress = ((current-1)/(totalSteps-1))*100;
