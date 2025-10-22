@@ -1445,6 +1445,142 @@ if (typeof document !== "undefined") {
       if (onboardingModalInstance) onboardingModalInstance.show();
     } catch {}
 
+    // Create and initialize a lightweight 4-step wizard grouping existing fields
+    function createWizard() {
+      const totalSteps = 4;
+      let current = 1;
+      const form = document.getElementById('subscription-form');
+      if (!form) return;
+      if (form.dataset.wizardInitialized) return;
+      form.dataset.wizardInitialized = 'true';
+
+      const findWrapper = (el) => {
+        if (!el) return null;
+        if (typeof el.closest === 'function' && el.closest('.mb-3')) return el.closest('.mb-3');
+        return el.parentElement || el;
+      };
+
+      const stepMap = {
+        1: ['referral-code','full-name','email','zangi-id','phone'],
+        2: ['address-section','country-select','dob','gender'],
+        3: ['branch','group','artist','subscription-amount','payment-type','installment-options','payment-methods','email-contact'],
+        4: ['feedback','installment-terms-wrapper','privacy-policy','subscription-agreement','submit-btn','submit-help-text']
+      };
+
+      // Build indicators and step containers
+      const indicators = document.createElement('div');
+      indicators.className = 'step-indicators d-flex justify-content-center mb-3';
+      indicators.id = 'wizard-step-indicators';
+      ['Profile','Address','Preferences','Review'].forEach((label, i) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `btn btn-sm btn-light step-indicator${i===0? ' active' : ''}`;
+        btn.dataset.step = String(i+1);
+        btn.textContent = label;
+        btn.addEventListener('click', () => showStep(i+1));
+        indicators.appendChild(btn);
+      });
+
+      const stepsContainer = document.createElement('div');
+      stepsContainer.className = 'form-steps';
+
+      for (let i=1;i<=totalSteps;i++){
+        const sec = document.createElement('section');
+        sec.className = 'step' + (i===1 ? '' : ' d-none');
+        sec.dataset.step = String(i);
+        sec.id = `step-${i}`;
+        stepsContainer.appendChild(sec);
+      }
+
+      // Move elements into steps
+      for (let s=1;s<=totalSteps;s++){
+        const ids = stepMap[s] || [];
+        ids.forEach((id) => {
+          try{
+            let el = document.getElementById(id);
+            if (!el) el = form.querySelector(`[name="${id}"]`);
+            if (!el) return;
+            const wrapper = findWrapper(el);
+            const target = document.getElementById(`step-${s}`);
+            if (wrapper && target && wrapper !== target) target.appendChild(wrapper);
+            else if (el && target && el.parentElement !== target) target.appendChild(el);
+          }catch(e){ console.warn('move error', e); }
+        });
+      }
+
+      // Insert indicators and steps at top of form
+      form.insertBefore(indicators, form.firstChild);
+      form.insertBefore(stepsContainer, indicators.nextSibling);
+
+      // Add nav controls
+      const nav = document.createElement('div');
+      nav.className = 'd-flex gap-2 mt-3 wizard-nav';
+      nav.innerHTML = '<button type="button" class="btn btn-outline-secondary" id="prev-btn" disabled>Back</button><button type="button" class="btn btn-primary ms-auto" id="next-btn">Next</button>';
+      form.appendChild(nav);
+
+      const prevBtn = document.getElementById('prev-btn');
+      const nextBtn = document.getElementById('next-btn');
+
+      function updateWizardUI() {
+        for (let i=1;i<=totalSteps;i++){
+          const sEl = document.getElementById(`step-${i}`);
+          if (!sEl) continue;
+          if (i===current) sEl.classList.remove('d-none'); else sEl.classList.add('d-none');
+        }
+        document.querySelectorAll('.step-indicator').forEach((b)=>{
+          b.classList.toggle('active', Number(b.dataset.step)===current);
+          if (Number(b.dataset.step)===current) b.setAttribute('aria-current','true'); else b.removeAttribute('aria-current');
+        });
+        if (prevBtn) prevBtn.disabled = current === 1;
+        if (nextBtn) nextBtn.textContent = current === totalSteps ? 'Review' : 'Next';
+        // Update progress bar to reflect step progress
+        try{
+          const stepProgress = ((current-1)/(totalSteps-1))*100;
+          if (progressBar) { progressBar.style.width = `${stepProgress}%`; progressBar.setAttribute('aria-valuenow', String(Math.round(stepProgress))); }
+        }catch(e){}
+      }
+
+      function showStep(n){
+        if (!n || n<1) n=1; if (n>totalSteps) n=totalSteps;
+        current = n;
+        updateWizardUI();
+        // focus first input in step
+        const first = document.querySelector(`#step-${current} input, #step-${current} select, #step-${current} textarea, #step-${current} button`);
+        if (first && typeof first.focus === 'function') try{ first.focus({preventScroll:true}); }catch(e){}
+      }
+
+      function validateStep(stepNum){
+        const stepEl = document.getElementById(`step-${stepNum}`);
+        if (!stepEl) return true;
+        const requiredFields = Array.from(stepEl.querySelectorAll('[required]'));
+        let ok = true;
+        for (const f of requiredFields){
+          const res = validateField(f, true);
+          if (!res) { ok = false; }
+        }
+        return ok;
+      }
+
+      nextBtn && nextBtn.addEventListener('click', ()=>{
+        // validate current step
+        if (!validateStep(current)) {
+          const invalid = document.querySelector(`#step-${current} .is-invalid, #step-${current} [aria-invalid="true"]`);
+          if (invalid && typeof invalid.focus === 'function') try{ invalid.focus(); }catch(e){}
+          return;
+        }
+        if (current < totalSteps) { current++; showStep(current); }
+        else { // at review step, show confirm modal
+          try { fillConfirmDetails(); confirmModal?.show(); confirmModalShown = true; submissionConfirmed = false; } catch(e) { console.warn('confirm modal failed', e); }
+        }
+      });
+
+      prevBtn && prevBtn.addEventListener('click', ()=>{ if (current>1){ current--; showStep(current); } });
+
+      // initialize view
+      showStep(1);
+    }
+
+    try { createWizard(); } catch (e) { console.warn('Wizard init failed', e); }
     updateProgress();
     updateSubmitButton();
     // Ensure subscription amount and installment UI reflect initial selection
