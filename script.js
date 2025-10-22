@@ -14,7 +14,7 @@ if (typeof document !== "undefined") {
       try {
         const modal = new bootstrap.Modal(element, {
           backdrop: "static",
-          keyboard: false,
+          keyboard: true,
         });
         this.activeModals.set(modalId, modal);
         element.addEventListener(
