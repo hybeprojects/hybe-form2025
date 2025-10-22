@@ -1438,6 +1438,10 @@ if (typeof document !== "undefined") {
 
     try {
       const onboardingModalInstance = modalManager.initialize("onboardingModal");
+      const startBtn = document.getElementById('start-now-btn');
+      if (startBtn) startBtn.addEventListener('click', () => {
+        try { document.getElementById('subscription-form').scrollIntoView({ behavior: 'smooth' }); } catch {}
+      });
       if (onboardingModalInstance) onboardingModalInstance.show();
     } catch {}
 
