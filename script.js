@@ -1421,7 +1421,7 @@ if (typeof document !== "undefined") {
       }
 
       fillConfirmDetails();
-      confirmModal?.show();
+      modalManager.show('confirmModal');
       // Mark that the confirm modal was shown for this submission flow
       confirmModalShown = true;
       submissionConfirmed = false;
