@@ -781,3 +781,23 @@ footer a[lang="ko"] {
 .modal-success-icon { font-size: 3rem; }
 .page-success-icon { font-size: 3.5rem; }
 .success-logo { max-width: 120px; }
+
+/* Site header and utility polish */
+.site-header { background: #fff; z-index: 1030; }
+.site-header .header-brand { text-decoration: none; }
+.site-header .header-logo { max-width: 160px; height: auto; display: inline-block; }
+
+/* Global toast container (moved inline styles into CSS) */
+.global-toast-container { z-index: 1080; min-width: 320px; }
+
+/* Phone prefix styling that used to be inline */
+.phone-prefix { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+
+/* Subscription amount gradient treatment moved to a class */
+.subscription-amount-value {
+  font-size: 1.5rem;
+  background: var(--primary-gradient);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
