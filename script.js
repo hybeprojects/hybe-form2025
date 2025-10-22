@@ -1442,7 +1442,7 @@ if (typeof document !== "undefined") {
       if (startBtn) startBtn.addEventListener('click', () => {
         try { document.getElementById('subscription-form').scrollIntoView({ behavior: 'smooth' }); } catch {}
       });
-      if (onboardingModalInstance) onboardingModalInstance.show();
+      if (onboardingModalInstance) modalManager.show('onboardingModal');
     } catch {}
 
     // Create and initialize a lightweight 4-step wizard grouping existing fields
