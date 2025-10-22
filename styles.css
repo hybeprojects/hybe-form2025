@@ -801,3 +801,16 @@ footer a[lang="ko"] {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+/* Wizard / Step styles */
+.step { margin-bottom: 1rem; }
+.step-indicators .step-indicator { margin: 0 6px; border-radius: 999px; }
+.step-indicators .step-indicator.active { background: var(--primary-gradient); color: #fff; border-color: transparent; }
+.wizard-nav { margin-top: 1rem; }
+.wizard-nav #prev-btn { min-width: 110px; }
+.wizard-nav #next-btn { min-width: 110px; }
+@media (max-width: 576px) {
+  .step-indicators { gap: 8px; flex-wrap: wrap; }
+  .wizard-nav { gap: 8px; }
+  .wizard-nav .btn { flex: 1 1 auto; }
+}
