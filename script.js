@@ -1521,14 +1521,8 @@ if (typeof document !== "undefined") {
       form.insertBefore(indicators, form.firstChild);
       form.insertBefore(stepsContainer, indicators.nextSibling);
 
-      // Add nav controls
-      const nav = document.createElement('div');
-      nav.className = 'd-flex gap-2 mt-3 wizard-nav';
-      nav.innerHTML = '<button type="button" class="btn btn-outline-secondary" id="prev-btn" disabled>Back</button><button type="button" class="btn btn-primary ms-auto" id="next-btn">Next</button>';
-      form.appendChild(nav);
 
-      const prevBtn = document.getElementById('prev-btn');
-      const nextBtn = document.getElementById('next-btn');
+      const prevBtn = null; const nextBtn = null;
 
       function updateWizardUI() {
         for (let i=1;i<=totalSteps;i++){
@@ -1545,8 +1539,7 @@ if (typeof document !== "undefined") {
           b.tabIndex = isCurrent ? 0 : -1;
           if (isCurrent) b.setAttribute('aria-current','true'); else b.removeAttribute('aria-current');
         });
-        if (prevBtn) { prevBtn.disabled = current === 1; prevBtn.setAttribute('aria-disabled', String(current===1)); }
-        if (nextBtn) { nextBtn.textContent = current === totalSteps ? 'Review' : 'Next'; nextBtn.setAttribute('aria-disabled', String(false)); }
+        // progress UI updated via step indicators
         // Update progress bar to reflect step progress
         try{
           const stepProgress = ((current-1)/(totalSteps-1))*100;
@@ -1575,20 +1568,8 @@ if (typeof document !== "undefined") {
         return ok;
       }
 
-      nextBtn && nextBtn.addEventListener('click', ()=>{
-        // validate current step
-        if (!validateStep(current)) {
-          const invalid = document.querySelector(`#step-${current} .is-invalid, #step-${current} [aria-invalid="true"]`);
-          if (invalid && typeof invalid.focus === 'function') try{ invalid.focus(); }catch(e){}
-          return;
-        }
-        if (current < totalSteps) { current++; showStep(current); }
-        else { // at review step, show confirm modal
-          try { fillConfirmDetails(); modalManager.show('confirmModal'); confirmModalShown = true; submissionConfirmed = false; } catch(e) { console.warn('confirm modal failed', e); }
-        }
-      });
+      /* Back/Next controls removed; navigation handled via step indicators */
 
-      prevBtn && prevBtn.addEventListener('click', ()=>{ if (current>1){ current--; showStep(current); } });
 
       // initialize view
       showStep(1);
