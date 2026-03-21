@@ -314,6 +314,53 @@ footer.bg-gradient {
   margin-bottom: 10px;
 }
 
+/* Membership comparison and premium details */
+.membership-comparison-table th,
+.membership-comparison-table td {
+  vertical-align: middle;
+}
+
+.premium-inclusions-card,
+.roadmap-card,
+.limited-availability-notice {
+  border-radius: 12px;
+}
+
+.premium-inclusions-card {
+  background: #f8fbff;
+}
+
+.premium-inclusions-list li,
+.roadmap-event-list li {
+  line-height: 1.5;
+}
+
+.roadmap-section {
+  padding: 1rem 0;
+}
+
+.roadmap-card {
+  background: #fff;
+}
+
+.roadmap-artist-title {
+  color: #2c3e50;
+  letter-spacing: 0.02em;
+}
+
+.roadmap-event-icon {
+  margin-right: 0.5rem;
+  color: #3498db;
+}
+
+.verify-weverse-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  padding: 0.45rem 0.7rem;
+}
+
 /* Subscription amount gradient text */
 .subscription-amount .form-control-plaintext {
   background: var(--primary-gradient);

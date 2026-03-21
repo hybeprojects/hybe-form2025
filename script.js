@@ -405,12 +405,12 @@ if (typeof document !== "undefined") {
         "BAEK JIHEON",
       ],
       ENHYPEN: [
-        "JUNGWON",
         "HEESEUNG",
         "JAY",
         "JAKE",
         "SUNGHOON",
         "SUNOO",
+        "JUNGWON",
         "NI-KI",
       ],
       ILLIT: ["YUNAH", "MINJU", "MOKA", "WONHEE", "IROHA"],
