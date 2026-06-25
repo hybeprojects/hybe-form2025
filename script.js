@@ -437,6 +437,214 @@ if (typeof document !== "undefined") {
     let confirmModalShown = false;
     let submissionConfirmed = false;
 
+    // OTP Verification Handler
+    let otpVerificationToken = null;
+    let otpVerifiedEmail = null;
+    let otpResendTimer = null;
+
+    const initializeOTPModal = () => {
+      const otpModal = modalManager.initialize("otpModal");
+      const emailInput = document.getElementById("otp-email-input");
+      const codeInput = document.getElementById("otp-code-input");
+      const sendBtn = document.getElementById("otp-send-btn");
+      const verifyBtn = document.getElementById("otp-verify-btn");
+      const resendBtn = document.getElementById("otp-resend-btn");
+      const changeEmailBtn = document.getElementById("otp-change-email-btn");
+      const continueBtn = document.getElementById("otp-continue-btn");
+
+      const emailStep = document.getElementById("otp-email-step");
+      const codeStep = document.getElementById("otp-code-step");
+      const successStep = document.getElementById("otp-success-step");
+
+      const handleOTPResponse = (success, message, step) => {
+        const errorEl = document.getElementById(`otp-${step}-error`);
+        const messageEl = document.getElementById(`otp-${step}-message`);
+
+        if (success) {
+          if (messageEl) {
+            messageEl.textContent = message;
+            messageEl.classList.remove("d-none");
+          }
+          if (errorEl) errorEl.classList.add("d-none");
+        } else {
+          if (errorEl) {
+            errorEl.textContent = message;
+            errorEl.classList.remove("d-none");
+          }
+          if (messageEl) messageEl.classList.add("d-none");
+        }
+      };
+
+      const showOTPStep = (step) => {
+        emailStep.classList.toggle("d-none", step !== "email");
+        codeStep.classList.toggle("d-none", step !== "code");
+        successStep.classList.toggle("d-none", step !== "success");
+      };
+
+      const startResendTimer = () => {
+        if (resendBtn) {
+          resendBtn.disabled = true;
+          let countdown = 30;
+          const timerEl = document.getElementById("otp-resend-timer");
+          if (timerEl) timerEl.textContent = countdown;
+
+          otpResendTimer = setInterval(() => {
+            countdown--;
+            if (timerEl) timerEl.textContent = countdown;
+            if (countdown <= 0) {
+              clearInterval(otpResendTimer);
+              resendBtn.disabled = false;
+            }
+          }, 1000);
+        }
+      };
+
+      // Send OTP
+      if (sendBtn) {
+        sendBtn.addEventListener("click", async () => {
+          const email = emailInput.value.trim();
+
+          if (!email) {
+            handleOTPResponse(false, "Please enter your email address", "email");
+            return;
+          }
+
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(email)) {
+            handleOTPResponse(false, "Please enter a valid email address", "email");
+            return;
+          }
+
+          const btnText = sendBtn.querySelector(".btn-text");
+          const spinner = sendBtn.querySelector(".spinner-border");
+          if (btnText) btnText.classList.add("d-none");
+          if (spinner) spinner.classList.remove("d-none");
+          sendBtn.disabled = true;
+
+          try {
+            const response = await fetch("/api/otp/send", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+              otpVerifiedEmail = email;
+              document.getElementById("otp-display-email").textContent = email;
+              showOTPStep("code");
+              startResendTimer();
+              codeInput.focus();
+            } else {
+              handleOTPResponse(false, data.error || "Failed to send OTP", "email");
+            }
+          } catch (error) {
+            console.error("OTP send error:", error);
+            handleOTPResponse(false, "Network error. Please try again.", "email");
+          } finally {
+            if (btnText) btnText.classList.remove("d-none");
+            if (spinner) spinner.classList.add("d-none");
+            sendBtn.disabled = false;
+          }
+        });
+      }
+
+      // Verify OTP
+      if (verifyBtn) {
+        verifyBtn.addEventListener("click", async () => {
+          const code = codeInput.value.trim();
+
+          if (!code || code.length !== 6 || !/^\d+$/.test(code)) {
+            handleOTPResponse(false, "Please enter a valid 6-digit code", "code");
+            return;
+          }
+
+          const btnText = verifyBtn.querySelector(".btn-text");
+          const spinner = verifyBtn.querySelector(".spinner-border");
+          if (btnText) btnText.classList.add("d-none");
+          if (spinner) spinner.classList.remove("d-none");
+          verifyBtn.disabled = true;
+
+          try {
+            const response = await fetch("/api/otp/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: otpVerifiedEmail, otp_code: code }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+              otpVerificationToken = data.token;
+              showOTPStep("success");
+            } else {
+              handleOTPResponse(false, data.error || "Failed to verify OTP", "code");
+            }
+          } catch (error) {
+            console.error("OTP verify error:", error);
+            handleOTPResponse(false, "Network error. Please try again.", "code");
+          } finally {
+            if (btnText) btnText.classList.remove("d-none");
+            if (spinner) spinner.classList.add("d-none");
+            verifyBtn.disabled = false;
+          }
+        });
+      }
+
+      // Resend OTP
+      if (resendBtn) {
+        resendBtn.addEventListener("click", async () => {
+          sendBtn.click();
+          document.getElementById("otp-resend-wrapper").classList.add("d-none");
+        });
+      }
+
+      // Change Email
+      if (changeEmailBtn) {
+        changeEmailBtn.addEventListener("click", () => {
+          if (otpResendTimer) clearInterval(otpResendTimer);
+          emailInput.value = "";
+          codeInput.value = "";
+          document.getElementById("otp-email-error").classList.add("d-none");
+          document.getElementById("otp-code-error").classList.add("d-none");
+          document.getElementById("otp-send-message").classList.add("d-none");
+          document.getElementById("otp-verify-message").classList.add("d-none");
+          document.getElementById("otp-resend-wrapper").classList.add("d-none");
+          showOTPStep("email");
+          emailInput.focus();
+        });
+      }
+
+      // Continue from success
+      if (continueBtn) {
+        continueBtn.addEventListener("click", () => {
+          if (otpResendTimer) clearInterval(otpResendTimer);
+          modalManager.hide("otpModal");
+        });
+      }
+
+      // Allow numeric-only input for OTP code
+      if (codeInput) {
+        codeInput.addEventListener("input", (e) => {
+          e.target.value = e.target.value.replace(/\D/g, "").slice(0, 6);
+        });
+
+        codeInput.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") verifyBtn.click();
+        });
+      }
+
+      // Allow enter key for email step
+      if (emailInput) {
+        emailInput.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") sendBtn.click();
+        });
+      }
+    };
+
+    initializeOTPModal();
+
     const branches = [
       { name: "BigHit Music", groups: ["BTS", "TXT"] },
       { name: "PLEDIS Entertainment", groups: ["SEVENTEEN", "fromis_9"] },
