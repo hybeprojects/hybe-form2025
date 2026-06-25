@@ -134,6 +134,87 @@
       </div>
     </noscript>
 
+    <!-- Email Verification (OTP) Modal -->
+    <div
+      class="modal fade"
+      id="otpModal"
+      tabindex="-1"
+      aria-labelledby="otpModalLabel"
+      role="dialog"
+      aria-modal="true"
+      aria-hidden="true"
+      data-bs-backdrop="static"
+      data-bs-keyboard="false"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="otpModalLabel">Verify Your Email</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="otp-modal-close" disabled></button>
+          </div>
+          <div class="modal-body">
+            <div id="otp-email-step">
+              <p class="text-muted mb-3">Enter your email address to receive a verification code.</p>
+              <div class="mb-3">
+                <label for="otp-email-input" class="form-label">Email Address</label>
+                <input
+                  type="email"
+                  class="form-control"
+                  id="otp-email-input"
+                  placeholder="your@email.com"
+                  required
+                />
+                <div id="otp-email-error" class="text-danger small mt-1 d-none"></div>
+              </div>
+              <button type="button" class="btn btn-primary w-100" id="otp-send-btn">
+                <span class="btn-text">Send Verification Code</span>
+                <span class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
+              </button>
+              <div id="otp-send-message" class="alert alert-info mt-3 d-none" role="alert"></div>
+              <div id="otp-resend-wrapper" class="text-center mt-3 d-none">
+                <small class="text-muted">Didn't receive the code? </small>
+                <button type="button" class="btn btn-link btn-sm p-0" id="otp-resend-btn" disabled>Resend in <span id="otp-resend-timer">30</span>s</button>
+              </div>
+            </div>
+
+            <div id="otp-code-step" class="d-none">
+              <p class="text-muted mb-3">Enter the 6-digit code we sent to <strong id="otp-display-email"></strong></p>
+              <div class="mb-3">
+                <label for="otp-code-input" class="form-label">Verification Code</label>
+                <input
+                  type="text"
+                  class="form-control form-control-lg text-center"
+                  id="otp-code-input"
+                  placeholder="000000"
+                  maxlength="6"
+                  inputmode="numeric"
+                  required
+                />
+                <div id="otp-code-error" class="text-danger small mt-1 d-none"></div>
+              </div>
+              <button type="button" class="btn btn-primary w-100" id="otp-verify-btn">
+                <span class="btn-text">Verify Code</span>
+                <span class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
+              </button>
+              <div id="otp-verify-message" class="alert alert-info mt-3 d-none" role="alert"></div>
+              <div class="text-center mt-3">
+                <button type="button" class="btn btn-link btn-sm p-0" id="otp-change-email-btn">Use a different email</button>
+              </div>
+            </div>
+
+            <div id="otp-success-step" class="d-none text-center">
+              <div class="mb-3">
+                <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+              </div>
+              <h6 class="mb-2">Email Verified!</h6>
+              <p class="text-muted small">Your email has been verified. You can now proceed with the form.</p>
+              <button type="button" class="btn btn-primary w-100" id="otp-continue-btn">Continue</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Onboarding Intro Modal -->
     <div
       class="modal fade"

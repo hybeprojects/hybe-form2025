@@ -23,6 +23,16 @@
   status = 200
 
 [[redirects]]
+  from = "/api/otp/send"
+  to = "/.netlify/functions/otp-send"
+  status = 200
+
+[[redirects]]
+  from = "/api/otp/verify"
+  to = "/.netlify/functions/otp-verify"
+  status = 200
+
+[[redirects]]
   from = "/submit-form"
   to = "/.netlify/functions/submit-form"
   status = 200

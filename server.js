@@ -1,9 +1,12 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const { generateCSPHeader } = require(path.join(__dirname, "lib/security.js"));
+const { generateCSPHeader, validateEmailDomain } = require(path.join(__dirname, "lib/security.js"));
+const { createOTPRecord, sendOTPEmail, verifyOTP } = require(path.join(__dirname, "lib/otp-service.js"));
+const { supabase } = require(path.join(__dirname, "lib/supabaseClient.js"));
 
 const app = express();
 app.set("trust proxy", 1);
@@ -95,7 +98,7 @@ function sanitizeInput(input) {
 }
 
 // Simple form submission endpoint
-app.post("/submit-form", upload.none(), (req, res) => {
+app.post("/submit-form", upload.none(), async (req, res) => {
   try {
     const sanitizedData = {};
     for (const [key, value] of Object.entries(req.body)) {
@@ -115,6 +118,18 @@ app.post("/submit-form", upload.none(), (req, res) => {
       return res
         .status(400)
         .json({ success: false, message: "Invalid email format" });
+    }
+
+    // Verify OTP token if Supabase is configured
+    if (supabase && sanitizedData.otp_token) {
+      try {
+        const decoded = JSON.parse(Buffer.from(sanitizedData.otp_token, "base64").toString());
+        if (decoded.email !== sanitizedData.email || !decoded.verified) {
+          return res.status(401).json({ success: false, message: "Invalid or expired verification token" });
+        }
+      } catch (e) {
+        return res.status(401).json({ success: false, message: "Invalid verification token" });
+      }
     }
 
     console.log("Form submission received:", sanitizedData);
@@ -185,6 +200,76 @@ app.post("/submit-form", upload.none(), (req, res) => {
   } catch (error) {
     console.error("Form processing error:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
+  }
+});
+
+// OTP Endpoints
+// POST /api/otp/send - Request OTP code
+app.post("/api/otp/send", async (req, res) => {
+  try {
+    if (!supabase) {
+      return res.status(503).json({ success: false, error: "OTP service not configured" });
+    }
+
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ success: false, error: "Email is required" });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ success: false, error: "Invalid email format" });
+    }
+
+    const domainValidation = validateEmailDomain(email);
+    if (!domainValidation.valid) {
+      return res.status(400).json({ success: false, error: domainValidation.error });
+    }
+
+    const { otp, record } = await createOTPRecord(email, supabase);
+    await sendOTPEmail(email, otp);
+
+    res.status(200).json({
+      success: true,
+      message: "OTP sent to your email. Check your inbox and spam folder.",
+      expiresAt: record.expires_at,
+    });
+  } catch (error) {
+    console.error("OTP send error:", error);
+    res.status(500).json({ success: false, error: "Failed to send OTP" });
+  }
+});
+
+// POST /api/otp/verify - Verify OTP code
+app.post("/api/otp/verify", async (req, res) => {
+  try {
+    if (!supabase) {
+      return res.status(503).json({ success: false, error: "OTP service not configured" });
+    }
+
+    const { email, otp_code } = req.body;
+
+    if (!email || !otp_code) {
+      return res.status(400).json({ success: false, error: "Email and OTP code are required" });
+    }
+
+    const result = await verifyOTP(email, otp_code, supabase);
+
+    if (!result.success) {
+      return res.status(400).json({ success: false, error: result.error });
+    }
+
+    const token = Buffer.from(JSON.stringify({ email, verified: true, timestamp: Date.now() })).toString("base64");
+
+    res.status(200).json({
+      success: true,
+      message: "Email verified successfully",
+      token,
+    });
+  } catch (error) {
+    console.error("OTP verify error:", error);
+    res.status(500).json({ success: false, error: "Failed to verify OTP" });
   }
 });
 

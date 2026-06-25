@@ -157,6 +157,26 @@ exports.handler = async (event) => {
     };
   }
 
+  // Verify OTP token if provided
+  if (sanitized.otp_token) {
+    try {
+      const decoded = JSON.parse(Buffer.from(sanitized.otp_token, "base64").toString());
+      if (decoded.email !== sanitized.email || !decoded.verified) {
+        return {
+          statusCode: 401,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ success: false, message: "Invalid or expired verification token" }),
+        };
+      }
+    } catch (e) {
+      return {
+        statusCode: 401,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ success: false, message: "Invalid verification token" }),
+      };
+    }
+  }
+
   // Non-destructive processing (no DB/email here)
   const response = {
     success: true,
